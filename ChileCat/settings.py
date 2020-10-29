@@ -40,14 +40,15 @@ INSTALLED_APPS = [
     'Ask',
     'User',
     'Career',
-    'Manage'
+    'Manage',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -122,3 +123,34 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# CORS
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
+# 跨域允许的请求方式(可选)
+# CORS_ALLOW_METHODS = (
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# )
+# 跨域允许的头部参数(可选)
+CORS_ALLOW_HEADERS = (
+    # 'XMLHttpRequest',
+    # 'X_FILENAME',
+    # 'accept-encoding',
+    # 'authorization',
+    # 'content-type',
+    # 'dnt',
+    # 'origin',
+    # 'user-agent',
+    # 'x-csrftoken',
+    # 'x-requested-with',
+    # 'Pragma',
+    'access-control-allow-origin',
+    # 'Access-Control-Allow-Origin',
+    'token',
+)
