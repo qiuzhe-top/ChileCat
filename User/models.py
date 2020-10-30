@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class User(models.Model):
-
+    
     user_name = models.CharField(max_length=20,verbose_name="用户名")
     pass_word = models.CharField(max_length = 20,verbose_name="用户密码")
 
@@ -50,8 +50,9 @@ class UserInfo(models.Model):
 class StudentInfo(models.Model):
 
     student_id = models.CharField(max_length = 20,verbose_name="学号")
-    grade_id = models.CharField(max_length = 20,verbose_name="班级号")
-    user_id = models.OneToOneField("User", verbose_name=_(""), on_delete=models.CASCADE)
+    # grade_id = models.CharField(max_length = 20,verbose_name="班级号") 文档错误 应该为外键 对应一个班级
+    grade_id = models.OneToOneField("Grade", on_delete=models.CASCADE)
+    user_id = models.OneToOneField("User", verbose_name=_("用户"), on_delete=models.CASCADE)
     
     def __str__(self):
         return student_id
@@ -66,7 +67,7 @@ class TeacherInfo(models.Model):
 
     fieldName = models.CharField(max_length = 150)
     teacher_extra_info = models.CharField(verbose_name=_("老师额外信息"), max_length=50)
-    
+    user_id = models.OneToOneField("User", verbose_name=_("用户"), on_delete=models.CASCADE) # 教师信息还是和用户绑定
 
     def __str__(self):
         pass
