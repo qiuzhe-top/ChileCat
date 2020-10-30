@@ -13,11 +13,8 @@ class Career(models.Model):
     
 
     class Meta:
-        verbose_name = _("Career")
-        verbose_name_plural = _("Careers")
+        verbose_name = _("就业信息表")
+        verbose_name_plural = _("就业信息表")
 
     def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse("Career_detail", kwargs={"pk": self.pk})
+        return self.title
