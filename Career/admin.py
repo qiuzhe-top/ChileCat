@@ -1,3 +1,10 @@
 from django.contrib import admin
 from .models import *
-# Register your models here.
+
+# @admin.register(User)
+# class UserTeleAdmin(admin.ModelAdmin):
+#     list_display = ('id','user_name','pass_word')
+
+# @admin.register(Token)
+# class TokenTeleAdmin(admin.ModelAdmin):
+#     list_display = ('id','token','wx_token')
