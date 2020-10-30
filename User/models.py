@@ -118,7 +118,7 @@ class Permission(models.Model):
     #权限
     auth = (
         ("common","普通"),
-        ("amdin","管理员")
+        ("amdin","管理员"),
     )
     name = models.CharField(max_length = 20,verbose_name = "权限",choices = auth,default = "common")
     message = models.CharField(max_length = 50,verbose_name = "描述")
