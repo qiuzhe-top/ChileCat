@@ -7,7 +7,7 @@ class User(models.Model):
     pass_word = models.CharField(max_length = 20,verbose_name="用户密码")
 
     def __str__(self):
-        return user_name
+        return self.user_name
 
     class Meta:
         db_table = ''
@@ -22,7 +22,7 @@ class Token(models.Model):
     user_id = models.OneToOneField("User", on_delete=models.CASCADE)
     
     def __str__(self):
-        return token
+        return self.token
 
     class Meta:
         db_table = ''
@@ -39,7 +39,7 @@ class UserInfo(models.Model):
     
 
     def __str__(self):
-        return name
+        return self.name
 
     class Meta:
         db_table = ''
@@ -51,10 +51,10 @@ class StudentInfo(models.Model):
 
     student_id = models.CharField(max_length = 20,verbose_name="学号")
     grade_id = models.CharField(max_length = 20,verbose_name="班级号")
-    user_id = models.OneToOneField("User", verbose_name=_(""), on_delete=models.CASCADE)
+    user_id = models.OneToOneField("User", verbose_name = "用户id", on_delete=models.CASCADE)
     
     def __str__(self):
-        return student_id
+        return self.student_id
 
     class Meta:
         db_table = ''
@@ -65,7 +65,7 @@ class StudentInfo(models.Model):
 class TeacherInfo(models.Model):
 
     fieldName = models.CharField(max_length = 150)
-    teacher_extra_info = models.CharField(verbose_name=_("老师额外信息"), max_length=50)
+    teacher_extra_info = models.CharField(verbose_name="老师额外信息", max_length=50)
     
 
     def __str__(self):
@@ -84,8 +84,8 @@ class TeacherForGrade(models.Model):
     
 
     class Meta:
-        verbose_name = _("教师班级关系")
-        verbose_name_plural = _("教师班级关系")
+        verbose_name = "教师班级关系"
+        verbose_name_plural = "教师班级关系"
 
 
 class Grade(models.Model):
@@ -96,8 +96,8 @@ class Grade(models.Model):
     
 
     class Meta:
-        verbose_name = _("班级")
-        verbose_name_plural = _("班级")
+        verbose_name = "班级"
+        verbose_name_plural = "班级"
 
     def __str__(self):
         return self.name
@@ -107,8 +107,8 @@ class College(models.Model):
     name = models.CharField(max_length = 50,verbose_name = "学院名称")
 
     class Meta:
-        verbose_name = _("college")
-        verbose_name_plural = _("colleges")
+        verbose_name = "分院"
+        verbose_name_plural = "分院"
 
     def __str__(self):
         return self.name
@@ -125,8 +125,8 @@ class Permission(models.Model):
         
 
     class Meta:
-        verbose_name = _("权限")
-        verbose_name_plural = _("权限")
+        verbose_name = "权限"
+        verbose_name_plural = "权限"
 
     def __str__(self):  
         return self.name
@@ -138,6 +138,6 @@ class UserForPermission(models.Model):
     
 
     class Meta:
-        verbose_name = _("用户权限表")
-        verbose_name_plural = _("用户权限表")
+        verbose_name = "用户权限表"
+        verbose_name_plural = "用户权限表"
 

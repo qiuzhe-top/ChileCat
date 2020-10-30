@@ -13,8 +13,8 @@ class Career(models.Model):
     
 
     class Meta:
-        verbose_name = _("就业信息表")
-        verbose_name_plural = _("就业信息表")
+        verbose_name = "就业信息表"
+        verbose_name_plural = "就业信息表"
 
     def __str__(self):
         return self.title

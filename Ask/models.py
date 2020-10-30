@@ -23,8 +23,8 @@ class Ask(models.Model):
     modify_time = models.TimeField(auto_now=False, auto_now_add=False,verbose_name = "修改时间")
     
     class Meta:
-        verbose_name = _("请假条")
-        verbose_name_plural = _("请假条")
+        verbose_name = "请假条"
+        verbose_name_plural = "请假条"
 
 class Audit(models.Model):
 
@@ -37,5 +37,5 @@ class Audit(models.Model):
     
 
     class Meta:
-        verbose_name = _("审核情况表")
-        verbose_name_plural = _("审核情况表")
+        verbose_name = "审核情况表"
+        verbose_name_plural = "审核情况表"
