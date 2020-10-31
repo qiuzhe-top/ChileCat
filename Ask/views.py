@@ -5,7 +5,7 @@ class LeaveType(APIView):
     def post(self, request): 
         ret = {}
         ret['code'] = '2000'
-        ret['message'] = '提示信息'
+        ret['message'] = '提示信息1'
         ret['data'] = 'data'
     def get(self,request):
         ret = {}
