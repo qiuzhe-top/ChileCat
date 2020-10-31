@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # 跨域
+    'django.middleware.common.CommonMiddleware',  # 跨域
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -128,15 +130,9 @@ STATIC_URL = '/static/'
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_WHITELIST = ( '*')#跨域增加忽略
 # 跨域允许的请求方式(可选)
-# CORS_ALLOW_METHODS = (
-#     'DELETE',
-#     'GET',
-#     'OPTIONS',
-#     'PATCH',
-#     'POST',
-#     'PUT',
-# )
+CORS_ALLOW_METHODS = ( 'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'VIEW', )
 # 跨域允许的头部参数(可选)
 CORS_ALLOW_HEADERS = (
     # 'XMLHttpRequest',
@@ -150,7 +146,7 @@ CORS_ALLOW_HEADERS = (
     # 'x-csrftoken',
     # 'x-requested-with',
     # 'Pragma',
-    'access-control-allow-origin',
-    # 'Access-Control-Allow-Origin',
+    # 'access-control-allow-origin',
+    'Access-Control-Allow-Origin',
     'token',
 )
