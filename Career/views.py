@@ -13,10 +13,7 @@ class Info(APIView):
         return JsonResponse(ret)
 
     def get(self, request):
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
+        ret = {"demo":1}
         return JsonResponse(ret)
 
     def put(self, request):
