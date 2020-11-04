@@ -28,9 +28,7 @@ class Info(APIView):
             'creation_time':"0000.00.00"
             }
         redic = request.GET
-        text_id = -1
-        if 'id' in redic:
-            text_id = redic['id']
+        text_id = redic.get('id',-1)
         if text_id != -1:
             #TODO(liuhai): id存在时
             pass
