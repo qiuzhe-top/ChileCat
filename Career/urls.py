@@ -1,3 +1,6 @@
+'''
+路由注册
+'''
 from django.urls import path
 from . import views
 
