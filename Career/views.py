@@ -64,7 +64,6 @@ class Info(APIView):
             if ret_page == -1:
                 ret = {'message':"unexpect request!"}
                 return JsonResponse(ret)
-            
             ret = {
                 'id':"-1",
                 'title':"no title",
