@@ -7,4 +7,4 @@ class UserTeleAdmin(admin.ModelAdmin):
 
 @admin.register(Token)
 class TokenTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","token","wx_token")
+    list_display = ("id","token","wx_openid")
