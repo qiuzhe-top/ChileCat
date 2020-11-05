@@ -14,6 +14,10 @@ class User(models.Model):
         managed = True
         verbose_name = '用户'
         verbose_name_plural = '用户'
+
+class UserWx(models.Model):
+    openid = models.CharField(max_length = 100)
+    user_id = models.OneToOneField("User", on_delete=models.CASCADE)
     
 class Token(models.Model):
 
