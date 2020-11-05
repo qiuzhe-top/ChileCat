@@ -1,9 +1,14 @@
-#from django.shortcuts import render
+'''
+APIView:restframework框架
+JsonResponse:返回json应答(默认为httpresponse)
+paginator:分页器
+objectdoesnotexist:查询不存在(get)抛出的异常
+'''
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from . import models
 from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
+from . import models
 # Create your views here.
 
 
@@ -13,6 +18,9 @@ class Info(APIView):
     page:10 per
     '''
     def post(self, request):
+        '''
+        处理post请求
+        '''
         ret = {}
         ret['code'] = '2000'
         ret['message'] = '提示信息'
@@ -50,7 +58,9 @@ class Info(APIView):
                 'max_page':-1,
                 'list':[]
             }
-            ret_page = redic.get('page',-1)
+            ret_page = int(redic.get('page',-1))
+            if ret_page == 0:
+                ret_page = 1
             if ret_page == -1:
                 ret = {'message':"unexpect request!"}
                 return JsonResponse(ret)
@@ -64,7 +74,10 @@ class Info(APIView):
                 rets['page'] = ret_page
                 text_list = models.Career.objects.all()
                 paginator = Paginator(text_list,10) #每页显示十项
-                #TODO(liuhai):如果没有第二页,并且请求了第二页,会raise unexpectaion,需要捕获
+                max_page = paginator.count
+                rets['max_page'] = max_page
+                if max_page == 0:
+                    return JsonResponse({'info':"no data."})
                 for i in paginator.page(ret_page):
                     ret['id'] = i.id
                     ret['title'] = i.title
