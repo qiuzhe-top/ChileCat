@@ -64,27 +64,27 @@ class Info(APIView):
             if ret_page == -1:
                 ret = {'message':"unexpect request!"}
                 return JsonResponse(ret)
-            else:
-                ret = {
-                    'id':"-1",
-                    'title':"no title",
-                    'body_text':"none",
-                    'creation_time':"0000.00.00",
-                    }
-                rets['page'] = ret_page
-                text_list = models.Career.objects.all()
-                paginator = Paginator(text_list,10) #每页显示十项
-                max_page = paginator.count
-                rets['max_page'] = max_page
-                if max_page == 0:
-                    return JsonResponse({'info':"no data."})
-                for i in paginator.page(ret_page):
-                    ret['id'] = i.id
-                    ret['title'] = i.title
-                    ret['body_text'] = i.note
-                    ret['creation_time'] = i.release_time
-                    rets['list'].append(ret)
-                return JsonResponse(rets)
+            
+            ret = {
+                'id':"-1",
+                'title':"no title",
+                'body_text':"none",
+                'creation_time':"0000.00.00",
+                }
+            rets['page'] = ret_page
+            text_list = models.Career.objects.all()
+            paginator = Paginator(text_list,10) #每页显示十项
+            max_page = paginator.count
+            rets['max_page'] = max_page
+            if max_page == 0:
+                return JsonResponse({'info':"no data."})
+            for i in paginator.page(ret_page):
+                ret['id'] = i.id
+                ret['title'] = i.title
+                ret['body_text'] = i.note
+                ret['creation_time'] = i.release_time
+                rets['list'].append(ret)
+            return JsonResponse(rets)
         return JsonResponse({'info':"unexpect error"})
 
     def put(self, request):
