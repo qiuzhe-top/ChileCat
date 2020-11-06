@@ -1,18 +1,26 @@
-from django.shortcuts import render
+'''
+views
+'''
+import random
+import string
 from rest_framework.views import APIView
 from django.http import JsonResponse
 import requests
+from User.utils.auth import md5,update_token
 from . import models
-from User.utils.auth import md5,updateToken
-import random
-import string
-# 根据jscode获取微信唯一标识
 def get_openid(js_code):
+    '''
+    根据jscode获取微信唯一标识
+    '''
     url='https://api.weixin.qq.com/sns/jscode2session'
-    data = {'appid':'wx9a63d4bc0c3480f3','secret':'caaf6191b5c51021a7839197780862ec','js_code':js_code}
-    r = requests.get(url,params=data) #发get请求
+    data = {
+        'appid':'wx9a63d4bc0c3480f3',
+        'secret':'caaf6191b5c51021a7839197780862ec',
+        'js_code':js_code
+        }
+    ret = requests.get(url,params=data) #发get请求
     try:
-        openid = r.json()['openid']
+        openid = ret.json()['openid']
         return openid
     except:
         print('获取openid失败')
@@ -32,7 +40,7 @@ def wx_login(request,ret):
     '''
     js_code = request.data['js_code']
     open_id = get_openid(js_code)
-    if open_id == None:
+    if open_id is None:
         ret['code'] = '4000'
         ret['message'] = '验证失败'
         return JsonResponse(ret)
@@ -57,33 +65,17 @@ def wx_login(request,ret):
         user = token[0].user_id
         print(user.id)
         ret['data']= {'token':md5(open_id)}
-        updateToken(user,ret['data']['token'])
+        update_token(user,ret['data']['token'])
 class Auth(APIView):
-    def post(self, request, *args, **kwargs):
+    '''
+    Auth
+    '''
+    def post(self, request):
+        '''
+        post method
+        '''
         ret = {'code':2000,'message':"执行成功",'data':{}}
- 
-        type = request.data['type']
-        if type == 'wx':
+        auth_type = request.data['type']
+        if auth_type == 'wx':
             wx_login(request,ret)
-        return JsonResponse(ret)
-
-    def get(self, request):
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def put(self, request):
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
         return JsonResponse(ret)

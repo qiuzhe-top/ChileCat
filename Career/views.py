@@ -73,7 +73,7 @@ class Info(APIView):
             rets['page'] = ret_page
             text_list = models.Career.objects.all()
             paginator = Paginator(text_list,10) #每页显示十项
-            max_page = paginator.count
+            max_page = paginator.num_pages
             rets['max_page'] = max_page
             if max_page == 0:
                 return JsonResponse({'info':"no data."})
