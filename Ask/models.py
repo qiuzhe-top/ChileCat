@@ -25,10 +25,10 @@ class Ask(models.Model):
     reason = models.CharField(max_length = 50,verbose_name = "理由")
     place = models.CharField(max_length = 50,verbose_name = "地点")
     ask_state = models.CharField(max_length = 2,verbose_name = "请假状态")
-    start_time = models.TimeField(auto_now=False, auto_now_add=False,verbose_name = "开始时间")
-    end_time = models.TimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
-    created_time = models.TimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
-    modify_time = models.TimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
+    start_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "开始时间")
+    end_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
+    created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
+    modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
     class Meta:
         verbose_name = "请假条"
         verbose_name_plural = "请假条"
@@ -39,8 +39,8 @@ class Audit(models.Model):
     ask_id = models.ForeignKey("Ask", on_delete=models.CASCADE,verbose_name = "请假单id")
     level = models.IntegerField(verbose_name = "等级")
     note = models.CharField(max_length = 20,verbose_name = "备注")
-    created_time = models.TimeField(auto_now=False, auto_now_add=False,verbose_name = "创建时间")
-    modify_time = models.TimeField(auto_now=False, auto_now_add=False,verbose_name = "修改时间")
+    created_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "创建时间")
+    modify_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "修改时间")
     class Meta:
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"
