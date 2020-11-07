@@ -17,16 +17,6 @@ class Info(APIView):
     http://127.0.0.1:8000/api/career/info
     page:10 per
     '''
-    def post(self, request):
-        '''
-        处理post请求
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
     def get(self, request):
         '''
         处理get请求
@@ -85,23 +75,3 @@ class Info(APIView):
                 rets['list'].append(ret)
             return JsonResponse(rets)
         return JsonResponse({'info':"unexpect error"})
-
-    def put(self, request):
-        '''
-        处理put请求
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        '''
-        处理delete请求
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
