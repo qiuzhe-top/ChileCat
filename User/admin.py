@@ -1,5 +1,8 @@
+'''
+admin.py
+'''
 from django.contrib import admin
-from .models import *
+from .models import User,Token,UserInfo,StudentInfo,TeacherInfo,TeacherForGrade,Grade,College,Permission,UserForPermission
 
 @admin.register(User)
 class UserTeleAdmin(admin.ModelAdmin):

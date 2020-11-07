@@ -13,7 +13,7 @@ class Career(models.Model):
     #warning:正文限制在999字以内
     text = models.CharField(max_length = 999,verbose_name = "正文")
     source = models.CharField(max_length = 100,verbose_name = "地址")
-    viewnum = models.IntegerField(verbose_name= "浏览数")
+    viewnum = models.IntegerField(verbose_name= "浏览数",default = 0)
     release_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "发布时间")
 
 

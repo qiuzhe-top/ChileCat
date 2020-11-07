@@ -40,8 +40,9 @@ class Info(APIView):
             ret['id'] = ret_info.id
             ret['title'] = ret_info.title
             ret['introduction'] = ret_info.note
-            ret['body_text'] = ret_info.note
+            ret['body_text'] = ret_info.text
             ret['creation_time'] = ret_info.release_time
+            return JsonResponse(ret)
         else:   #id不存在,查询all,并根据page返回第几页
             rets = {
                 'page':-1,
@@ -52,7 +53,7 @@ class Info(APIView):
             if ret_page == 0:
                 ret_page = 1
             if ret_page == -1:
-                ret = {'message':"unexpect request!"}
+                ret = {'message':"on id and no page."}
                 return JsonResponse(ret)
             ret = {
                 'id':"-1",

@@ -2,11 +2,13 @@
 必要模块引用
 '''
 import json
+import datetime
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from .models import Ask
+from User.models import User
 from . import models
 # Create your views here .
 
@@ -75,16 +77,23 @@ class Draft(APIView):
             time_back = req['time_back']
             place = req['place']
             reason = req['reason']
-            phone = req['phtone']
+            phone = req['phone']
             state = req['state']
         except KeyError as req_failed:
             print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败"
             return JsonResponse(ret)
-        unit = Ask(
+        try:
             #TODO(liuhai) id锁定为1
-            user_id = 1,
+            user_id_user = User.objects.get(id = 1)
+        except ObjectDoesNotExist as user_not_find:
+            print("没有此用户(请假表信息出错)",user_id_user)
+            ret['code'] = 4000
+            ret['message'] = "执行失败(用户不存在)"
+            return JsonResponse(ret)
+        unit = Ask(
+            user_id = user_id_user,
             status = state,
             contact_info = phone,
             reason = reason,
@@ -119,9 +128,9 @@ class Draft(APIView):
                 ret['message'] = "没有此id的请假条"
                 return JsonResponse(ret)
             ret['data'] = {
-                'user_id': ask.user_id,
+                'user_id': ask.user_id.id,
                 'status': ask.status,
-                'constact_info': ask.constact_info,
+                'constact_info': ask.contact_info,
                 'ask_type': ask.ask_type,
                 'reason': ask.reason,
                 'place': ask.place,
@@ -131,6 +140,7 @@ class Draft(APIView):
                 'created_time': ask.created_time,
                 'modify_time': ask.modify_time,
             }
+            print(ret['data'])
             return JsonResponse(ret)
         else:
             req_page = int(req_list.get('page',-1))
@@ -177,20 +187,45 @@ class Draft(APIView):
             'code':0000,
             'message':"default message"
             }
+        req = request.data
+        print(req)
         try:
+            #读取前端假条修改数据
+            ask_id = req['id']
             leave_type = req['leave_type']
             time_go = req['time_go']
             time_back = req['time_back']
             place = req['place']
             reason = req['reason']
-            phone = req['phtone']
+            phone = req['phone']
             state = req['state']
         except KeyError as lack_info:
             print("缺少条目",lack_info)
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        #TODO(liuhai) 接口文档为修改请假条信息,但没有提供原请假条的id数据(无法得知修改的是哪条请假条)
+        #TODO(liuhai) 时间解析未完成
+        if leave_type == "1":
+            leave_type = "out"
+        elif leave_type == "2":
+            leave_type = "leave"
+        else:
+            leave_type = "other"
+        try:
+            ask_unit = models.Ask.objects.get(id = ask_id)
+        except ObjectDoesNotExist as not_find_ask:
+            print("请假条不存在",not_find_ask)
+            ret['code'] = 4000
+            ret['message'] = "ask_not_find"
+        #存入数据
+        ask_unit.ask_type = leave_type
+        ask_unit.start_time = time_go
+        ask_unit.end_time = time_back
+        ask_unit.place = place
+        ask_unit.reason = reason
+        ask_unit.contact_info = phone
+        ask_unit.status = state
+        ask_unit.save()
         return JsonResponse(ret)
 
 
@@ -204,10 +239,10 @@ class Audit(APIView):
         1=通过 2=不通过
         '''
         ret = {
-            'code':2000,
+            'code':0000,
             'message':"default info."
         }
-        req_list = json.loads(request.body)
+        req_list = request.data
         ask_id = req_list.get('id',-1)
         operate_sate = req_list.get('operate_sate',-1)
         if ask_id == -1 or operate_sate == -1:
@@ -224,4 +259,6 @@ class Audit(APIView):
             return JsonResponse(ret)
         ask_unit.status = operate_sate
         ask_unit.save()
+        ret['code'] = 2000
+        ret['message'] = "修改成功"
         return JsonResponse(ret)
