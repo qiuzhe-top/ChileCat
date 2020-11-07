@@ -16,7 +16,7 @@ class StudentInfoTeleAdmin(admin.ModelAdmin):
     list_display = ("id","student_id","grade_id","user_id")
 @admin.register(TeacherInfo)
 class TeacherInfoTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","fieldName","teacher_extra_info","user_id")
+    list_display = ("id","teacher_extra_info","user_id")
 @admin.register(TeacherForGrade)
 class TeacherForGradeTeleAdmin(admin.ModelAdmin):
     list_display = ("id","grade_id","user_id")
