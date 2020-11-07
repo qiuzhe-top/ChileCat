@@ -1,10 +1,12 @@
+'''
+admin.py
+'''
 from django.contrib import admin
-from .models import *
+from .models import Career
 
-# @admin.register(User)
-# class UserTeleAdmin(admin.ModelAdmin):
-#     list_display = ('id','user_name','pass_word')
-
-# @admin.register(Token)
-# class TokenTeleAdmin(admin.ModelAdmin):
-#     list_display = ('id','token','wx_token')
+@admin.register(Career)
+class CareerTeleAdmin(admin.ModelAdmin):
+    '''
+    职业
+    '''
+    list_display = ("id","title","note","text","source","viewnum","release_time")

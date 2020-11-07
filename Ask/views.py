@@ -1,6 +1,7 @@
 '''
 必要模块引用
 '''
+import json
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -167,26 +168,29 @@ class Draft(APIView):
                 ret['page']['list'].append(ask_unit)
             ret['page'] = req_page
         return JsonResponse(ret)
-        #TODO(liuhai) 写到 获取多个请假条简单信息 分页 获取详细信息,剩下自己加油
 
     def put(self, request):
         '''
         学生修改请假条信息
         '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        '''
-        default delete request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
+        ret = {
+            'code':0000,
+            'message':"default message"
+            }
+        try:
+            leave_type = req['leave_type']
+            time_go = req['time_go']
+            time_back = req['time_back']
+            place = req['place']
+            reason = req['reason']
+            phone = req['phtone']
+            state = req['state']
+        except KeyError as lack_info:
+            print("缺少条目",lack_info)
+            ret['code'] = 4000
+            ret['message'] = "lack_list_expectation."
+            return JsonResponse(ret)
+        #TODO(liuhai) 接口文档为修改请假条信息,但没有提供原请假条的id数据(无法得知修改的是哪条请假条)
         return JsonResponse(ret)
 
 
@@ -194,43 +198,30 @@ class Audit(APIView):
     '''
     老师审核请假条
     '''
-    def post(self, request):
-        '''
-        default post request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def get(self, request):
-        '''
-        default get request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
     def put(self, request):
         '''
         审核通过 审核不通过 撤销已通过的审核
         1=通过 2=不通过
         '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        '''
-        default delete request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
+        ret = {
+            'code':2000,
+            'message':"default info."
+        }
+        req_list = json.loads(request.body)
+        ask_id = req_list.get('id',-1)
+        operate_sate = req_list.get('operate_sate',-1)
+        if ask_id == -1 or operate_sate == -1:
+            print("条件缺损")
+            ret['code'] = 4000
+            ret['message'] = "修改失败(条件缺损)"
+            return JsonResponse(ret)
+        try:
+            ask_unit = models.Ask.objects.get(id = ask_id)
+        except ObjectDoesNotExist as not_find:
+            print("没有找到记录",not_find)
+            ret['code'] = 4000
+            ret['message'] = "修改失败(没有找到请假条)"
+            return JsonResponse(ret)
+        ask_unit.status = operate_sate
+        ask_unit.save()
         return JsonResponse(ret)

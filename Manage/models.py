@@ -4,7 +4,6 @@ from django.db import models
 class Primitives(models.Model):
 
     title = models.CharField(max_length = 30,verbose_name = "标题")
-    
 
     class Meta:
         verbose_name = "分类主表"
