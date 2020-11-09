@@ -88,7 +88,7 @@ class Draft(APIView):
             #TODO(liuhai) id锁定为1
             user_id_user = User.objects.get(id = 1)
         except ObjectDoesNotExist as user_not_find:
-            print("没有此用户(请假表信息出错)",user_id_user)
+            print("没有此用户(请假表信息出错)",user_not_find)
             ret['code'] = 4000
             ret['message'] = "执行失败(用户不存在)"
             return JsonResponse(ret)
@@ -140,7 +140,6 @@ class Draft(APIView):
                 'created_time': ask.created_time,
                 'modify_time': ask.modify_time,
             }
-            print(ret['data'])
             return JsonResponse(ret)
         else:
             req_page = int(req_list.get('page',-1))
@@ -226,6 +225,8 @@ class Draft(APIView):
         ask_unit.contact_info = phone
         ask_unit.status = state
         ask_unit.save()
+        ret['code'] = 2000
+        ret['message'] = "修改成功"
         return JsonResponse(ret)
 
 
