@@ -17,16 +17,6 @@ class LeaveType(APIView):
     '''
     请假功能
     '''
-    def post(self, request):
-        '''
-        default post request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息1'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
     def get(self, request):
         '''
         获取请假类别
@@ -42,24 +32,6 @@ class LeaveType(APIView):
         ret['code'] = 2000
         ret['message'] = "执行成功"
         return JsonResponse(ret)
-
-    def put(self, request):
-        '''
-        default put request
-        '''
-        ret = {}
-        ret['code'] = '2000'
-        ret['message'] = '提示信息'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        '''
-        default delete request
-        '''
-        ret = {'code':0000,'message':"提示信息"}
-        return JsonResponse(ret)
-
 
 class Draft(APIView):
     '''
