@@ -2,11 +2,12 @@
 必要模块引用
 '''
 import json
-import datetime
+import pytz
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
+from django.utils import timezone
 from .models import Ask
 from User.models import User
 from . import models
@@ -23,12 +24,19 @@ class LeaveType(APIView):
         /api/ask/leave_type
         '''
         ret = {'code':0000,'message':"提示信息",'data':[]}
-        ask_data = {'id':0,'name':"null"}
-        data_list = models.Ask.objects.all()
-        for i in data_list:
-            ask_data['id'] = i.id
-            ask_data['name'] = i.ask_type
-            ret['data'].append(ask_data)
+        # ask_data = {'id':0,'name':"null"}
+        # data_list = models.Ask.objects.all()
+        # for i in data_list:
+        #     ask_data['id'] = i.id
+        #     ask_data['name'] = i.ask_type
+        #     ret['data'].append(ask_data)
+        ask_type = (
+        ("0","草稿"),
+        ("1","刚刚提交"),
+        ("2","班主任审核通过"),
+        ("3","上级通过"),
+        )
+        ret['data'] = ask_type
         ret['code'] = 2000
         ret['message'] = "执行成功"
         return JsonResponse(ret)
@@ -54,7 +62,7 @@ class Draft(APIView):
         except KeyError as req_failed:
             print("get key failed",req_failed)
             ret['code'] = 4000
-            ret['message'] = "执行失败"
+            ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         try:
             #TODO(liuhai) id锁定为1
@@ -133,6 +141,11 @@ class Draft(APIView):
             ask_all_list = models.Ask.objects.all()
             paginator = Paginator(ask_all_list,10)
             max_page = paginator.num_pages
+            if req_page > max_page:
+                print("页数有误(超出最大页数)")
+                ret['code'] = 4000
+                ret['message'] = "page_out_of_max"
+                return JsonResponse(ret)
             print(paginator.num_pages)
             if max_page < 1:
                 ret['code'] = 4000
@@ -176,6 +189,16 @@ class Draft(APIView):
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
         #TODO(liuhai) 时间解析未完成
+        try:
+            time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d")
+            time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
+        except ValueError as time_form_error:
+            print("时间格式有误",time_form_error)
+            ret['code'] = 4000
+            ret['message'] = "time_form_exception"
+            return JsonResponse(ret)
+        print(time_back)
+        print(time_go)
         if leave_type == "1":
             leave_type = "out"
         elif leave_type == "2":
@@ -200,7 +223,6 @@ class Draft(APIView):
         ret['code'] = 2000
         ret['message'] = "修改成功"
         return JsonResponse(ret)
-
 
 class Audit(APIView):
     '''
