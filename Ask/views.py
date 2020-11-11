@@ -64,14 +64,11 @@ class Draft(APIView):
             reason = req['reason']
             phone = req['phone']
             state = req['state']
-            
         except KeyError as req_failed:
             print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
-            #TODO(liuhai) id锁定为1
-        
         user_id_user = get_user(request)# User.objects.get(id = 1)
         unit = Ask(
             user_id = user_id_user,
@@ -194,7 +191,6 @@ class Draft(APIView):
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        #TODO(liuhai) 时间解析未完成
         # try:
         #     time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d ")
         #     time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
