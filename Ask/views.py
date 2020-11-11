@@ -11,6 +11,7 @@ from django.utils import timezone
 from .models import Ask
 from User.models import User
 from . import models
+from User.utils.auth import get_user
 # Create your views here .
 
 
@@ -30,15 +31,19 @@ class LeaveType(APIView):
         #     ask_data['id'] = i.id
         #     ask_data['name'] = i.ask_type
         #     ret['data'].append(ask_data)
-        ask_type = (
-        ("0","草稿"),
-        ("1","刚刚提交"),
-        ("2","班主任审核通过"),
-        ("3","上级通过"),
-        )
+        ask_type = [
+            # {'id':"0",'title':"外出"},
+            # {'id':"1",'title':"事假"},
+            # {'id':"2",'title':"其他"}
+            '外出',
+            '事假',
+            '其他'
+        ]
+        print(get_user(request))
         ret['data'] = ask_type
         ret['code'] = 2000
         ret['message'] = "执行成功"
+
         return JsonResponse(ret)
 
 class Draft(APIView):
@@ -59,19 +64,15 @@ class Draft(APIView):
             reason = req['reason']
             phone = req['phone']
             state = req['state']
+            
         except KeyError as req_failed:
             print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
-        try:
             #TODO(liuhai) id锁定为1
-            user_id_user = User.objects.get(id = 1)
-        except ObjectDoesNotExist as user_not_find:
-            print("没有此用户(请假表信息出错)",user_not_find)
-            ret['code'] = 4000
-            ret['message'] = "执行失败(用户不存在)"
-            return JsonResponse(ret)
+        
+        user_id_user = get_user(request)# User.objects.get(id = 1)
         unit = Ask(
             user_id = user_id_user,
             status = state,
@@ -82,6 +83,7 @@ class Draft(APIView):
             start_time = time_go,
             end_time = time_back,
             )
+        print(unit)
         unit.save()
         ret['code'] = 2000
         ret['message'] = "创建成功 / 草稿保存成功"
@@ -97,11 +99,11 @@ class Draft(APIView):
         '''
         ret = {'code':0000,'message':"no message",'data':{}}
         req_list = request.GET
-        ask_id = req_list.get('id',-1)
-
+        ask_id = int(req_list.get('id',-1))
         if ask_id != -1:
             try:
                 ask = models.Ask.objects.get(id = ask_id)
+                print(ask.created_time)
             except ObjectDoesNotExist as get_failed:
                 print("get failed",get_failed)
                 ret['code'] = 4000
@@ -120,6 +122,8 @@ class Draft(APIView):
                 'created_time': ask.created_time,
                 'modify_time': ask.modify_time,
             }
+            ret['code'] = 2000
+            ret['message'] = "success"
             return JsonResponse(ret)
         else:
             req_page = int(req_list.get('page',-1))
@@ -155,12 +159,14 @@ class Draft(APIView):
                 req_page = max_page
             for i in paginator.page(req_page):
                 ask_unit['text'] = i.ask_type
+                ask_unit['reason'] = i.reason
                 ask_unit['start_time'] = i.start_time
                 ask_unit['vacate_time'] = i.end_time - i.start_time
                 ask_unit['state'] = i.status
                 ask_unit['state_level'] = i.ask_state
-                ret['page']['list'].append(ask_unit)
+                ret['data']['list'].append(ask_unit)
             ret['page'] = req_page
+            ret['code'] = 2000
         return JsonResponse(ret)
 
     def put(self, request):
@@ -189,14 +195,14 @@ class Draft(APIView):
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
         #TODO(liuhai) 时间解析未完成
-        try:
-            time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d")
-            time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
-        except ValueError as time_form_error:
-            print("时间格式有误",time_form_error)
-            ret['code'] = 4000
-            ret['message'] = "time_form_exception"
-            return JsonResponse(ret)
+        # try:
+        #     time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d ")
+        #     time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
+        # except ValueError as time_form_error:
+        #     print("时间格式有误",time_form_error)
+        #     ret['code'] = 4000
+        #     ret['message'] = "time_form_exception"
+        #     return JsonResponse(ret)
         print(time_back)
         print(time_go)
         if leave_type == "1":

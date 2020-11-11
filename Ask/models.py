@@ -11,17 +11,17 @@ class Ask(models.Model):
     user_id = models.ForeignKey("User.user", on_delete=models.CASCADE,verbose_name = "用户id")
     askType = (
         ("0","草稿"),
-        ("1","刚刚提交"),
-        ("2","班主任审核通过"),
-        ("3","上级通过"),
+        ("1","等待一级审核"), # 一级审核中
+        ("2","等待二级审核"), # 二级审核中
+        ("3","完成")          # 历史
     )
     status = models.CharField(max_length = 20,choices = askType,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
     ask_type = models.CharField(max_length = 20,choices = (
-        ("out","外出"),
-        ("leave","事假"),
-        ("other","其他")
-        ),verbose_name = "状态",default = "out")
+        ("0","外出"),
+        ("1","事假"),
+        ("2","其他")
+        ),verbose_name = "状态",default = "1")
     reason = models.CharField(max_length = 50,verbose_name = "理由")
     place = models.CharField(max_length = 50,verbose_name = "地点")
     ask_state = models.CharField(max_length = 5,verbose_name = "是否完成",choices = (
