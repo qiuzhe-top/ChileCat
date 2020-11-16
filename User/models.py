@@ -44,10 +44,8 @@ class UserInfo(models.Model):
     name = models.CharField(max_length = 20,verbose_name="姓名")
     tel = models.CharField(max_length = 20,verbose_name="电话")
     identity = models.CharField(max_length = 20,choices=(
-        #TODO() 
-        
         ("student","学生"),
-        ("student","老师"),
+        ("teacher","老师"),
         ("ld","领导")
         ),default="student",verbose_name="身份")
     user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
@@ -85,9 +83,6 @@ class TeacherInfo(models.Model):
     '''
     teacher_extra_info = models.CharField(verbose_name="老师额外信息", max_length=50)
     user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
-
-    def __str__(self):
-        pass
 
     class Meta:
         db_table = ''
