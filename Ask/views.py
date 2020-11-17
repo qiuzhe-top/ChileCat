@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Ask
-from User.models import User
+from User.models import User,UserInfo
 from . import models
 from User.utils.auth import get_user
 # Create your views here .
@@ -130,22 +130,26 @@ class Draft(APIView):
             #TODO(liuhai) 首先根据用户权限来提取所有对应的记录再根据page等属性筛选
             user_unit_id = get_user(request) #返回结果为用户的id字段
             try:
-                user_auth = User.models.UserInfo.get(user_id = user_auth)   #获取用户权限
+                #user_auth = User.models.UserInfo.get(user_id = user_auth)   #获取用户权
+                user_auth = UserInfo.objects.get(user_id = user_unit_id)
             except ObjectDoesNotExist as user_not_find:
                 print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"user_not_exist."})
-            if user_auth == "teacher" or user_auth == "ld": #用户是老师或者领导,注意禁止使用用户学号的切片来区分班级
+            if user_auth == "teacher": #用户是老师或者领导,注意禁止使用用户学号的切片来区分班级
                 manage_classes = User.objects.filter(user_id = user_unit_id)#管理的班级
                 managed_user = []
                 #TODO(liuhai) 只返回正在审核的,审核完成的暂且没提供接口去获取(可后续添加"type"等属性添加接口)
                 '''
                     看起来要通过审核表的userid去user表get出用户再.出class,再去班级关系表里面找东西
                     *注意分页的时候返回最大页数给前端!
-                    
                 '''
-            elif user_auth == "student":
-                pass
-
+                return JsonResponse({'message':"teacher out."})
+            elif user_auth == "ld":#需要领导审核的
+                managed_list = models.Aduit.objects.filter(level = 2)#假设0待班主任审核,1表示校领导审核,2表示完成
+                managed_classes = User.objects.filter(user_id = user_unit_id)
+                return JsonResponse({'message':"ld out."})
+            else:
+                return JsonResponse({'message':"other out."})
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
