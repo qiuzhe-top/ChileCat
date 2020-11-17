@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
+import json
 from . import models
 # Create your views here.
 
@@ -17,12 +18,13 @@ class Info(APIView):
     http://127.0.0.1:8000/api/career/info
     page:10 per
     '''
-    def get(self, request):
+    def gejt(self, request):
         '''
         处理get请求
         '''
         redic = request.GET
         text_id = redic.get('id',-1)
+        data = {}
         if text_id != -1:
             ret = {
             'id':0,
@@ -50,11 +52,11 @@ class Info(APIView):
                 'list':[]
             }
             ret_page = int(redic.get('page',-1))
-            if ret_page == 0:
-                ret_page = 1
             if ret_page == -1:
                 ret = {'message':"on id and no page."}
                 return JsonResponse(ret)
+            if ret_page <= 0:
+                ret_page = 1
             ret = {
                 'id':"-1",
                 'title':"no title",
@@ -64,9 +66,8 @@ class Info(APIView):
             rets['page'] = ret_page
             text_list = models.Career.objects.all()
             paginator = Paginator(text_list,10) #每页显示十项
-            max_page = paginator.num_pages
-            rets['max_page'] = max_page
-            if max_page == 0:
+            rets['max_page']  = paginator.num_pages
+            if rets['max_page'] == 0:
                 return JsonResponse({'info':"no data."})
             for i in paginator.page(ret_page):
                 ret['id'] = i.id
@@ -74,5 +75,8 @@ class Info(APIView):
                 ret['body_text'] = i.note
                 ret['creation_time'] = i.release_time
                 rets['list'].append(ret)
-            return JsonResponse(rets)
+            data['code'] = 2000
+            data['message'] = '执行成功'
+            data['data'] = rets
+            return JsonResponse(data)
         return JsonResponse({'info':"unexpect error"})

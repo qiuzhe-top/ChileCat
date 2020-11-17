@@ -83,7 +83,6 @@ class Draft(APIView):
             start_time = time_go,
             end_time = time_back,
             )
-        print(unit)
         unit.save()
         ret['code'] = 2000
         ret['message'] = "创建成功 / 草稿保存成功"
