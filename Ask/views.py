@@ -147,8 +147,11 @@ class Draft(APIView):
                 managed_list = models.Aduit.objects.filter(level = 2)   #假设0待班主任审核,1表示校领导审核,2表示完成
                 managed_classes = User.objects.filter(user_id = user_unit_id)
                 return JsonResponse({'message':"ld out."})
+            elif user_auth == "student":
+                 
+                return JsonResponse({'message':"student out."})
             else:
-                return JsonResponse({'message':"other out."})
+                return JsonResponse({'message':"other out"})
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
