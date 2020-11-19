@@ -2,6 +2,7 @@
 必要模块引用
 '''
 import json
+from datetime import datetime
 import pytz
 from rest_framework.views import APIView
 from django.http import JsonResponse
@@ -102,7 +103,7 @@ class Draft(APIView):
         if ask_id != -1:
             try:
                 ask = models.Ask.objects.get(id = ask_id)
-                print(ask.created_time)
+                # print(ask.created_time)
             except ObjectDoesNotExist as get_failed:
                 print("get failed",get_failed)
                 ret['code'] = 4000
@@ -116,10 +117,8 @@ class Draft(APIView):
                 'reason': ask.reason,
                 'place': ask.place,
                 'ask_state': ask.ask_state,
-                'start_time': ask.start_time,
-                'end_time': ask.end_time,
-                'created_time': ask.created_time,
-                'modify_time': ask.modify_time,
+                'start_time': ask.start_time.strftime('%Y-%m-%d %H:%M'),
+                'end_time': ask.end_time.strftime('%Y-%m-%d %H:%M')
             }
             ret['code'] = 2000
             ret['message'] = "success"
@@ -157,6 +156,7 @@ class Draft(APIView):
             if req_page > max_page:
                 req_page = max_page
             for i in paginator.page(req_page):
+                ask_unit['id'] = i.id
                 ask_unit['text'] = i.ask_type
                 ask_unit['reason'] = i.reason
                 ask_unit['start_time'] = i.start_time
@@ -164,7 +164,8 @@ class Draft(APIView):
                 ask_unit['state'] = i.status
                 ask_unit['state_level'] = i.ask_state
                 ret['data']['list'].append(ask_unit)
-            ret['page'] = req_page
+            ret['data']['page'] = req_page
+            ret['data']['max_page'] = max_page
             ret['code'] = 2000
         return JsonResponse(ret)
 
@@ -204,12 +205,12 @@ class Draft(APIView):
         #     return JsonResponse(ret)
         print(time_back)
         print(time_go)
-        if leave_type == "1":
-            leave_type = "out"
-        elif leave_type == "2":
-            leave_type = "leave"
-        else:
-            leave_type = "other"
+        # if leave_type == "1":
+        #     leave_type = "out"
+        # elif leave_type == "2":
+        #     leave_type = "leave"
+        # else:
+        #     leave_type = "other"
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
@@ -224,11 +225,24 @@ class Draft(APIView):
         ask_unit.reason = reason
         ask_unit.contact_info = phone
         ask_unit.status = state
+        print(state,phone)
         ask_unit.save()
         ret['code'] = 2000
         ret['message'] = "修改成功"
         return JsonResponse(ret)
-
+    
+    def delete(self, request):
+        """
+        docstring
+        """
+        ret = {}
+        id = request.data['id']
+        print(id)
+        ask = models.Ask.objects.get(id = id)
+        ask.delete()
+        ret['code'] = 2000
+        ret['data'] = '执行成功'
+        return JsonResponse(ret)
 class Audit(APIView):
     '''
     老师审核请假条
