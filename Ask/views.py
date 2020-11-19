@@ -130,8 +130,7 @@ class Draft(APIView):
             #TODO(liuhai) 首先根据用户权限来提取所有对应的记录再根据page等属性筛选
             user_unit_id = get_user(request) #返回结果为用户的id字段
             try:
-                #user_auth = User.models.UserInfo.get(user_id = user_auth)   #获取用户权
-                user_auth = UserInfo.objects.get(user_id = user_unit_id)
+                user_auth = UserInfo.objects.get(user_id = user_unit_id)    #获取用户权
             except ObjectDoesNotExist as user_not_find:
                 print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"user_not_exist."})
@@ -144,8 +143,8 @@ class Draft(APIView):
                     *注意分页的时候返回最大页数给前端!
                 '''
                 return JsonResponse({'message':"teacher out."})
-            elif user_auth == "ld":#需要领导审核的
-                managed_list = models.Aduit.objects.filter(level = 2)#假设0待班主任审核,1表示校领导审核,2表示完成
+            elif user_auth == "ld":     #需要领导审核的
+                managed_list = models.Aduit.objects.filter(level = 2)   #假设0待班主任审核,1表示校领导审核,2表示完成
                 managed_classes = User.objects.filter(user_id = user_unit_id)
                 return JsonResponse({'message':"ld out."})
             else:
