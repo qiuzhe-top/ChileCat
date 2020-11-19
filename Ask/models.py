@@ -32,6 +32,9 @@ class Ask(models.Model):
     end_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
+
+    def __str__(self):
+        return str(self.id)
     class Meta:
         verbose_name = "请假条"
         verbose_name_plural = "请假条"
@@ -42,8 +45,8 @@ class Audit(models.Model):
     ask_id = models.ForeignKey("Ask", on_delete=models.CASCADE,verbose_name = "请假单id")
     level = models.IntegerField(verbose_name = "等级")
     note = models.CharField(max_length = 20,verbose_name = "备注")
-    created_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "创建时间")
-    modify_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "修改时间")
+    created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
+    modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
     class Meta:
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"

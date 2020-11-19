@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Ask
-from User.models import User
+from User.models import User,UserInfo
 from . import models
 from User.utils.auth import get_user
 # Create your views here .
@@ -65,15 +65,12 @@ class Draft(APIView):
             reason = req['reason']
             phone = req['phone']
             state = req['state']
-            
         except KeyError as req_failed:
             print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
-            #TODO(liuhai) id锁定为1
-        
-        user_id_user = get_user(request)# User.objects.get(id = 1)
+        user_id_user = get_user(request)# 获取用户
         unit = Ask(
             user_id = user_id_user,
             status = state,
@@ -99,8 +96,12 @@ class Draft(APIView):
         '''
         ret = {'code':0000,'message':"no message",'data':{}}
         req_list = request.GET
-        ask_id = int(req_list.get('id',-1))
-        if ask_id != -1:
+        try:
+            ask_id = int(req_list.get('id',-1))
+        except ValueError as not_number:
+            print("id不是数字",not_number)
+            return JsonResponse({'code':4000,'message':"id_not_number."})
+        if ask_id != -1:                                    #是否存在id字段,如果有,则是单记录读取
             try:
                 ask = models.Ask.objects.get(id = ask_id)
                 # print(ask.created_time)
@@ -123,23 +124,55 @@ class Draft(APIView):
             ret['code'] = 2000
             ret['message'] = "success"
             return JsonResponse(ret)
-        else:
-            req_page = int(req_list.get('page',-1))
-            if req_page == 0:
-                req_page =1
-            print(req_page)
-            if req_page == -1:
-                ret['code'] = 4000
-                ret['message'] = "错误的请求方式,至少有'page','id'其中之一"
-                return JsonResponse(ret)
-            ret['data'] = {'list':[]}
-            ask_unit = {
-                'text': "请假类型+15字简介",
-		        'start_time': "开始时间",
-		        'vacate_time': "请假时长",
-		        'state': "状态",
-		        'state_level': "目前审核状态"
-            }
+        else:                                       #如果没有id字段,则根据条件返回不同的list
+            #TODO(liuhai) 首先根据用户权限来提取所有对应的记录再根据page等属性筛选
+            user_unit_id = get_user(request) #返回结果为用户的id字段
+            try:
+                user_auth = UserInfo.objects.get(user_id = user_unit_id)    #获取用户权
+            except ObjectDoesNotExist as user_not_find:
+                print("user not exist. ",user_not_find)
+                return JsonResponse({'code':4000,'message':"user_not_exist."})
+            if user_auth == "teacher": #用户是老师或者领导,注意禁止使用用户学号的切片来区分班级
+                manage_classes = User.objects.filter(user_id = user_unit_id)#管理的班级
+                managed_user = []
+                #TODO(liuhai) 只返回正在审核的,审核完成的暂且没提供接口去获取(可后续添加"type"等属性添加接口)
+                '''
+                    看起来要通过审核表的userid去user表get出用户再.出class,再去班级关系表里面找东西
+                    *注意分页的时候返回最大页数给前端!
+                '''
+                return JsonResponse({'message':"teacher out."})
+            elif user_auth == "ld":     #需要领导审核的
+                managed_list = models.Aduit.objects.filter(level = 2)   #假设0待班主任审核,1表示校领导审核,2表示完成
+                managed_classes = User.objects.filter(user_id = user_unit_id)
+                return JsonResponse({'message':"ld out."})
+            elif user_auth == "student":
+                 
+                return JsonResponse({'message':"student out."})
+            else:
+                return JsonResponse({'message':"other out"})
+            try:
+                req_page = int(req_list.get('page',-1)) #页数
+            except ValueError as page_number_error:
+                print("page字段不是数字",page_number_error)
+                return JsonResponse({'code':4000,'message':"page_not_number."})
+            if req_page !=-1:           #页数存在
+                if req_page == 0:
+                    req_page = 1
+                #print(req_page)
+                # if req_page == -1:
+                #     ret['code'] = 4000
+                #     ret['message'] = "错误的请求方式,至少有'page','id'其中之一"
+                #     return JsonResponse(ret)
+                ret['data'] = {'list':[]}
+                ask_unit = {
+                    'text': "请假类型+15字简介",
+                    'start_time': "开始时间",
+                    'vacate_time': "请假时长",
+                    'state': "状态",
+                    'state_level': "目前审核状态"
+                }
+            else:                   #页数不存在
+                pass
             ask_all_list = models.Ask.objects.all()
             paginator = Paginator(ask_all_list,10)
             max_page = paginator.num_pages
@@ -194,7 +227,6 @@ class Draft(APIView):
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        #TODO(liuhai) 时间解析未完成
         # try:
         #     time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d ")
         #     time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
