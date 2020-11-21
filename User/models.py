@@ -134,7 +134,7 @@ class Permission(models.Model):
     权限
     '''
 
-    name = models.CharField(max_length = 20,choices = auth,default = "common")
+    name = models.CharField(max_length = 20)
     message = models.CharField(max_length = 50,verbose_name = "描述")
 
     class Meta:

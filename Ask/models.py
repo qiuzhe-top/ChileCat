@@ -32,7 +32,7 @@ class Ask(models.Model):
     end_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
-
+ 
     def __str__(self):
         return str(self.id)
     class Meta:
