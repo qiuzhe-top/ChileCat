@@ -152,6 +152,8 @@ class Draft(APIView):
                 return JsonResponse({'message':"student out."})
             else:
                 return JsonResponse({'message':"other out"})
+
+                ##########################################
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
@@ -159,7 +161,7 @@ class Draft(APIView):
                 return JsonResponse({'code':4000,'message':"page_not_number."})
             if req_page !=-1:           #页数存在
                 if req_page == 0:
-                    req_page = 1
+                    r     eq_page = 1
                 #print(req_page)
                 # if req_page == -1:
                 #     ret['code'] = 4000
