@@ -161,7 +161,7 @@ class Draft(APIView):
                 return JsonResponse({'code':4000,'message':"page_not_number."})
             if req_page !=-1:           #页数存在
                 if req_page == 0:
-                    r     eq_page = 1
+                    req_page = 1
                 #print(req_page)
                 # if req_page == -1:
                 #     ret['code'] = 4000
