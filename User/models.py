@@ -65,12 +65,11 @@ class StudentInfo(models.Model):
     学生信息
     '''
     student_id = models.CharField(max_length = 20,verbose_name="学号")
-    grade_id = models.OneToOneField("Grade", on_delete=models.CASCADE,verbose_name = "年级id")
+    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name = "年级id")
     user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.student_id
-
     class Meta:
         db_table = ''
         managed = True
@@ -94,8 +93,8 @@ class TeacherForGrade(models.Model):
     '''
     老师对应的班级
     '''
-    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE)
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE)
+    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name="班级号")
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE,verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "教师班级关系"

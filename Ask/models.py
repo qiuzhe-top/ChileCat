@@ -9,10 +9,13 @@ class Ask(models.Model):
     '''
     请假条
     '''
-    user_id = models.ForeignKey("User.User", on_delete=models.CASCADE,verbose_name = "用户id",related_name = "user_id")
+    user_id = models.ForeignKey(
+        "User.User",
+        on_delete=models.CASCADE,
+        verbose_name = "用户id",related_name = "user_id")
     askType = (
         ("0","草稿"),
-        ("1","等待一级审核"), # 一级审核中
+        ("1","班主任审核"), # 一级审核中
         ("2","等待二级审核"), # 二级审核中
         ("3","完成")          # 历史
     )
