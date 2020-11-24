@@ -13,6 +13,7 @@ from .models import Ask
 from User.models import User,UserInfo
 from . import models
 from User.utils.auth import get_user
+from django.db.models import Q
 # Create your views here .
 
 
@@ -98,9 +99,11 @@ class Draft(APIView):
         req_list = request.GET
         try:
             ask_id = int(req_list.get('id',-1))
+            ask_type = req_list.get('type',-1)
         except ValueError as not_number:
             print("id不是数字",not_number)
             return JsonResponse({'code':4000,'message':"id_not_number."})
+        has_type = 0 if ask_type == -1 else 1   #是否存在type
         if ask_id != -1:                                    #是否存在id字段,如果有,则是单记录读取
             try:
                 ask = models.Ask.objects.get(id = ask_id)
@@ -124,32 +127,66 @@ class Draft(APIView):
             ret['code'] = 2000
             ret['message'] = "success"
             return JsonResponse(ret)
-        else:                                       #如果没有id字段,则根据条件返回不同的list
-            #TODO(liuhai) 首先根据用户权限来提取所有对应的记录再根据page等属性筛选
+        else:                                   #如果没有id字段,则根据条件返回不同的list
             user_unit_id = get_user(request) #返回结果为用户的id字段
+            if user_unit_id == -1:
+                return JsonResponse({'code':4000,'message':"用户不存在"})
             try:
                 user_auth = UserInfo.objects.get(user_id = user_unit_id)    #获取用户权
+                print("用户: ",user_auth)
             except ObjectDoesNotExist as user_not_find:
                 print("user not exist. ",user_not_find)
-                return JsonResponse({'code':4000,'message':"user_not_exist."})
-            if user_auth == "teacher": #用户是老师或者领导,注意禁止使用用户学号的切片来区分班级
-                manage_classes = User.objects.filter(user_id = user_unit_id)#管理的班级
-                managed_user = []
-                #TODO(liuhai) 只返回正在审核的,审核完成的暂且没提供接口去获取(可后续添加"type"等属性添加接口)
-                '''
-                    看起来要通过审核表的userid去user表get出用户再.出class,再去班级关系表里面找东西
-                    *注意分页的时候返回最大页数给前端!
-                '''
-                return JsonResponse({'message':"teacher out."})
-            elif user_auth == "ld":     #需要领导审核的
-                managed_list = models.Aduit.objects.filter(level = 2)   #假设0待班主任审核,1表示校领导审核,2表示完成
-                managed_classes = User.objects.filter(user_id = user_unit_id)
-                return JsonResponse({'message':"ld out."})
-            elif user_auth == "student":
-                 
-                return JsonResponse({'message':"student out."})
+                return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
+            if user_auth.identity == "teacher": #用户是老师
+                ask_list = Ask.objects.filter(Q(status = 1) & Q(pass_id = user_unit_id))
+                ret['data'] = {'list':[]}
+                for i in ask_list:
+                    ask_unit = {
+                        'ask_id':i.id,          #请假表id
+                        'ask_status':i.status,  #审核状态
+                        'ask_type':i.ask_type,  #请假类型
+                        'ask_reason':i.reason,  #请假理由
+                        'ask_place':i.place,    #去往地点
+                    }
+                    ret['data']['list'].append(ask_unit)
+                ret['code'] = 2000
+                ret['message'] = "查询成功,查询用户为老师"
+                return JsonResponse(ret)
+            elif user_auth.identity == "ld":     #需要领导审核的
+                ask_list = Ask.objects.filter(Q(status = 2) & Q(pass_id = user_unit_id))
+                ret['data'] = {'list':[]}
+                for i in ask_list:
+                    ask_unit = {
+                        'ask_id':i.id,          #请假表id
+                        'ask_status':i.status,  #审核状态
+                        'ask_type':i.ask_type,  #请假类型
+                        'ask_reason':i.reason,  #请假理由
+                        'ask_place':i.place,    #去往地点
+                    }
+                    ret['data']['list'].append(ask_unit)
+                ret['code'] = 2000
+                ret['message'] = "查询成功,查询用户为领导"
+                return JsonResponse(ret)
+            elif user_auth.identity == "student":
+                ask_list = Ask.objects.filter(user_id = user_unit_id)
+                print(ask_list)
+                ret['data'] = {'list':[]}
+                for i in ask_list:
+                    ask_unit = {
+                        'ask_id':i.id,          #请假表id
+                        'ask_status':i.status,  #审核状态
+                        'ask_type':i.ask_type,  #请假类型
+                        'ask_reason':i.reason,  #请假理由
+                        'ask_place':i.place,    #去往地点
+                    }
+                    ret['data']['list'].append(ask_unit)
+                ret['code'] = 2000
+                ret['message'] = "查询成功,查询用户为学生"
+                return JsonResponse(ret)
             else:
                 return JsonResponse({'message':"other out"})
+
+                ##########################################
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
@@ -227,22 +264,12 @@ class Draft(APIView):
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        # try:
-        #     time_go = timezone.datetime.strptime(time_go,"%Y-%m-%d ")
-        #     time_back = timezone.datetime.strptime(time_back,"%Y-%m-%d")
-        # except ValueError as time_form_error:
-        #     print("时间格式有误",time_form_error)
-        #     ret['code'] = 4000
-        #     ret['message'] = "time_form_exception"
-        #     return JsonResponse(ret)
-        print(time_back)
-        print(time_go)
-        # if leave_type == "1":
-        #     leave_type = "out"
-        # elif leave_type == "2":
-        #     leave_type = "leave"
-        # else:
-        #     leave_type = "other"
+        if leave_type == "1":
+            leave_type = "out"
+        elif leave_type == "2":
+            leave_type = "leave"
+        else:
+            leave_type = "other"
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
@@ -303,8 +330,10 @@ class Audit(APIView):
             ret['code'] = 4000
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
+        #TODO(liuhai): 后续添加功能拉取老师的领导来添加是否给领导审核的逻辑功能
         ask_unit.status = operate_sate
         ask_unit.save()
         ret['code'] = 2000
         ret['message'] = "修改成功"
+        #TODO(liuhai): 审核完成后把这条记录放入审核情况表
         return JsonResponse(ret)
