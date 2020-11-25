@@ -6,7 +6,7 @@ import string
 from rest_framework.views import APIView
 from django.http import JsonResponse
 import requests
-from User.utils.auth import md5,update_token
+from User.utils.auth import md5,update_token,get_user
 from . import models
 # 微信登录
 def get_openid(js_code):
@@ -112,14 +112,16 @@ class Information(APIView):
     def get(self, request):
         '''
         get method
+        获取用户
+        获取用户信息
+        返回信息
         '''
         ret = {'code':2000,'message':"执行成功",'data':{}}
-        auth_type = request.data['type']
-        if auth_type == 'wx':
-            wx_login(request,ret)
-        elif auth_type == 'admin':
-            admin_login(request,ret)
-        else:
-            ret['code']=5000
-            ret['message']='登录类型失败'
+        # user = get_user(request)
+        ret['data'] = {
+            roles: ['admin'],
+            introduction: 'I am a super administrator',
+            avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+            name: 'Super Admin'
+        }
         return JsonResponse(ret)
