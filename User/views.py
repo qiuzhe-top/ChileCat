@@ -8,6 +8,7 @@ from django.http import JsonResponse
 import requests
 from User.utils.auth import md5,update_token
 from . import models
+# 微信登录
 def get_openid(js_code):
     '''
     根据jscode获取微信唯一标识
@@ -25,7 +26,6 @@ def get_openid(js_code):
     except:
         print('获取openid失败')
         return None
-
 def wx_login(request,ret):
     '''
         判断登录类型
@@ -66,6 +66,26 @@ def wx_login(request,ret):
         print(user.id)
         ret['data']= {'token':md5(open_id)}
         update_token(user,ret['data']['token'])
+# 后台登录
+def admin_login(request,ret):
+    '''
+    获取账号密码
+    验证账户密码
+    返回token或错误
+    '''
+    username = request.data['username']
+    password = request.data['password']
+    user = models.User.objects.filter(user_name = username).first()
+    if user:
+        if password == user.pass_word:
+            token = md5(user)
+            update_token(user,token)
+            ret['data']['token'] = token
+            return JsonResponse(ret)  
+    ret['message']='登录失败'
+    ret['code']=5000
+    return JsonResponse(ret)
+
 class Auth(APIView):
     '''
     Auth
@@ -78,4 +98,28 @@ class Auth(APIView):
         auth_type = request.data['type']
         if auth_type == 'wx':
             wx_login(request,ret)
+        elif auth_type == 'admin':
+            admin_login(request,ret)
+        else:
+            ret['code']=5000
+            ret['message']='登录类型失败'
+        return JsonResponse(ret)
+
+class Information(APIView):
+    '''
+    Information
+    '''
+    def get(self, request):
+        '''
+        get method
+        '''
+        ret = {'code':2000,'message':"执行成功",'data':{}}
+        auth_type = request.data['type']
+        if auth_type == 'wx':
+            wx_login(request,ret)
+        elif auth_type == 'admin':
+            admin_login(request,ret)
+        else:
+            ret['code']=5000
+            ret['message']='登录类型失败'
         return JsonResponse(ret)

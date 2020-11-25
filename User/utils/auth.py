@@ -58,7 +58,7 @@ def md5(user):
     获取md5
     '''
     ctime = str(time.time())
-    get_md5 = hashlib.md5(bytes(user, encoding='utf-8'))
+    get_md5 = hashlib.md5(bytes(str(id(user)), encoding='utf-8'))
     get_md5.update(bytes(ctime, encoding='utf-8'))
     return get_md5.hexdigest()
 
