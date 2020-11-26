@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 import requests
 from User.utils.auth import md5,update_token,get_user
-from . import models
+from . import models,ser
 # 微信登录
 def get_openid(js_code):
     '''
@@ -130,4 +130,46 @@ class Information(APIView):
         data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
         data['name'] = user.userinfo.name
         ret['data'] = data
+        return JsonResponse(ret)
+# 关联班级
+class ClassList(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+
+        user = get_user(request)
+        info = user.userinfo
+        if info.identity=="student":
+            grade = user.studentinfo.grade_id
+            ret['data'] = ser.GradeSerializer(instance=grade,many=False).data
+            return JsonResponse(ret)
+        elif info.identity=="teacher":
+            grade = user.teacherforgrade_set.all()
+            ret['data'] = ser.TeacherForGradeSerializer(instance=grade,many=True).data
+            return JsonResponse(ret)
+        elif info.identity=="college":
+            grade = user.teacherforcollege_set.all()
+            ret['data'] = ser.TeacherForCollegeSerializer(instance=grade,many=True).data
+            return JsonResponse(ret)
+
+        return JsonResponse(ret)
+    def post(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+    def put(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+    def delete(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
         return JsonResponse(ret)
