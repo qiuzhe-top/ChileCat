@@ -24,7 +24,7 @@ def get_openid(js_code):
         openid = ret.json()['openid']
         return openid
     except:
-        print('获取openid失败')
+        #print('获取openid失败')
         return None
 def wx_login(request,ret):
     '''
@@ -59,11 +59,11 @@ def wx_login(request,ret):
             'user_id':user
         }
         ret['data'] = {'token':dic2['token']}
-        print(dic2)
+        #print(dic2)
         models.Token.objects.create(**dic2)
     else:
         user = token[0].user_id
-        print(user.id)
+        #print(user.id)
         ret['data']= {'token':md5(open_id)}
         update_token(user,ret['data']['token'])
 # 后台登录

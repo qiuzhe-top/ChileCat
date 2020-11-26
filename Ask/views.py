@@ -119,7 +119,7 @@ class Draft(APIView):
                 ret['code'] = 4000
                 ret['message'] = "没有此id的请假条"
                 return JsonResponse(ret)
-            print(ask.ask_type)
+            #print(ask.ask_type)
             ret['data'] = {
                 'user_id': ask.user_id.id,
                 'status': ask.status,
@@ -177,7 +177,7 @@ class Draft(APIView):
             elif user_auth.identity == "student":
 
                 ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type)
-                print(ask_type)
+                #print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
                     ask_unit = {
