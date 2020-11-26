@@ -2,22 +2,21 @@
 数据库模型
 '''
 from django.db import models
-from User.models import User
-
 # Create your models here.
 class Ask(models.Model):
     '''
     请假条
     '''
     user_id = models.ForeignKey(
-        "User.User",
+        'User.User',
         on_delete=models.CASCADE,
         verbose_name = "用户id",related_name = "user_id")
     askType = (
         ("0","草稿"),
         ("1","班主任审核"), # 一级审核中
         ("2","等待二级审核"), # 二级审核中
-        ("3","完成")          # 历史
+        ("3","完成"),          # 历史
+        ("4","不通过")          # 不通过
     )
     status = models.CharField(max_length = 20,choices = askType,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
@@ -36,10 +35,12 @@ class Ask(models.Model):
     end_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
+    grade_id = models.ForeignKey('User.Grade', null=True, blank=True, on_delete=models.SET_NULL,verbose_name=u'班级')
     #当请假条没有绑定老师数据的时候默认绑定给id为1的用户(这个default永远不应该被使用,unless改动了数据库)
+    
     pass_id = models.ForeignKey(
-        "User.User",
-        verbose_name="审批老师的id",
+        'User.User',
+        verbose_name="审批老师的id1",
         on_delete=models.CASCADE,
         related_name = "pass_id",default = 1)
 
@@ -52,9 +53,9 @@ class Ask(models.Model):
 class Audit(models.Model):
 
     user_id = models.ForeignKey("User.User", on_delete=models.CASCADE,verbose_name = "用户id")
-    ask_id = models.ForeignKey("Ask", on_delete=models.CASCADE,verbose_name = "请假单id")
-    level = models.IntegerField(verbose_name = "等级")
-    note = models.CharField(max_length = 20,verbose_name = "备注")
+    ask_id = models.ForeignKey("Ask", null=True, blank=True, on_delete=models.SET_NULL,verbose_name = "请假单id")
+    status = models.CharField(max_length = 21,verbose_name = "审核状态")
+    explain = models.CharField(max_length = 20,verbose_name = "审核说明")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
     class Meta:

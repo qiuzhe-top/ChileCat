@@ -104,7 +104,13 @@ class Auth(APIView):
             ret['code']=5000
             ret['message']='登录类型失败'
         return JsonResponse(ret)
-
+    def delete(self, request):
+        """
+        docstring
+        """
+        ret = {'code':2000,'message':"执行成功",'data':{}}
+        return JsonResponse(ret)
+# 获取个人信息
 class Information(APIView):
     '''
     Information
@@ -117,11 +123,11 @@ class Information(APIView):
         返回信息
         '''
         ret = {'code':2000,'message':"执行成功",'data':{}}
-        # user = get_user(request)
-        ret['data'] = {
-            roles: ['admin'],
-            introduction: 'I am a super administrator',
-            avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-            name: 'Super Admin'
-        }
+        user = get_user(request)
+        data = {}
+        data['roles']=['admin']
+        data['introduction'] = 'I am a super administrator'
+        data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
+        data['name'] = user.userinfo.name
+        ret['data'] = data
         return JsonResponse(ret)

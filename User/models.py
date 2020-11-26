@@ -46,7 +46,7 @@ class UserInfo(models.Model):
     identity = models.CharField(max_length = 20,choices=(
         ("student","学生"),
         ("teacher","老师"),
-        ("ld","领导")
+        ("college","院领导")
         ),default="student",verbose_name="身份")
     user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
 
@@ -65,7 +65,7 @@ class StudentInfo(models.Model):
     学生信息
     '''
     student_id = models.CharField(max_length = 20,verbose_name="学号")
-    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name = "年级id")
+    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name = "班级id")
     user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -91,7 +91,7 @@ class TeacherInfo(models.Model):
 
 class TeacherForGrade(models.Model):
     '''
-    老师对应的班级
+    教师对应的班级
     '''
     grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name="班级号")
     user_id = models.ForeignKey("User", on_delete=models.CASCADE,verbose_name="管理者账号")
@@ -100,10 +100,21 @@ class TeacherForGrade(models.Model):
         verbose_name = "教师班级关系"
         verbose_name_plural = "教师班级关系"
 
+class TeacherForCollege(models.Model):
+    '''
+    教师对应的分院
+    '''
+    college_id = models.ForeignKey("College", on_delete=models.CASCADE,verbose_name="分院号")
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE,verbose_name="管理者账号")
+
+    class Meta:
+        verbose_name = "教师院级关系"
+        verbose_name_plural = "教师院级关系"
+
 
 class Grade(models.Model):
     '''
-    年级
+    班级
     '''
     name = models.CharField(max_length = 20,verbose_name = "班级号")
     college_id = models.ForeignKey("College", on_delete=models.CASCADE,verbose_name="学院")

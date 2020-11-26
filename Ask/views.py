@@ -19,7 +19,7 @@ from django.db.models import Q
 
 class LeaveType(APIView):
     '''
-    请假功能
+    请假类别
     '''
     def get(self, request):
         '''
@@ -41,7 +41,7 @@ class LeaveType(APIView):
             '事假',
             '其他'
         ]
-        print(get_user(request))
+        #print(get_user(request))
         ret['data'] = ask_type
         ret['code'] = 2000
         ret['message'] = "执行成功"
@@ -57,7 +57,7 @@ class Draft(APIView):
         提交假条
         '''
         ret = {'code':2000,'message':"提示信息",}
-        req = request.POST
+        req = request.data
         try:
             leave_type = req['leave_type']
             time_go = req['time_go']
@@ -65,22 +65,28 @@ class Draft(APIView):
             place = req['place']
             reason = req['reason']
             phone = req['phone']
-            state = req['state']
+            status = req['status']
         except KeyError as req_failed:
-            print("get key failed",req_failed)
+            #print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
+        grade_id = user_id_user.studentinfo.grade_id
+        pass_id = grade_id.teacherforgrade_set.all().first().user_id
+        #TODO(zouyang): 如果一个班有多个老师时只让第一个老师审核，应该改写成每个老师都能进行审核   
         unit = Ask(
             user_id = user_id_user,
-            status = state,
+            status = status,
             contact_info = phone,
             reason = reason,
             place = place,
             ask_type = leave_type,
             start_time = time_go,
             end_time = time_back,
+
+            grade_id = grade_id,
+            pass_id = pass_id
             )
         unit.save()
         ret['code'] = 2000
@@ -101,18 +107,19 @@ class Draft(APIView):
             ask_id = int(req_list.get('id',-1))
             ask_type = req_list.get('type',-1)
         except ValueError as not_number:
-            print("id不是数字",not_number)
+            #print("id不是数字",not_number)
             return JsonResponse({'code':4000,'message':"id_not_number."})
         has_type = 0 if ask_type == -1 else 1   #是否存在type
         if ask_id != -1:                                    #是否存在id字段,如果有,则是单记录读取
             try:
                 ask = models.Ask.objects.get(id = ask_id)
-                # print(ask.created_time)
+                # #print(ask.created_time)
             except ObjectDoesNotExist as get_failed:
-                print("get failed",get_failed)
+                #print("get failed",get_failed)
                 ret['code'] = 4000
                 ret['message'] = "没有此id的请假条"
                 return JsonResponse(ret)
+            print(ask.ask_type)
             ret['data'] = {
                 'user_id': ask.user_id.id,
                 'status': ask.status,
@@ -133,9 +140,9 @@ class Draft(APIView):
                 return JsonResponse({'code':4000,'message':"用户不存在"})
             try:
                 user_auth = UserInfo.objects.get(user_id = user_unit_id)    #获取用户权
-                print("用户: ",user_auth)
+                #print("用户: ",user_auth)
             except ObjectDoesNotExist as user_not_find:
-                print("user not exist. ",user_not_find)
+                #print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
             if user_auth.identity == "teacher": #用户是老师
                 ask_list = Ask.objects.filter(Q(status = 1) & Q(pass_id = user_unit_id))
@@ -152,7 +159,7 @@ class Draft(APIView):
                 ret['code'] = 2000
                 ret['message'] = "查询成功,查询用户为老师"
                 return JsonResponse(ret)
-            elif user_auth.identity == "ld":     #需要领导审核的
+            elif user_auth.identity == "college":     #需要领导审核的
                 ask_list = Ask.objects.filter(Q(status = 2) & Q(pass_id = user_unit_id))
                 ret['data'] = {'list':[]}
                 for i in ask_list:
@@ -168,8 +175,9 @@ class Draft(APIView):
                 ret['message'] = "查询成功,查询用户为领导"
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
-                ask_list = Ask.objects.filter(user_id = user_unit_id)
-                print(ask_list)
+
+                ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type)
+                print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
                     ask_unit = {
@@ -178,6 +186,8 @@ class Draft(APIView):
                         'ask_type':i.ask_type,  #请假类型
                         'ask_reason':i.reason,  #请假理由
                         'ask_place':i.place,    #去往地点
+                        'ask_start_time':i.start_time,    #开始时间
+                        'ask_end_time':i.end_time,    #结束时间
                     }
                     ret['data']['list'].append(ask_unit)
                 ret['code'] = 2000
@@ -190,12 +200,12 @@ class Draft(APIView):
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
-                print("page字段不是数字",page_number_error)
+                #print("page字段不是数字",page_number_error)
                 return JsonResponse({'code':4000,'message':"page_not_number."})
             if req_page !=-1:           #页数存在
                 if req_page == 0:
                     req_page = 1
-                #print(req_page)
+                ##print(req_page)
                 # if req_page == -1:
                 #     ret['code'] = 4000
                 #     ret['message'] = "错误的请求方式,至少有'page','id'其中之一"
@@ -214,11 +224,11 @@ class Draft(APIView):
             paginator = Paginator(ask_all_list,10)
             max_page = paginator.num_pages
             if req_page > max_page:
-                print("页数有误(超出最大页数)")
+                #print("页数有误(超出最大页数)")
                 ret['code'] = 4000
                 ret['message'] = "page_out_of_max"
                 return JsonResponse(ret)
-            print(paginator.num_pages)
+            #print(paginator.num_pages)
             if max_page < 1:
                 ret['code'] = 4000
                 ret['message'] = "没有任何数据"
@@ -248,7 +258,7 @@ class Draft(APIView):
             'message':"default message"
             }
         req = request.data
-        print(req)
+        #print(req)
         try:
             #读取前端假条修改数据
             ask_id = req['id']
@@ -258,22 +268,22 @@ class Draft(APIView):
             place = req['place']
             reason = req['reason']
             phone = req['phone']
-            state = req['state']
+            status = req['status']
         except KeyError as lack_info:
-            print("缺少条目",lack_info)
+            #print("缺少条目",lack_info)
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        if leave_type == "1":
-            leave_type = "out"
-        elif leave_type == "2":
-            leave_type = "leave"
-        else:
-            leave_type = "other"
+        # if leave_type == "1":
+        #     leave_type = "out"
+        # elif leave_type == "2":
+        #     leave_type = "leave"
+        # else:
+        #     leave_type = "other"
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
-            print("请假条不存在",not_find_ask)
+            #print("请假条不存在",not_find_ask)
             ret['code'] = 4000
             ret['message'] = "ask_not_find"
         #存入数据
@@ -283,8 +293,8 @@ class Draft(APIView):
         ask_unit.place = place
         ask_unit.reason = reason
         ask_unit.contact_info = phone
-        ask_unit.status = state
-        print(state,phone)
+        ask_unit.status = status
+        #print(status,phone)
         ask_unit.save()
         ret['code'] = 2000
         ret['message'] = "修改成功"
@@ -296,7 +306,7 @@ class Draft(APIView):
         """
         ret = {}
         id = request.data['id']
-        print(id)
+        #print(id)
         ask = models.Ask.objects.get(id = id)
         ask.delete()
         ret['code'] = 2000
@@ -319,18 +329,19 @@ class Audit(APIView):
         ask_id = req_list.get('id',-1)
         operate_sate = req_list.get('operate_sate',-1)
         if ask_id == -1 or operate_sate == -1:
-            print("条件缺损")
+            #print("条件缺损")
             ret['code'] = 4000
             ret['message'] = "修改失败(条件缺损)"
             return JsonResponse(ret)
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find:
-            print("没有找到记录",not_find)
+            #print("没有找到记录",not_find)
             ret['code'] = 4000
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
-        #TODO(liuhai): 后续添加功能拉取老师的领导来添加是否给领导审核的逻辑功能
+        #TODO(liuhai): 后续添加功能拉取老师的领导来添加是否给领导审核的逻辑功能 -->（满足身份为教师 且 operate_sate=2 时把审核权转交上级）
+        #TODO(zouyang): 后续添加功能 添加审核记录（Audit表）
         ask_unit.status = operate_sate
         ask_unit.save()
         ret['code'] = 2000
