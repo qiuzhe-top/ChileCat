@@ -27,12 +27,6 @@ class LeaveType(APIView):
         /api/ask/leave_type
         '''
         ret = {'code':0000,'message':"提示信息",'data':[]}
-        # ask_data = {'id':0,'name':"null"}
-        # data_list = models.Ask.objects.all()
-        # for i in data_list:
-        #     ask_data['id'] = i.id
-        #     ask_data['name'] = i.ask_type
-        #     ret['data'].append(ask_data)
         ask_type = [
             # {'id':"0",'title':"外出"},
             # {'id':"1",'title':"事假"},
@@ -188,6 +182,7 @@ class Draft(APIView):
                 return JsonResponse({'message':"other out"})
 
                 ##########################################
+                #TODO(liuhai) 目前存在一部分的逻辑需要调整
             try:
                 req_page = int(req_list.get('page',-1)) #页数
             except ValueError as page_number_error:
@@ -196,11 +191,6 @@ class Draft(APIView):
             if req_page !=-1:           #页数存在
                 if req_page == 0:
                     req_page = 1
-                #print(req_page)
-                # if req_page == -1:
-                #     ret['code'] = 4000
-                #     ret['message'] = "错误的请求方式,至少有'page','id'其中之一"
-                #     return JsonResponse(ret)
                 ret['data'] = {'list':[]}
                 ask_unit = {
                     'text': "请假类型+15字简介",
