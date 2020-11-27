@@ -36,7 +36,11 @@ class Ask(models.Model):
     end_time = models.DateTimeField(auto_now=False, auto_now_add=False,verbose_name = "结束时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
-    #当请假条没有绑定老师数据的时候默认绑定给id为1的用户(这个default永远不应该被使用,unless改动了数据库)
+    '''
+        当请假条没有绑定老师数据的时候默认绑定给id为1的用户
+        (这个default永远不应该被使用,unless改动了数据库亦或是前端创建请假条或者修改请假条缺损了)
+        这个id不仅可以用来绑定老师(学生到班主任的审核),亦可用来绑定领导(班主任提交给领导的审核).具体按照逻辑来
+    '''
     pass_id = models.ForeignKey(
         "User.User",
         verbose_name="审批老师的id",

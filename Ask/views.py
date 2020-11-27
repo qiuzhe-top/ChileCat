@@ -56,6 +56,7 @@ class Draft(APIView):
         '''
         提交假条
         '''
+        #TODO(liuhai) 创建假条需要显式(可以由学生指定)或者隐式(系统根据数据库内联)的添加审批老师信息
         ret = {'code':2000,'message':"提示信息",}
         req = request.POST
         try:
@@ -288,19 +289,6 @@ class Draft(APIView):
         ask_unit.save()
         ret['code'] = 2000
         ret['message'] = "修改成功"
-        return JsonResponse(ret)
-    
-    def delete(self, request):
-        """
-        docstring
-        """
-        ret = {}
-        id = request.data['id']
-        print(id)
-        ask = models.Ask.objects.get(id = id)
-        ask.delete()
-        ret['code'] = 2000
-        ret['data'] = '执行成功'
         return JsonResponse(ret)
 class Audit(APIView):
     '''
