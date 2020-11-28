@@ -282,8 +282,8 @@ class Audit(APIView):
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
         #TODO(liuhai): 后续添加功能拉取老师的领导来添加是否给领导审核的逻辑功能 -->（满足身份为教师 且 operate_sate=2 时把审核权转交上级）
-        if operate_sate = 2:
-            
+        if operate_sate == 2:
+            pass
         ask_unit.status = operate_sate
         ask_unit.save()
         ret['message'] = "修改成功"
