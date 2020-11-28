@@ -82,7 +82,7 @@ def admin_login(request,ret):
             token = md5(user)
             update_token(user,token)
             ret['data']['token'] = token
-            return JsonResponse(ret)  
+            return JsonResponse(ret)
     ret['message']='登录失败'
     ret['code']=5000
     # 1

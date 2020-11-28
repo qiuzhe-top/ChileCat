@@ -9,10 +9,11 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Ask
-from User.models import User,UserInfo
+from Ask.models import Ask,Audit
+from User.models import User,UserInfo,TeacherForCollege,College
 from . import models
 from User.utils.auth import get_user
+from .ser import audit
 from django.db.models import Q
 # Create your views here .
 
@@ -27,12 +28,6 @@ class LeaveType(APIView):
         /api/ask/leave_type
         '''
         ret = {'code':0000,'message':"提示信息",'data':[]}
-        # ask_data = {'id':0,'name':"null"}
-        # data_list = models.Ask.objects.all()
-        # for i in data_list:
-        #     ask_data['id'] = i.id
-        #     ask_data['name'] = i.ask_type
-        #     ret['data'].append(ask_data)
         ask_type = [
             # {'id':"0",'title':"外出"},
             # {'id':"1",'title':"事假"},
@@ -73,8 +68,8 @@ class Draft(APIView):
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
         grade_id = user_id_user.studentinfo.grade_id
+        #默认只给第一个管理老师审核
         pass_id = grade_id.teacherforgrade_set.all().first().user_id
-        #TODO(zouyang): 如果一个班有多个老师时只让第一个老师审核，应该改写成每个老师都能进行审核   
         unit = Ask(
             user_id = user_id_user,
             status = status,
@@ -176,8 +171,7 @@ class Draft(APIView):
                 ret['message'] = "查询成功,查询用户为领导"
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
-
-                ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type)
+                ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type) #[1,2]
                 #print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
@@ -196,9 +190,6 @@ class Draft(APIView):
                 return JsonResponse(ret)
             else:
                 return JsonResponse({'message':"other out"})
-
-                ##########################################
-           
             ret['code'] = 2000
         return JsonResponse(ret)
 
@@ -227,12 +218,6 @@ class Draft(APIView):
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
-        # if leave_type == "1":
-        #     leave_type = "out"
-        # elif leave_type == "2":
-        #     leave_type = "leave"
-        # else:
-        #     leave_type = "other"
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
@@ -252,19 +237,8 @@ class Draft(APIView):
         ret['code'] = 2000
         ret['message'] = "修改成功"
         return JsonResponse(ret)
-    
-    def delete(self, request):
-        """
-        docstring
-        """
-        ret = {}
-        id = request.data['id']
-        #print(id)
-        ask = models.Ask.objects.get(id = id)
-        ask.delete()
-        ret['code'] = 2000
-        ret['data'] = '执行成功'
-        return JsonResponse(ret)
+
+
 class Audit(APIView):
     '''
     老师审核请假条
@@ -278,9 +252,22 @@ class Audit(APIView):
             'code':0000,
             'message':"default info."
         }
+        user_id = get_user(request)
+        try:
+            user_type = UserInfo.objects.get(user_id = user_id).identity
+        except ObjectDoesNotExist as e:
+            print("此用户没有用户信息",e)
+            ret = {
+            'code':4000,
+            'message':"用户没有用户信息,请联系管理员."
+            }
+            return JsonResponse(ret)
         req_list = request.data
         ask_id = req_list.get('id',-1)
         operate_sate = req_list.get('operate_sate',-1)
+        #审核说明
+        statement = req_list.get('statement',"")
+        #print(ask_id,operate_sate)
         if ask_id == -1 or operate_sate == -1:
             #print("条件缺损")
             ret['code'] = 4000
@@ -293,11 +280,21 @@ class Audit(APIView):
             ret['code'] = 4000
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
-        #TODO(liuhai): 后续添加功能拉取老师的领导来添加是否给领导审核的逻辑功能 -->（满足身份为教师 且 operate_sate=2 时把审核权转交上级）
-        #TODO(zouyang): 后续添加功能 添加审核记录（Audit表）
+        #交给上级
+        #print(user_type,operate_sate)
+        if operate_sate == "2" and user_type == "teacher":
+            #默认第一个领导(假设只有一个)
+            college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
+            #print(college_teacher_id)
+            ask_unit.pass_id = college_teacher_id
+            ask_unit.save()
         ask_unit.status = operate_sate
+        #print(ask_unit.user_id)
         ask_unit.save()
-        ret['code'] = 2000
         ret['message'] = "修改成功"
-        #TODO(liuhai): 审核完成后把这条记录放入审核情况表
+        #审核完成后把记录放入审核情况表
+        unit = audit(user_id,ask_unit,operate_sate,statement)
+        unit.save()
+        ret['message'] = "修改成功,记录已储存"
+        ret['code'] = 2000
         return JsonResponse(ret)

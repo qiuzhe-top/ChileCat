@@ -2,12 +2,11 @@
 admin.py
 '''
 from django.contrib import admin
-from .models import User,Token,UserInfo,StudentInfo,TeacherInfo,TeacherForGrade,Grade,College,Permission,UserForPermission
+from .models import User,Token,UserInfo,StudentInfo,TeacherInfo,TeacherForGrade,Grade,College,Permission,UserForPermission,TeacherForCollege
 
 @admin.register(User)
 class UserTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_name","pass_word")
-
 @admin.register(Token)
 class TokenTeleAdmin(admin.ModelAdmin):
     list_display = ("id","token","wx_openid")
@@ -23,6 +22,9 @@ class TeacherInfoTeleAdmin(admin.ModelAdmin):
 @admin.register(TeacherForGrade)
 class TeacherForGradeTeleAdmin(admin.ModelAdmin):
     list_display = ("id","grade_id","user_id")
+@admin.register(TeacherForCollege)
+class TeacherForCollegeTeleAdmin(admin.ModelAdmin):
+    list_display = ("college_id","user_id")
 @admin.register(Grade)
 class GradeTeleAdmin(admin.ModelAdmin):
     list_display = ("id","name","college_id")
