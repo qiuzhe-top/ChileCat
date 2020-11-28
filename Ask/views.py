@@ -166,7 +166,7 @@ class Draft(APIView):
                 #print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
             if user_auth.identity == "teacher": #用户是老师
-                #TODO(zouyang): history:1 classid:1
+                #(zouyang): history:1 classid:1
                 history = req_list.get('history',-1)
                 class_id = req_list.get('classid',-1)
                 if history != -1 or class_id != -1:
