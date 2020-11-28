@@ -52,6 +52,7 @@ def wx_login(request,ret):
             'user_name':ran_str,
             'pass_word':ran_str
         }
+
         user = models.User.objects.create(**dic)
         dic2 = {
             'token':md5(ran_str),
@@ -84,6 +85,8 @@ def admin_login(request,ret):
             return JsonResponse(ret)  
     ret['message']='登录失败'
     ret['code']=5000
+    # 1
+    
     return JsonResponse(ret)
 
 class Auth(APIView):
@@ -143,6 +146,7 @@ class ClassList(APIView):
         info = user.userinfo
         if info.identity=="student":
             grade = user.studentinfo.grade_id
+            # django 序列化
             ret['data'] = ser.GradeSerializer(instance=grade,many=False).data
             return JsonResponse(ret)
         elif info.identity=="teacher":

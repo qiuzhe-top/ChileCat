@@ -145,6 +145,7 @@ class Draft(APIView):
                 #print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
             if user_auth.identity == "teacher": #用户是老师
+                #TODO(zouyang): history:1 classid:1
                 ask_list = Ask.objects.filter(Q(status = 1) & Q(pass_id = user_unit_id))
                 ret['data'] = {'list':[]}
                 for i in ask_list:
@@ -197,55 +198,7 @@ class Draft(APIView):
                 return JsonResponse({'message':"other out"})
 
                 ##########################################
-            try:
-                req_page = int(req_list.get('page',-1)) #页数
-            except ValueError as page_number_error:
-                #print("page字段不是数字",page_number_error)
-                return JsonResponse({'code':4000,'message':"page_not_number."})
-            if req_page !=-1:           #页数存在
-                if req_page == 0:
-                    req_page = 1
-                ##print(req_page)
-                # if req_page == -1:
-                #     ret['code'] = 4000
-                #     ret['message'] = "错误的请求方式,至少有'page','id'其中之一"
-                #     return JsonResponse(ret)
-                ret['data'] = {'list':[]}
-                ask_unit = {
-                    'text': "请假类型+15字简介",
-                    'start_time': "开始时间",
-                    'vacate_time': "请假时长",
-                    'state': "状态",
-                    'state_level': "目前审核状态"
-                }
-            else:                   #页数不存在
-                pass
-            ask_all_list = models.Ask.objects.all()
-            paginator = Paginator(ask_all_list,10)
-            max_page = paginator.num_pages
-            if req_page > max_page:
-                #print("页数有误(超出最大页数)")
-                ret['code'] = 4000
-                ret['message'] = "page_out_of_max"
-                return JsonResponse(ret)
-            #print(paginator.num_pages)
-            if max_page < 1:
-                ret['code'] = 4000
-                ret['message'] = "没有任何数据"
-                return JsonResponse(ret)
-            if req_page > max_page:
-                req_page = max_page
-            for i in paginator.page(req_page):
-                ask_unit['id'] = i.id
-                ask_unit['text'] = i.ask_type
-                ask_unit['reason'] = i.reason
-                ask_unit['start_time'] = i.start_time
-                ask_unit['vacate_time'] = i.end_time - i.start_time
-                ask_unit['state'] = i.status
-                ask_unit['state_level'] = i.ask_state
-                ret['data']['list'].append(ask_unit)
-            ret['data']['page'] = req_page
-            ret['data']['max_page'] = max_page
+           
             ret['code'] = 2000
         return JsonResponse(ret)
 

@@ -55,7 +55,7 @@ class Ask(models.Model):
 
 class Audit(models.Model):
 
-    user_id = models.ForeignKey("User.User", on_delete=models.CASCADE,verbose_name = "用户id")
+    user_id = models.ForeignKey("User.User", on_delete=models.CASCADE,verbose_name = "老师id")
     ask_id = models.ForeignKey("Ask", null=True, blank=True, on_delete=models.SET_NULL,verbose_name = "请假单id")
     status = models.CharField(max_length = 21,verbose_name = "审核状态")
     explain = models.CharField(max_length = 20,verbose_name = "审核说明")
