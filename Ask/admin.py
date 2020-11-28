@@ -12,7 +12,7 @@ class AskTeleAdmin(admin.ModelAdmin):
     '''
     list_display = (
         "id","user_id","status","contact_info","ask_type","reason","place","ask_state",
-        "start_time","end_time","created_time","modify_time","pass_id"
+        "start_time","end_time","created_time","modify_time","grade_id","pass_id"
         )
 @admin.register(Audit)
 class AuditTeleAdmin(admin.ModelAdmin):

@@ -67,6 +67,11 @@ class Audit(models.Model):
     explain = models.CharField(max_length = 20,verbose_name = "审核说明")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
+
+    def __str__(self):
+        return "审批记录"+str(self.id)
+    
+    
     class Meta:
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"

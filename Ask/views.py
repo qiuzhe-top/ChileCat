@@ -10,13 +10,36 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
 from Ask.models import Ask,Audit
-from User.models import User,UserInfo,TeacherForCollege,College
+from User.models import User,UserInfo,TeacherForCollege,College,Grade
 from . import models
 from User.utils.auth import get_user
-from .ser import audit
 from django.db.models import Q
+from django.db.models.fields.related import ManyToManyField
+from django.db.models.fields import DateTimeField
+from django.db.models.functions import(
+    ExtractDay,ExtractHour,ExtractMonth,ExtractYear,ExtractIsoYear,
+    ExtractIsoWeekDay,ExtractWeekDay,
+)
 # Create your views here .
 
+
+def to_dict(obj, fields=None, exclude=None):
+    '''
+    自定义to_dict
+    '''
+    data = {}
+    for fun in obj._meta.concrete_fields + obj._meta.many_to_many:
+        value = fun.value_from_object(obj)
+        if fields and fun.name not in fields:
+            continue
+        if exclude and fun.name in exclude:
+            continue
+        if isinstance(fun, ManyToManyField):
+            value = [i.id for i in value] if obj.pk else None
+        if isinstance(fun, DateTimeField):
+            value = value.strftime('%Y-%m-%d %H:%M:%S') if value else None
+        data[fun.name] = value
+    return data
 
 class LeaveType(APIView):
     '''
@@ -79,7 +102,6 @@ class Draft(APIView):
             ask_type = leave_type,
             start_time = time_go,
             end_time = time_back,
-
             grade_id = grade_id,
             pass_id = pass_id
             )
@@ -115,17 +137,21 @@ class Draft(APIView):
                 ret['message'] = "没有此id的请假条"
                 return JsonResponse(ret)
             #print(ask.ask_type)
-            ret['data'] = {
-                'user_id': ask.user_id.id,
-                'status': ask.status,
-                'constact_info': ask.contact_info,
-                'ask_type': ask.ask_type,
-                'reason': ask.reason,
-                'place': ask.place,
-                'ask_state': ask.ask_state,
-                'start_time': ask.start_time.strftime('%Y-%m-%d %H:%M'),
-                'end_time': ask.end_time.strftime('%Y-%m-%d %H:%M')
-            }
+            # ret['data'] = {
+            #     'user_id': ask.user_id.id,
+            #     'status': ask.status,
+            #     'constact_info': ask.contact_info,
+            #     'ask_type': ask.ask_type,
+            #     'reason': ask.reason,
+            #     'place': ask.place,
+            #     'ask_state': ask.ask_state,
+            #     'start_time': ask.start_time.strftime('%Y-%m-%d %H:%M'),
+            #     'end_time': ask.end_time.strftime('%Y-%m-%d %H:%M')
+            # }
+            ask_dict = ask.__dict__
+            ask_dict.pop('_state')
+            ret['data'] = ask_dict
+            print(ret['data'])
             ret['code'] = 2000
             ret['message'] = "success"
             return JsonResponse(ret)
@@ -141,17 +167,52 @@ class Draft(APIView):
                 return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
             if user_auth.identity == "teacher": #用户是老师
                 #TODO(zouyang): history:1 classid:1
-                ask_list = Ask.objects.filter(Q(status = 1) & Q(pass_id = user_unit_id))
-                ret['data'] = {'list':[]}
-                for i in ask_list:
-                    ask_unit = {
-                        'ask_id':i.id,          #请假表id
-                        'ask_status':i.status,  #审核状态
-                        'ask_type':i.ask_type,  #请假类型
-                        'ask_reason':i.reason,  #请假理由
-                        'ask_place':i.place,    #去往地点
-                    }
-                    ret['data']['list'].append(ask_unit)
+                history = req_list.get('history',-1)
+                class_id = req_list.get('classid',-1)
+                if history != -1 or class_id != -1:
+                    ret_list = []
+                    if history != -1 and class_id == -1:
+                        ret_list = models.Audit.objects.filter(user_id=user_unit_id)
+                        ret['data']['list'] = []
+                        # for i in ret_list:
+                        #     ask_unit = {
+                        #         'audit_id':i.id,          #请假表id
+                        #         'user_id':i.user_id.userinfo.name,  #审核人
+                        #         'ask_statys':i.status,  #审批状态
+                        #         'audit_explain':i.explain, #审批说明
+                        #         'audit_created_time':i.created_time,    #创建时间
+                        #         'audit_modify_time':i.modify_time,    #修改时间
+                        #     }
+                        #     ret['data']['list'].append(ask_unit)
+                        ret['data']['list'] = list(ret_list.values())
+                    elif history == -1 and class_id != -1:
+                        class_id = Grade.objects.get(name=class_id)
+                        ret_list = Ask.objects.filter(grade_id=class_id)
+                        ret['data']['list'] = list(ret_list.values())
+                        # for i in ret_list:
+                        #     ask_unit = {
+                        #         'ask_id':i.id,          #请假表id
+                        #         'ask_status':i.status,  #审核状态
+                        #         'ask_type':i.ask_type,  #请假类型
+                        #         'ask_reason':i.reason,  #请假理由
+                        #         'ask_place':i.place,    #去往地点
+                        #         'ask_start_time':i.start_time,    #开始时间
+                        #         'ask_end_time':i.end_time,    #结束时间
+                        #     }
+                        #     ret['data']['list'].append(ask_unit)
+                    #ret['data'] = ret_list
+                else:
+                    ask_list = Ask.objects.filter(Q(status = 1) & Q(pass_id = user_unit_id))
+                    ret['data'] = {'list':[]}
+                    for i in ask_list:
+                        ask_unit = {
+                            'ask_id':i.id,          #请假表id
+                            'ask_status':i.status,  #审核状态
+                            'ask_type':i.ask_type,  #请假类型
+                            'ask_reason':i.reason,  #请假理由
+                            'ask_place':i.place,    #去往地点
+                        }
+                        ret['data']['list'].append(ask_unit)
                 ret['code'] = 2000
                 ret['message'] = "查询成功,查询用户为老师"
                 return JsonResponse(ret)
@@ -293,7 +354,7 @@ class Audit(APIView):
         ask_unit.save()
         ret['message'] = "修改成功"
         #审核完成后把记录放入审核情况表
-        unit = audit(user_id,ask_unit,operate_sate,statement)
+        unit = models.Audit(user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement)
         unit.save()
         ret['message'] = "修改成功,记录已储存"
         ret['code'] = 2000
