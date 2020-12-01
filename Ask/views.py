@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from Ask.models import Ask,Audit
 from User.models import User,UserInfo,TeacherForCollege,College,Grade
-from . import models
+from . import models,ser
 from User.utils.auth import get_user
 from django.db.models import Q
 from django.db.models.fields.related import ManyToManyField
@@ -186,9 +186,10 @@ class Draft(APIView):
                         #     ret['data']['list'].append(ask_unit)
                         ret['data']['list'] = list(ret_list.values())
                     elif history == -1 and class_id != -1:
-                        class_id = Grade.objects.get(name=class_id)
-                        ret_list = Ask.objects.filter(grade_id=class_id)
-                        ret['data']['list'] = list(ret_list.values())
+                        class_id = Grade.objects.get(id=class_id)
+                        ret_list = Ask.objects.filter(grade_id=class_id,status = 1)
+                        data = ser.AskSerializer(instance=ret_list,many=True).data
+                        ret['data']['list'] = data #['list'] = list(ret_list.values())
                         # for i in ret_list:
                         #     ask_unit = {
                         #         'ask_id':i.id,          #请假表id
@@ -262,7 +263,7 @@ class Draft(APIView):
             'code':0000,
             'message':"default message"
             }
-        req = request.data
+        req = request.GET
         #print(req)
         try:
             #读取前端假条修改数据
@@ -323,12 +324,11 @@ class Audit(APIView):
             'message':"用户没有用户信息,请联系管理员."
             }
             return JsonResponse(ret)
-        req_list = request.data
+        req_list = request.GET
         ask_id = req_list.get('id',-1)
         operate_sate = req_list.get('operate_sate',-1)
         #审核说明
         statement = req_list.get('statement',"")
-        #print(ask_id,operate_sate)
         if ask_id == -1 or operate_sate == -1:
             #print("条件缺损")
             ret['code'] = 4000
