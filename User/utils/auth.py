@@ -45,7 +45,7 @@ def get_user(request):
     try:
         token = get_token(request)
         obj = models.Token.objects.get(token=token)
-        print(obj)
+        # print(obj)
         return obj.user_id
     except ObjectDoesNotExist as token_not_exist:
         print("not get user ",token_not_exist)

@@ -24,7 +24,7 @@ def get_openid(js_code):
         openid = ret.json()['openid']
         return openid
     except:
-        #print('获取openid失败')
+        print('获取openid失败')
         return None
 def wx_login(request,ret):
     '''

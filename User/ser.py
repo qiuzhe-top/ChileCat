@@ -22,5 +22,5 @@ class TeacherForCollegeSerializer(serializers.ModelSerializer):
         ret = []
         d = obj.college_id.grade_set.all()
         ser = GradeSerializer(instance=d,many=True).data
-        print(ser)
+        # print(ser)
         return ser

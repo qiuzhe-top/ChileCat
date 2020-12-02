@@ -7,6 +7,7 @@ class AskSerializer(serializers.ModelSerializer):
   
   def get_students_name(self,obj):
     return obj.user_id.userinfo.name
+
   def get_min(self,obj):
     times = obj.end_time - obj.start_time
     hours = times.total_seconds() % (60*60*24) / 60 / 60 # 剩余的小时

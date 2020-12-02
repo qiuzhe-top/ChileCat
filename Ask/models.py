@@ -18,6 +18,7 @@ class Ask(models.Model):
         ("3","完成"),          # 历史
         ("4","不通过")          # 不通过
     )
+    
     status = models.CharField(max_length = 20,choices = askType,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
     ask_type = models.CharField(max_length = 20,choices = (
