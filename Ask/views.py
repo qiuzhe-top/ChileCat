@@ -20,8 +20,6 @@ from django.db.models.functions import(
     ExtractDay,ExtractHour,ExtractMonth,ExtractYear,ExtractIsoYear,
     ExtractIsoWeekDay,ExtractWeekDay,
 )
-# Create your views here .
-
 
 def to_dict(obj, fields=None, exclude=None):
     '''
@@ -59,7 +57,7 @@ class LeaveType(APIView):
             '事假',
             '其他'
         ]
-        ## print(get_user(request))
+        # print(get_user(request))
         ret['data'] = ask_type
         ret['code'] = 2000
         ret['message'] = "执行成功"
@@ -85,11 +83,12 @@ class Draft(APIView):
             phone = req['phone']
             status = req['status']
         except KeyError as req_failed:
-            ## print("get key failed",req_failed)
+            print("get key failed",req_failed)
             ret['code'] = 4000
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
+        print(user_id_user)
         grade_id = user_id_user.studentinfo.grade_id
         #默认只给第一个管理老师审核
         pass_id = grade_id.teacherforgrade_set.all().first().user_id
@@ -130,9 +129,9 @@ class Draft(APIView):
         if ask_id != -1:                                    #是否存在id字段,如果有,则是单记录读取
             try:
                 ask = models.Ask.objects.get(id = ask_id)
-                # ## print(ask.created_time)
+                # print(ask.created_time)
             except ObjectDoesNotExist as get_failed:
-                ## print("get failed",get_failed)
+                # print("get failed",get_failed)
                 ret['code'] = 4000
                 ret['message'] = "没有此id的请假条"
                 return JsonResponse(ret)
@@ -161,9 +160,9 @@ class Draft(APIView):
                 return JsonResponse({'code':4000,'message':"用户不存在"})
             try:
                 user_auth = UserInfo.objects.get(user_id = user_unit_id)    #获取用户权
-                ## print("用户: ",user_auth)
+                # print("用户: ",user_auth)
             except ObjectDoesNotExist as user_not_find:
-                ## print("user not exist. ",user_not_find)
+                print("user not exist. ",user_not_find)
                 return JsonResponse({'code':4000,'message':"此用户没有在用户权限表中存在"})
             if user_auth.identity == "teacher": #用户是老师
                 #(zouyang): history:1 classid:1
@@ -182,7 +181,7 @@ class Draft(APIView):
                         #         'audit_explain':i.explain, #审批说明
                         #         'audit_created_time':i.created_time,    #创建时间
                         #         'audit_modify_time':i.modify_time,    #修改时间
-                        #     }
+                        #     }\
                         #     ret['data']['list'].append(ask_unit)
                         ret['data']['list'] = list(ret_list.values())
                     elif history == -1 and class_id != -1:
@@ -234,7 +233,7 @@ class Draft(APIView):
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
                 ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type) #[1,2]
-                ## print(ask_type)
+                # print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
                     ask_unit = {
@@ -276,14 +275,14 @@ class Draft(APIView):
             phone = req['phone']
             status = req['status']
         except KeyError as lack_info:
-            ## print("缺少条目",lack_info)
+            print("缺少条目",lack_info)
             ret['code'] = 4000
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
-            ## print("请假条不存在",not_find_ask)
+            print("请假条不存在",not_find_ask)
             ret['code'] = 4000
             ret['message'] = "ask_not_find"
         #存入数据
@@ -294,12 +293,32 @@ class Draft(APIView):
         ask_unit.reason = reason
         ask_unit.contact_info = phone
         ask_unit.status = status
-        ## print(status,phone)
+        # print(status,phone)
         ask_unit.save()
         ret['code'] = 2000
         ret['message'] = "修改成功"
         return JsonResponse(ret)
 
+    def delete(self,request):
+        '''
+        学生撤销请假条
+        '''
+        ret = {'code':0000,'message':'default message'}
+        req_list = request.data
+        '''
+        回传数据:id = 2
+        '''
+        try:
+            ask_id = int(req_list.get('id',-1))
+            ask_unit = Ask.objects.get(id = ask_id)
+            ask_unit.delete()
+            ret['code'] = 2000
+            ret['message'] = "删除成功"
+        except ObjectDoesNotExist as e:
+            ret['code'] = 4000
+            ret['message'] = "此请假条不存在,可能已被删除"
+        finally:
+            return JsonResponse(ret)
 
 class Audit(APIView):
     '''
@@ -330,27 +349,27 @@ class Audit(APIView):
         #审核说明
         statement = req_list.get('statement',"")
         if ask_id == -1 or operate_sate == -1:
-            ## print("条件缺损")
+            # print("条件缺损")
             ret['code'] = 4000
             ret['message'] = "修改失败(条件缺损)"
             return JsonResponse(ret)
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find:
-            ## print("没有找到记录",not_find)
+            # print("没有找到记录",not_find)
             ret['code'] = 4000
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
         #交给上级
-        ## print(user_type,operate_sate)
+        # print(user_type,operate_sate)
         if operate_sate == "2" and user_type == "teacher":
             #默认第一个领导(假设只有一个)
             college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
-            ## print(college_teacher_id)
+            # print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
             ask_unit.save()
         ask_unit.status = operate_sate
-        ## print(ask_unit.user_id)
+        # print(ask_unit.user_id)
         ask_unit.save()
         ret['message'] = "修改成功"
         #审核完成后把记录放入审核情况表
@@ -359,3 +378,18 @@ class Audit(APIView):
         ret['message'] = "修改成功,记录已储存"
         ret['code'] = 2000
         return JsonResponse(ret)
+    def get(self,request):
+        '''
+        查看历史记录
+        '''
+        ret = {'code':0000,'message':"default message."}
+        #TODO(liuhai) 查找此用户的所有审批记录
+        user_id = get_user(request)
+        try:
+            aduit_list = models.Audit.objects.filter(user_id=user_id)
+            ret['data'] = list(aduit_list)
+        except ObjectDoesNotExist as e:
+            print("查找错误",e)
+            ret['message'] = e
+        finally:
+            return JsonResponse(ret)

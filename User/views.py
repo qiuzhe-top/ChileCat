@@ -16,10 +16,11 @@ def get_openid(js_code):
     url='https://api.weixin.qq.com/sns/jscode2session'
     data = {
         'appid':'wx9a63d4bc0c3480f3',
-        'secret':'caaf6191b5c51021a7839197780862ec',
+        'secret':'e8f66b9581ced527fb319c015e670044',
         'js_code':js_code
         }
     ret = requests.get(url,params=data) #发get请求
+    print(ret.json())
     try:
         openid = ret.json()['openid']
         return openid
@@ -158,22 +159,4 @@ class ClassList(APIView):
             ret['data'] = ser.TeacherForCollegeSerializer(instance=grade,many=True).data
             return JsonResponse(ret)
 
-        return JsonResponse(ret)
-    def post(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def put(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def delete(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
         return JsonResponse(ret)
