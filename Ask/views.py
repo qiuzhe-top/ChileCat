@@ -300,6 +300,14 @@ class Draft(APIView):
         ret['message'] = "修改成功"
         return JsonResponse(ret)
 
+    def delete(self, request):
+        id = request.data['id']
+        ask = models.Ask.objects.get(id = id)
+        ask.delete()
+        ret = {'code':2000,'message':"成功"}
+        return JsonResponse(ret)
+
+
 
 class Audit(APIView):
     '''
