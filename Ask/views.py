@@ -173,7 +173,8 @@ class Draft(APIView):
                     ret_list = []
                     if history != -1 and class_id == -1:
                         ret_list = models.Audit.objects.filter(user_id=user_unit_id)
-                        ret['data']['list'] = []
+                        ser_list = ser.AuditSerializer(instance=ret_list,many=True).data
+                        # ret['data']['list'] = []
                         # for i in ret_list:
                         #     ask_unit = {
                         #         'audit_id':i.id,          #请假表id
@@ -184,7 +185,7 @@ class Draft(APIView):
                         #         'audit_modify_time':i.modify_time,    #修改时间
                         #     }
                         #     ret['data']['list'].append(ask_unit)
-                        ret['data']['list'] = list(ret_list.values())
+                        ret['data']['list'] = ser_list #list(ret_list.values())
                     elif history == -1 and class_id != -1:
                         class_id = Grade.objects.get(id=class_id)
                         ret_list = Ask.objects.filter(grade_id=class_id,status = 1)

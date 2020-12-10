@@ -19,3 +19,14 @@ class AskSerializer(serializers.ModelSerializer):
       # fields = "__all__"
       fields = ('id', 'reason', 'ask_type','place','start_time','end_time','students_name','min') # 包含
       #exclude = ('image',) # 不包含
+
+
+class AuditSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="user_id.userinfo.name")
+    class Meta:
+        model = models.Audit
+        # fields = "__all__"
+        fields = ('name', 'status','created_time', 'modify_time') # 包含
+        #exclude = ('image',) # 不包含
+
+
