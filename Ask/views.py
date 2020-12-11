@@ -16,10 +16,6 @@ from User.utils.auth import get_user
 from django.db.models import Q
 from django.db.models.fields.related import ManyToManyField
 from django.db.models.fields import DateTimeField
-from django.db.models.functions import(
-    ExtractDay,ExtractHour,ExtractMonth,ExtractYear,ExtractIsoYear,
-    ExtractIsoWeekDay,ExtractWeekDay,
-)
 # Create your views here .
 
 
