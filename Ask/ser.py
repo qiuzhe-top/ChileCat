@@ -22,11 +22,20 @@ class AskSerializer(serializers.ModelSerializer):
 
 
 class AuditSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source="user_id.userinfo.name")
+    name = serializers.CharField(source="ask_id.user_id.userinfo.name")
+    status = serializers.SerializerMethodField()
+    min = serializers.SerializerMethodField()
+    def get_min(self,obj):
+        times = obj.ask_id.end_time - obj.ask_id.start_time
+        hours = times.total_seconds() % (60*60*24) / 60 / 60 # 剩余的小时
+        return str(times.days) + '天 ' + str(  format(hours, '.1f')   ) + '时'
+
+    def get_status(self,obj):
+        return obj.get_status_display()
     class Meta:
         model = models.Audit
         # fields = "__all__"
-        fields = ('name', 'status','created_time', 'modify_time') # 包含
+        fields = ('name', 'status','created_time', 'modify_time','min') # 包含
         #exclude = ('image',) # 不包含
 
 

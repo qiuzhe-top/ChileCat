@@ -20,16 +20,31 @@ class User(models.Model):
         verbose_name = '用户'
         verbose_name_plural = '用户'
 
+# 第三方账户绑定
+class Tpost(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    wx_openid = models.CharField(max_length=128, verbose_name=u'微信标识',null=True, blank=True)
+
+    def __str__(self):
+        try:
+            return self.user_id.userinfo.name
+        except:
+            return self.user.user_name
+
+    class Meta:
+        db_table = ''
+        managed = True
+        verbose_name = '第三方账户'
+        verbose_name_plural = '第三方账户'
 class Token(models.Model):
     '''
     Token
     '''
     token = models.CharField(max_length=100)
-    wx_openid = models.CharField(max_length = 100)
-    user_id = models.OneToOneField("User", on_delete=models.CASCADE)
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.token
+        return self.user.user_name + "的token:" +  self.token
 
     class Meta:
         db_table = ''

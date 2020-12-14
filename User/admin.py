@@ -2,14 +2,14 @@
 admin.py
 '''
 from django.contrib import admin
-from .models import User,Token,UserInfo,StudentInfo,TeacherInfo,TeacherForGrade,Grade,College,Permission,UserForPermission,TeacherForCollege
+from .models import User,Token,Tpost,UserInfo,StudentInfo,TeacherInfo,TeacherForGrade,Grade,College,Permission,UserForPermission,TeacherForCollege
 
 @admin.register(User)
 class UserTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_name","pass_word")
 @admin.register(Token)
 class TokenTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","token","wx_openid")
+    list_display = ("id","token")
 @admin.register(UserInfo)
 class UserInfoTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_id","name","tel","identity")
@@ -37,3 +37,6 @@ class PermissionTeleAdmin(admin.ModelAdmin):
 @admin.register(UserForPermission)
 class UserForPermissionTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_id","perm_id")
+@admin.register(Tpost)
+class TpostTeleAdmin(admin.ModelAdmin):
+    list_display = ('id','user')

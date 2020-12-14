@@ -16,10 +16,6 @@ from User.utils.auth import get_user
 from django.db.models import Q
 from django.db.models.fields.related import ManyToManyField
 from django.db.models.fields import DateTimeField
-from django.db.models.functions import(
-    ExtractDay,ExtractHour,ExtractMonth,ExtractYear,ExtractIsoYear,
-    ExtractIsoWeekDay,ExtractWeekDay,
-)
 # Create your views here .
 
 
@@ -219,6 +215,7 @@ class Draft(APIView):
                 ret['message'] = "查询成功,查询用户为老师"
                 return JsonResponse(ret)
             elif user_auth.identity == "college":     #需要领导审核的
+                print(user_unit_id)
                 ask_list = Ask.objects.filter(Q(status = 2) & Q(pass_id = user_unit_id))
                 ret['data'] = {'list':[]}
                 for i in ask_list:
@@ -235,7 +232,7 @@ class Draft(APIView):
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
                 ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type) #[1,2]
-                ## print(ask_type)
+                print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
                     ask_unit = {
@@ -351,11 +348,11 @@ class Audit(APIView):
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
         #交给上级
-        ## print(user_type,operate_sate)
-        if operate_sate == "2" and user_type == "teacher":
+        print(user_type,operate_sate)
+        if operate_sate == 2 and user_type == "teacher":
             #默认第一个领导(假设只有一个)
             college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
-            ## print(college_teacher_id)
+            print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
             ask_unit.save()
         ask_unit.status = operate_sate
@@ -367,4 +364,17 @@ class Audit(APIView):
         unit.save()
         ret['message'] = "修改成功,记录已储存"
         ret['code'] = 2000
+        return JsonResponse(ret)
+
+
+# 班级+学号 获取姓名
+class GetName(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        class_name = request.data['classname']
+        sno = request.data['sno']
+        user.objects.get()
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
         return JsonResponse(ret)

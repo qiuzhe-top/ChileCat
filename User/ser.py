@@ -19,8 +19,12 @@ class TeacherForCollegeSerializer(serializers.ModelSerializer):
         model = models.TeacherForCollege
         fields = ('listGrader',) # 包含
     def get_listGrader(self,obj):
-        ret = []
         d = obj.college_id.grade_set.all()
         ser = GradeSerializer(instance=d,many=True).data
-        # print(ser)
-        return ser
+        ret = []
+        for item in ser:
+            dicts = {}
+            for k,v in item.items():
+                dicts[k]=v
+            ret.append(dicts)
+        return ret
