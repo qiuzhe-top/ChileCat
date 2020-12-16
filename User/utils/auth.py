@@ -34,6 +34,7 @@ def get_token(request):
     '''
     try:
         token = request.META.get("HTTP_TOKEN")
+        print(token)
     except KeyError as identifier:
         print(identifier,'no token')
     return token
@@ -44,6 +45,7 @@ def get_user(request):
     '''
     try:
         token = get_token(request)
+        print("获得的token: ",token)
         obj = models.Token.objects.get(token=token)
         # print(obj)
         return obj.user

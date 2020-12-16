@@ -19,7 +19,7 @@ class Ask(models.Model):
         on_delete=models.CASCADE,
         verbose_name = "用户id",related_name = "user_id")
 
-    
+
     status = models.CharField(max_length = 4,choices = ASKTYPE,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
     ask_type = models.CharField(max_length = 20,choices = (
