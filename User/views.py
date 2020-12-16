@@ -1,12 +1,12 @@
 '''
 views
 '''
-import random
-import string
+# import random
+# import string
 from rest_framework.views import APIView
 from django.http import JsonResponse
 import requests
-from User.utils.auth import md5,update_token,get_user
+from User.utils.auth import update_token,get_user
 from . import models,ser
 # 微信登录
 def get_openid(js_code):
@@ -20,6 +20,7 @@ def get_openid(js_code):
         'js_code':js_code
         }
     ret = requests.get(url,params=data) #发get请求
+    print(ret.json())
     try:
         openid = ret.json()['openid']
         return openid
@@ -28,6 +29,9 @@ def get_openid(js_code):
         return None
 
 def wx_login(request,ret):
+    '''
+    微信登录
+    '''
     js_code = request.data['js_code']
     open_id = get_openid(js_code)
 
@@ -45,9 +49,8 @@ def wx_login(request,ret):
     except:
         ret['code'] = 5001
         ret['message'] = '用户未绑定'
-    
     return JsonResponse(ret)
-    
+
 
     # token = models.Token.objects.filter(wx_openid = open_id)
     # user = None
@@ -140,7 +143,7 @@ class Information(APIView):
         return JsonResponse(ret)
 # 关联班级
 class ClassList(APIView):
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         ret = {}
         user = get_user(request)
         info = user.userinfo
@@ -168,29 +171,17 @@ class ClassList(APIView):
         ret['message'] = "执行成功"
         ret['data'] = ser_list
         return JsonResponse(ret)
-    def post(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def put(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def delete(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
 
 # 绑定微信
 
 class Bindwx(APIView):
-    def post(self, request, *args, **kwargs):
+    '''
+    绑定微信
+    '''
+    def post(self, request):
+        '''
+        post method
+        '''
         ret = {}
 
         try:
@@ -206,6 +197,7 @@ class Bindwx(APIView):
         user = None
         try:
             user = models.User.objects.get(user_name=username,pass_word=password)
+            print(user)
         except:
             ret['code'] = 5000
             ret['message'] = "登录失败"
@@ -220,7 +212,6 @@ class Bindwx(APIView):
                 return JsonResponse(ret)
         except:
             pass
-
         openid = get_openid(js_code)
         if openid is None:
             ret['code'] = 5000
