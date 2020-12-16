@@ -345,8 +345,25 @@ class Audit(APIView):
     '''
     def put(self, request):
         '''
-        审核通过 审核不通过 撤销已通过的审核
-        1=通过 2=不通过
+        逻辑可以改为:
+                获取前端的各种数据,包括且不仅限于:
+                    1,用户的身份,正常情况下只能是老师和领导两个身份才有资格访问
+                    2,请假条的id,用于获取要审批的请假条
+                    3,修改后的状态,用于处理请假条的去留问题
+                if 身份 = 老师:
+                    if请假条的old_status确实是1:
+                        老师提交上级或者是直接通过
+                    else(也就是目前请假条的old_status不是1了,被学生撤销了或者被其他老师审核了):
+                        请刷新页面
+                else if 身份 = 领导:
+                    if请假条old_status = 2(等待二级领导审核):
+                        领导选择通过或者是不通过
+                    else(被其他领导审核了):
+                        请刷新页面
+                else(既不是老师也不是领导):
+                    你是来捣乱的吧/或者就是特殊的管理员权限(后门权限)
+                再进行添加审核表的操作
+
         '''
         ret = {
             'code':0000,
@@ -354,6 +371,7 @@ class Audit(APIView):
         }
         user_id = get_user(request)
         try:
+            #用户身份
             user_type = UserInfo.objects.get(user_id = user_id).identity
         except ObjectDoesNotExist as e:
             # print("此用户没有用户信息",e)
@@ -364,6 +382,7 @@ class Audit(APIView):
             return JsonResponse(ret)
         req_list = request.data
         ask_id = req_list.get('id',-1)
+        #前端提交修改后请假条应该处于的状态:2,领导审核 3,直接完成 4,不通过
         operate_sate = req_list.get('operate_sate',-1)
         #审核说明
         statement = req_list.get('statement',"")
@@ -381,8 +400,11 @@ class Audit(APIView):
             return JsonResponse(ret)
         #交给上级
         print(user_type,operate_sate)
-        #如果是要提交上级领导
-        if operate_sate == 2:
+        '''
+            如果是要提交上级领导,并且操作的用户是老师
+                1,理论上
+        '''
+        if operate_sate == 2 and user_type == "teacher":
             college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
             print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
@@ -390,6 +412,8 @@ class Audit(APIView):
             print(college_teacher_id)
             ask_unit.save()
         old_status = models.Ask.objects.get(id = ask_id).status
+
+
         if old_status=="1" and user_type == "teacher":
             ask_unit.status = operate_sate
             # print(ask_unit.user_id)
