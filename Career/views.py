@@ -9,7 +9,8 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
 import json
-from . import models
+from . import models,ser
+from Manage.models import TypePar
 # Create your views here.
 
 
@@ -80,3 +81,69 @@ class Info(APIView):
             data['data'] = rets
             return JsonResponse(data)
         return JsonResponse({'info':"unexpect error"})
+
+
+# 获取新闻导航
+def press_navigation():
+    ret = {}
+    t = '微信新闻导航'
+    car = TypePar.objects.get(title = t)
+    type_child = car.typechild_set.all()
+    type_child_ser = ser.TypeChildSerializer(instance=type_child,many=True).data
+    print(type_child_ser)
+    ret['code'] = 2000
+    ret['data'] = type_child_ser
+    return ret
+# 获取分类下的新闻列表
+def news_list(chilid):
+    ret = {}
+    child_list = models.Career.objects.filter(classify = chilid)
+    child_ser = ser.CareerListSerializer(instance=child_list,many=True).data
+    print(child_ser)
+    ret['code'] = 2000
+    ret['data'] = child_ser
+    return ret
+# 获取新闻详情
+def news_details(carid):
+    ret = {}
+    try:
+        car = models.Career.objects.get(id = carid)
+    except:
+        ret['code'] = 5000
+        ret['message'] = "当前文章不存在"
+        return ret
+    car_ser = ser.CareerSerializer(instance=car,many=False).data
+    ret['code'] = 2000
+    ret['data'] = car_ser
+    return ret
+class NewsCat(APIView):
+    def get(self, request, *args, **kwargs):
+        career_id = request.GET.get('id',-1)
+        career_type = request.GET.get('type',-1)
+        if career_id != -1:
+            ret = news_details(career_id)
+        elif career_type != -1:
+            ret = news_list(career_type)
+        else:
+            ret = press_navigation()
+
+        return JsonResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+    def put(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+    def delete(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)

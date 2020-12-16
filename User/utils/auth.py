@@ -47,10 +47,10 @@ def get_user(request):
         token = get_token(request)
         print("获得的token: ",token)
         obj = models.Token.objects.get(token=token)
-        print(obj)
-        return obj.user_id
+        # print(obj)
+        return obj.user
     except ObjectDoesNotExist as token_not_exist:
-        print("Token验证失败 ",token_not_exist)
+        print(token_not_exist,"not get user ")
         return -1
     return 1
 
@@ -64,13 +64,12 @@ def md5(user):
     get_md5.update(bytes(ctime, encoding='utf-8'))
     return get_md5.hexdigest()
 
-def update_token(user_account_obj, token):
+def update_token(user_account_obj):
     '''
     更新token
     '''
-    token_obj = models.Token.objects.filter(user_id=user_account_obj).first()
-    if not token_obj:
-        models.Token.objects.create(user_id=user_account_obj, token=token)
-    else:
-        models.Token.objects.filter(
-            user_id = user_account_obj).update(token=token)
+    token = md5(user_account_obj)
+    token_obj,b = models.Token.objects.get_or_create(user_id=user_account_obj.id)
+    token_obj.token = token
+    token_obj.save()
+    return token

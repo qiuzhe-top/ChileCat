@@ -15,7 +15,7 @@ class Primitives(models.Model):
 class TypePar(models.Model):
 
     title = models.CharField(max_length = 30,verbose_name = "标题")
-    par_id = models.ForeignKey("Primitives", on_delete=models.CASCADE,verbose_name = "主表id")
+    par_id = models.ForeignKey("Primitives", on_delete=models.CASCADE,verbose_name = "主表id" ,null=True, blank=True)
     
 
     class Meta:
@@ -28,7 +28,7 @@ class TypePar(models.Model):
 class TypeChild(models.Model):
 
     title = models.CharField(max_length = 30,verbose_name = "标题")
-    par_id = models.ForeignKey("TypeChild", on_delete=models.CASCADE,verbose_name = "父表id")
+    par_id = models.ForeignKey("TypePar", on_delete=models.CASCADE,verbose_name = "父表id")
 
     class Meta:
         verbose_name = "分类子表"

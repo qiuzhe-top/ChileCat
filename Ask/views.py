@@ -86,10 +86,19 @@ class Draft(APIView):
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
-        print(user_id_user)
-        grade_id = user_id_user.studentinfo.grade_id
+        try:
+            grade_id = user_id_user.studentinfo.grade_id
+        except:
+            ret['code'] = 5000
+            ret['message'] = "用户信息不完整无法请假"
+            return JsonResponse(ret)
+
         #默认只给第一个管理老师审核
-        pass_id = grade_id.teacherforgrade_set.all().first().user_id
+        try:
+            pass_id = grade_id.teacherforgrade_set.all().first().user_id
+        except AttributeError as no_teacher_gov:
+            print("该用户没有对应的审批老师关系 ", no_teacher_gov)
+            return JsonResponse({'code':4000,'message':"没有审批老师"})
         unit = Ask(
             user_id = user_id_user,
             status = status,
@@ -120,6 +129,7 @@ class Draft(APIView):
         try:
             ask_id = int(req_list.get('id',-1))
             ask_type = req_list.get('type',-1)
+            class_id = req_list.get('classid',-1)
         except ValueError as not_number:
             ## print("id不是数字",not_number)
             return JsonResponse({'code':4000,'message':"id_not_number."})
@@ -183,6 +193,8 @@ class Draft(APIView):
                         #     }\
                         #     ret['data']['list'].append(ask_unit)
                         ret['data']['list'] = ser_list #list(ret_list.values())
+                        # ret['message'] = "查询成功,查询用户为领导"
+                        # return JsonResponse(ret)
                     elif history == -1 and class_id != -1:
                         class_id = Grade.objects.get(id=class_id)
                         ret_list = Ask.objects.filter(grade_id=class_id,status = 1)
@@ -216,23 +228,31 @@ class Draft(APIView):
                 ret['message'] = "查询成功,查询用户为老师"
                 return JsonResponse(ret)
             elif user_auth.identity == "college":     #需要领导审核的
-                ask_list = Ask.objects.filter(Q(status = 2) & Q(pass_id = user_unit_id))
-                ret['data'] = {'list':[]}
-                for i in ask_list:
-                    ask_unit = {
-                        'ask_id':i.id,          #请假表id
-                        'ask_status':i.status,  #审核状态
-                        'ask_type':i.ask_type,  #请假类型
-                        'ask_reason':i.reason,  #请假理由
-                        'ask_place':i.place,    #去往地点
-                    }
-                    ret['data']['list'].append(ask_unit)
+                ask_list = Ask.objects.filter(
+                    Q(status = 2) & Q(grade_id = class_id) & Q(pass_id = user_unit_id)
+                    )
+                print(ask_list)
+                # ret['data'] =  {'list':[]}
+                # for i in ask_list:
+                #     ask_unit = {
+                #         'ask_id':i.id,          #请假表id
+                #         'ask_status':i.status,  #审核状态
+                #         'ask_type':i.ask_type,  #请假类型
+                #         'ask_reason':i.reason,  #请假理由
+                #         'ask_place':i.place,    #去往地点
+                #         # 'ask_start_time':i.start_time,    #开始时间
+                #         # 'ask_end_time':i.end_time,    #结束时间
+                #     }
+                # ret['data']['list'].append(ask_unit)
+                data = ser.AskSerializer(instance=ask_list,many=True).data
+                ret['data'] = {'list':data}
                 ret['code'] = 2000
                 ret['message'] = "查询成功,查询用户为领导"
+                print("查询成功,查询用户为领导")
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
                 ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type) #[1,2]
-                # print(ask_type)
+                print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
                     ask_unit = {
@@ -360,22 +380,50 @@ class Audit(APIView):
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
         #交给上级
-        # print(user_type,operate_sate)
-        if operate_sate == "2" and user_type == "teacher":
-            #默认第一个领导(假设只有一个)
+        print(user_type,operate_sate)
+        #如果是要提交上级领导
+        if operate_sate == 2:
             college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
-            # print(college_teacher_id)
+            print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
+            #默认第一个领导(假设只有一个)
+            print(college_teacher_id)
             ask_unit.save()
-        ask_unit.status = operate_sate
-        # print(ask_unit.user_id)
-        ask_unit.save()
-        ret['message'] = "修改成功"
-        #审核完成后把记录放入审核情况表
-        unit = models.Audit(user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement)
-        unit.save()
-        ret['message'] = "修改成功,记录已储存"
+        old_status = models.Ask.objects.get(id = ask_id).status
+        if old_status=="1" and user_type == "teacher":
+            ask_unit.status = operate_sate
+            # print(ask_unit.user_id)
+            ask_unit.save()
+            ret['message'] = "修改成功"
+            #审核完成后把记录放入审核情况表
+            unit = models.Audit(
+                user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement
+                )
+            unit.save()
+            ret['message'] = "修改成功,记录已储存"
+            ret['code'] = 2000
+        elif operate_sate == 3 and user_type == "college":
+            ask_unit.status = operate_sate
+            # print(ask_unit.user_id)
+            ask_unit.save()
+            ret['message'] = "修改成功"
+            ret['code'] = 2000
+        else:
+            ret['message'] = "用户已被审核，请刷新页面"
+            ret['code'] = 4006
+        return JsonResponse(ret)
+
+
+# 班级+学号 获取姓名
+class GetName(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        class_name = request.data['classname']
+        sno = request.data['sno']
+        user.objects.get()
+        ret['message'] = 'message'
         ret['code'] = 2000
+        ret['data'] = 'data'
         return JsonResponse(ret)
     def get(self,request):
         '''

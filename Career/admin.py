@@ -9,4 +9,4 @@ class CareerTeleAdmin(admin.ModelAdmin):
     '''
     职业
     '''
-    list_display = ("id","title","note","text","source","viewnum","release_time")
+    list_display = ("id","title")

@@ -3,6 +3,13 @@
 '''
 from django.db import models
 # Create your models here.
+ASKTYPE = (
+    ("0","草稿"),
+    ("1","班主任审核"), # 一级审核中
+    ("2","院领导审核"), # 二级审核中
+    ("3","通过"),          # 历史
+    ("4","不通过")          # 不通过
+)
 class Ask(models.Model):
     '''
     请假条
@@ -11,15 +18,9 @@ class Ask(models.Model):
         'User.User',
         on_delete=models.CASCADE,
         verbose_name = "用户id",related_name = "user_id")
-    askType = (
-        ("0","草稿"),
-        ("1","班主任审核"), # 一级审核中
-        ("2","等待二级审核"), # 二级审核中
-        ("3","完成"),          # 历史
-        ("4","不通过")          # 不通过
-    )
 
-    status = models.CharField(max_length = 20,choices = askType,verbose_name = "审核状态",default = "0")
+
+    status = models.CharField(max_length = 4,choices = ASKTYPE,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
     ask_type = models.CharField(max_length = 20,choices = (
         ("0","外出"),
@@ -64,7 +65,7 @@ class Audit(models.Model):
     ask_id = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL,verbose_name = "请假单id")
-    status = models.CharField(max_length = 21,verbose_name = "审核状态")
+    status = models.CharField(max_length = 4,choices = ASKTYPE,verbose_name = "审核状态")
     explain = models.CharField(max_length = 20,verbose_name = "审核说明")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
@@ -72,5 +73,6 @@ class Audit(models.Model):
     def __str__(self):
         return "审批记录"+str(self.id)
     class Meta:
+        ordering = ['-created_time']
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"
