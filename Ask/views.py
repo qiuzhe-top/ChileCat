@@ -86,7 +86,13 @@ class Draft(APIView):
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
-        grade_id = user_id_user.studentinfo.grade_id
+        try:
+            grade_id = user_id_user.studentinfo.grade_id
+        except:
+            ret['code'] = 5000
+            ret['message'] = "用户信息不完整无法请假"
+            return JsonResponse(ret)
+
         #默认只给第一个管理老师审核
         pass_id = grade_id.teacherforgrade_set.all().first().user_id
         unit = Ask(
@@ -183,6 +189,8 @@ class Draft(APIView):
                         #     }
                         #     ret['data']['list'].append(ask_unit)
                         ret['data']['list'] = ser_list #list(ret_list.values())
+                        # ret['message'] = "查询成功,查询用户为领导"
+                        # return JsonResponse(ret)
                     elif history == -1 and class_id != -1:
                         class_id = Grade.objects.get(id=class_id)
                         ret_list = Ask.objects.filter(grade_id=class_id,status = 1)
@@ -360,15 +368,20 @@ class Audit(APIView):
             print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
             ask_unit.save()
-        ask_unit.status = operate_sate
-        ## print(ask_unit.user_id)
-        ask_unit.save()
-        ret['message'] = "修改成功"
-        #审核完成后把记录放入审核情况表
-        unit = models.Audit(user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement)
-        unit.save()
-        ret['message'] = "修改成功,记录已储存"
-        ret['code'] = 2000
+        old_status = models.Ask.objects.get(id = ask_id).status
+        if old_status=="1":
+            ask_unit.status = operate_sate
+            ## print(ask_unit.user_id)
+            ask_unit.save()
+            ret['message'] = "修改成功"
+            #审核完成后把记录放入审核情况表
+            unit = models.Audit(user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement)
+            unit.save()
+            ret['message'] = "修改成功,记录已储存"
+            ret['code'] = 2000
+        else:
+            ret['message'] = "用户已被审核，请刷新页面"
+            ret['code'] = 4006
         return JsonResponse(ret)
 
 

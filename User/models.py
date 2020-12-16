@@ -79,12 +79,12 @@ class StudentInfo(models.Model):
     '''
     学生信息
     '''
-    student_id = models.CharField(max_length = 20,verbose_name="学号")
+    # student_id = models.CharField(max_length = 20,verbose_name="学号")
     grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name = "班级id")
     user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.student_id
+        return self.user_id.user_name
     class Meta:
         db_table = ''
         managed = True

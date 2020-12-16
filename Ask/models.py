@@ -72,8 +72,7 @@ class Audit(models.Model):
 
     def __str__(self):
         return "审批记录"+str(self.id)
-    
-    
     class Meta:
+        ordering = ['-created_time']
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"
