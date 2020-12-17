@@ -40,3 +40,17 @@ class UserForPermissionTeleAdmin(admin.ModelAdmin):
 @admin.register(models.Tpost)
 class TpostTeleAdmin(admin.ModelAdmin):
     list_display = ('id','user')
+
+
+@admin.register(models.UserMood)
+class UserMoodTeleAdmin(admin.ModelAdmin):
+    list_display = ('id','mod_level','message','user','Grade','riqi')
+    search_fields = ('user','Grade','mod_level') # 添加快速查询栏
+
+    def func(self, request, queryset):
+        # queryset.update(created_time='2018-09-28')
+        print(6666666666)
+        #批量更新我们的created_time字段的值为2018-09-28
+            
+    func.short_description = "中文显示自定义Actions"
+    actions = [func, ]

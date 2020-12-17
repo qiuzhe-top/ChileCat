@@ -179,3 +179,29 @@ class UserForPermission(models.Model):
     class Meta:
         verbose_name = "用户权限表"
         verbose_name_plural = "用户权限表"
+
+
+
+# 心情监测
+class UserMood(models.Model):
+    '''
+    心情监测
+    '''
+    mod_level = models.CharField(max_length=2, verbose_name=u'心情等级')
+    message = models.CharField(max_length=9999, verbose_name=u'想说的话')
+    user  = models.ForeignKey("User",on_delete=models.CASCADE,verbose_name=u'学生用户')
+    Grade  = models.ForeignKey("Grade",on_delete=models.CASCADE,verbose_name=u'班级')
+    star_time = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    
+    
+
+    def riqi(self):
+        return '666'
+    # 设置方法字段在admin中显示的标题
+    riqi.short_description = '发布日期'
+
+    class Meta:
+        verbose_name = "心情监测表"
+        verbose_name_plural = "心情监测表"
+    
+    

@@ -6,4 +6,5 @@ urlpatterns = [
     path('information', views.Information.as_view()),
     path('class', views.ClassList.as_view()),
     path('bindwx', views.Bindwx.as_view()),
+    path('mymood', views.MoodManage.as_view()),
 ]

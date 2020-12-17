@@ -53,6 +53,7 @@ class LeaveType(APIView):
             # {'id':"2",'title':"其他"}
             '外出',
             '事假',
+            '病假',
             '其他'
         ]
         # print(get_user(request))
@@ -391,6 +392,7 @@ class Audit(APIView):
             ret['code'] = 4000
             ret['message'] = "修改失败(条件缺损)"
             return JsonResponse(ret)
+
         try:
             ask_unit = models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find:
@@ -399,24 +401,19 @@ class Audit(APIView):
             ret['message'] = "修改失败(没有找到请假条)"
             return JsonResponse(ret)
         #交给上级
-        print(user_type,operate_sate)
         '''
             如果是要提交上级领导,并且操作的用户是老师
                 1,理论上
         '''
         if operate_sate == 2 and user_type == "teacher":
             college_teacher_id = ask_unit.grade_id.college_id.teacherforcollege_set.first().user_id
-            print(college_teacher_id)
             ask_unit.pass_id = college_teacher_id
             #默认第一个领导(假设只有一个)
-            print(college_teacher_id)
             ask_unit.save()
+
         old_status = models.Ask.objects.get(id = ask_id).status
-
-
         if old_status=="1" and user_type == "teacher":
             ask_unit.status = operate_sate
-            # print(ask_unit.user_id)
             ask_unit.save()
             ret['message'] = "修改成功"
             #审核完成后把记录放入审核情况表
@@ -426,9 +423,8 @@ class Audit(APIView):
             unit.save()
             ret['message'] = "修改成功,记录已储存"
             ret['code'] = 2000
-        elif operate_sate == 3 and user_type == "college":
+        elif old_status=="2" and user_type == "college":
             ask_unit.status = operate_sate
-            # print(ask_unit.user_id)
             ask_unit.save()
             ret['message'] = "修改成功"
             ret['code'] = 2000

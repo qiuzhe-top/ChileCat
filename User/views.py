@@ -230,3 +230,26 @@ class Bindwx(APIView):
         ret['message'] = '绑定成功'
         ret['code'] = 2000
         return JsonResponse(ret)
+
+# 心情监测
+class MoodManage(APIView):
+    def post(self, request):
+        ret = {}
+        mod_level = request.data.get('mod_level')
+        message =   request.data.get('message')
+        print(mod_level,message)
+        user = get_user(request)
+        grade = user.studentinfo.grade_id
+        print(mod_level,message,user,grade)
+
+        dic = {
+            'user':user,
+            'Grade':grade,
+            'message':message,
+            'mod_level':mod_level
+        }
+        models.UserMood.objects.create(**dic)
+        ret['message'] = '发送成功'
+        ret['code'] = 2000
+        return JsonResponse(ret)
+
