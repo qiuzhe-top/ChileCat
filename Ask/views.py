@@ -65,7 +65,7 @@ class LeaveType(APIView):
 
 class Draft(APIView):
     '''
-    学生创建请假条/创建草稿
+    请假条 提交 获取
     '''
     def post(self, request):
         '''
