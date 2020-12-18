@@ -177,8 +177,10 @@ class Draft(APIView):
                 #(zouyang): history:1 classid:1
                 history = req_list.get('history',-1)
                 class_id = req_list.get('classid',-1)
-                if history != -1 or class_id != -1:
+                # if history != -1 or class_id != -1:
+                if class_id != -1:
                     ret_list = []
+                    '''
                     if history != -1 and class_id == -1:
                         ret_list = models.Audit.objects.filter(user_id=user_unit_id)
                         ser_list = ser.AuditSerializer(instance=ret_list,many=True).data
@@ -196,11 +198,13 @@ class Draft(APIView):
                         ret['data']['list'] = ser_list #list(ret_list.values())
                         # ret['message'] = "查询成功,查询用户为领导"
                         # return JsonResponse(ret)
+                    
                     elif history == -1 and class_id != -1:
-                        class_id = Grade.objects.get(id=class_id)
-                        ret_list = Ask.objects.filter(grade_id=class_id,status = 1)
-                        data = ser.AskSerializer(instance=ret_list,many=True).data
-                        ret['data']['list'] = data #['list'] = list(ret_list.values())
+                    '''
+                    class_id = Grade.objects.get(id=class_id)
+                    ret_list = Ask.objects.filter(grade_id=class_id,status = 1)
+                    data = ser.AskSerializer(instance=ret_list,many=True).data
+                    ret['data']['list'] = data #['list'] = list(ret_list.values())
                         # for i in ret_list:
                         #     ask_unit = {
                         #         'ask_id':i.id,          #请假表id
@@ -432,6 +436,23 @@ class Audit(APIView):
             ret['message'] = "用户已被审核，请刷新页面"
             ret['code'] = 4006
         return JsonResponse(ret)
+    def get(self,request):
+        '''
+        查看历史记录
+        /Audit
+        '''
+        ret = {'code':0000,'message':"default message."}
+        #TODO(liuhai) 查找此用户的所有审批记录
+        user_id = get_user(request)
+        print(user_id)
+        try:
+            aduit_list = models.Audit.objects.filter(user_id=user_id)
+            ret['data'] = list(aduit_list)
+        except ObjectDoesNotExist as e:
+            print("查找错误",e)
+            ret['message'] = e
+        finally:
+            return JsonResponse(ret)
 
 
 # 班级+学号 获取姓名
@@ -445,18 +466,3 @@ class GetName(APIView):
         ret['code'] = 2000
         ret['data'] = 'data'
         return JsonResponse(ret)
-    def get(self,request):
-        '''
-        查看历史记录
-        '''
-        ret = {'code':0000,'message':"default message."}
-        #TODO(liuhai) 查找此用户的所有审批记录
-        user_id = get_user(request)
-        try:
-            aduit_list = models.Audit.objects.filter(user_id=user_id)
-            ret['data'] = list(aduit_list)
-        except ObjectDoesNotExist as e:
-            print("查找错误",e)
-            ret['message'] = e
-        finally:
-            return JsonResponse(ret)
