@@ -185,6 +185,7 @@ class Draft(APIView):
                     data = ser.AskSerializer(instance=ret_list,many=True).data
                     ret['data']['list'] = data
                 else:
+                    return JsonResponse({'code':4000,'message':"没有管理的班级或其他意外的错误"})
                     print("in else!")
                 ret['code'] = 2000
                 ret['message'] = "查询成功,查询用户为老师"
@@ -389,9 +390,10 @@ class Audit(APIView):
         ret = {'code':0000,'message':"default message."}
         #TODO(liuhai) 查找此用户的所有审批记录
         user_id = get_user(request)
-        print(user_id)
+        req = request.GET
+        class_id = req.get('class_id',-1)
         try:
-            aduit_list = models.Audit.objects.filter(user_id=user_id)
+            aduit_list = models.Audit.objects.filter(user_id = user_id,class_id = class_id)
             ret['data'] = list(aduit_list)
         except ObjectDoesNotExist as e:
             print("查找错误",e)
