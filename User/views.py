@@ -139,8 +139,8 @@ class Information(APIView):
         data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
         data['name'] = user.userinfo.name
         data['role'] = user.userinfo.identity
-        # if data['role'] == "student":
-        #     data['grade'] = user.studentinfo.grade_id.name
+        if data['role'] == "student":
+            data['grade'] = user.studentinfo.grade_id.name
         ret['data'] = data
         return JsonResponse(ret)
 # 关联班级
