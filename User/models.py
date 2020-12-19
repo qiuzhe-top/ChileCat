@@ -114,6 +114,10 @@ class TeacherForGrade(models.Model):
     class Meta:
         verbose_name = "教师班级关系"
         verbose_name_plural = "教师班级关系"
+    
+    def __str__(self):
+        return self.user_id.userinfo.name + "->" + self.grade_id.name
+    
 
 class TeacherForCollege(models.Model):
     '''
