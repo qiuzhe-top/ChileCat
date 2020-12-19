@@ -391,13 +391,24 @@ class Audit(APIView):
         #TODO(liuhai) 查找此用户的所有审批记录
         user_id = get_user(request)
         req = request.GET
-        class_id = req.get('class_id',-1)
+        print(req)
+        class_id = int(req.get('classid',-1))
+        print(class_id)
         try:
-            aduit_list = models.Audit.objects.filter(user_id = user_id,class_id = class_id)
-            ret['data'] = list(aduit_list)
+            class_id = Grade.objects.get(id = class_id)
+            print(class_id)
+            audit_list = models.Audit.objects.filter(Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id))
+            print(audit_list)
+            audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
+            print(audit_ret_list)
+            ret['data'] = audit_ret_list
+            ret['code'] = 2000
+            ret['message'] = "查询成功"
         except ObjectDoesNotExist as e:
             print("查找错误",e)
             ret['message'] = e
+        except TypeError as e:
+            print("类型错误 ",e)
         finally:
             return JsonResponse(ret)
 
