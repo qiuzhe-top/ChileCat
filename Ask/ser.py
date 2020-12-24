@@ -23,6 +23,9 @@ class AskSerializer(serializers.ModelSerializer):
 
 class AuditSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="ask_id.user_id.userinfo.name")
+    place = serializers.CharField(source="ask_id.place")
+    end_time = serializers.DateTimeField(source="ask_id.end_time")
+    start_time = serializers.DateTimeField(source="ask_id.start_time")
     status = serializers.SerializerMethodField()
     min = serializers.SerializerMethodField()
     def get_min(self,obj):
@@ -35,7 +38,7 @@ class AuditSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Audit
         # fields = "__all__"
-        fields = ('name', 'status','created_time', 'modify_time','min') # 包含
+        fields = ('name', 'status','place','created_time','start_time','end_time','modify_time','min') # 包含
         #exclude = ('image',) # 不包含
 
 

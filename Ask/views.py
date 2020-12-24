@@ -399,9 +399,10 @@ class Audit(APIView):
             print(class_id)
             audit_list = models.Audit.objects.filter(Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id))
             print(audit_list)
+            #audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
             audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
             print(audit_ret_list)
-            ret['data'] = audit_ret_list
+            ret['data'] = {'list':audit_ret_list}
             ret['code'] = 2000
             ret['message'] = "查询成功"
         except ObjectDoesNotExist as e:
