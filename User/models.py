@@ -115,10 +115,8 @@ class TeacherForGrade(models.Model):
     class Meta:
         verbose_name = "教师班级关系"
         verbose_name_plural = "教师班级关系"
-    
     def __str__(self):
         return self.user_id.userinfo.name + "->" + self.grade_id.name
-    
 
 class TeacherForCollege(models.Model):
     '''
@@ -197,8 +195,6 @@ class UserMood(models.Model):
     user  = models.ForeignKey("User",on_delete=models.CASCADE,verbose_name=u'学生用户')
     Grade  = models.ForeignKey("Grade",on_delete=models.CASCADE,verbose_name=u'班级')
     star_time = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    
-    
 
     def riqi(self):
         return '666'
@@ -208,5 +204,3 @@ class UserMood(models.Model):
     class Meta:
         verbose_name = "心情监测表"
         verbose_name_plural = "心情监测表"
-    
-    
