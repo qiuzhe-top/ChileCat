@@ -131,8 +131,15 @@ class NewsCat(APIView):
 
     def post(self, request, *args, **kwargs):
         ret = {}
+        data = request.data
+        # lists = models.Career.objects.all()[:3]
+        s = ser.CareerForSerializer(data=data)
+        ret['code']  = s.is_valid()
+        s.save()
+        # print(s.is_valid())
+        # s.update()
+        
         ret['message'] = 'message'
-        ret['code'] = 2000
         ret['data'] = 'data'
         return JsonResponse(ret)
     def put(self, request, *args, **kwargs):
