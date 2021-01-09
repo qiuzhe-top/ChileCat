@@ -61,7 +61,8 @@ class UserInfo(models.Model):
     identity = models.CharField(max_length = 20,choices=(
         ("student","学生"),
         ("teacher","老师"),
-        ("college","院领导")
+        ("college","院领导"),
+        ("life","生活部")
         ),default="student",verbose_name="身份")
     user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
 

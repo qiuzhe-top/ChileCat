@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'Ask',
     'User',
     'Career',
+    'life',
     'Manage',
     'corsheaders',
 ]

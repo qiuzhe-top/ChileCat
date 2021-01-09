@@ -20,3 +20,14 @@ class CareerSerializer(serializers.ModelSerializer):
         # fields = "__all__"
         # fields = ('id', 'title', 'note') # 包含
         exclude = ('id','source') # 不包含
+class CareerForSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    note = serializers.CharField()
+    text = serializers.CharField()
+    source = serializers.CharField(required=False)
+    viewnum = serializers.IntegerField(max_value=4)
+    classify = serializers.StringRelatedField()
+    class Meta:
+        model = models.Career
+        # fields = "__all__"
+        fields = ('id', 'title', 'note','text','source','viewnum','classify') # 包含
