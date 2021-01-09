@@ -84,17 +84,8 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 # DATABASES = {
 #     'default': {
-<<<<<<< HEAD
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'chilecat',
-#         'USER': 'root',
-#         'PASSWORD': '123456',
-#         'HOST': '47.102.215.230',
-#         'PORT': '3306'
-=======
 #         'ENGINE': 'django.db.backends.sqlite3',
 #         'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
->>>>>>> origin/Develop
 #     }
 # }
 DATABASES = {
