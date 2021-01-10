@@ -60,7 +60,8 @@ class StuInRoom(models.Model):
          on_delete=models.CASCADE,verbose_name="学生",related_name="stuinroom"
         )
     bedposition = models.CharField(max_length = 150,verbose_name="床铺位置",default="1")
-    status = models.CharField(max_length = 50,verbose_name="是否在寝",default="1")
+    '''由于前端奇怪的要求,这里0是在寝室,1是不在寝室'''
+    status = models.CharField(max_length = 50,verbose_name="是否在寝",default="0")
 
     class Meta:
         verbose_name = '寝室信息'

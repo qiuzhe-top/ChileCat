@@ -11,4 +11,6 @@ urlpatterns = [
     path('stupositioninfo', views.Stupositioninfo.as_view()),
     path('studentleak', views.Studentleak.as_view()),
     path('recordsearch', views.Recordsearch.as_view()),
+    path('switchknowing', views.SwitchKnowing.as_view()),
+    path('exportexcel', views.ExportExcel.as_view()),
 ]
