@@ -6,7 +6,7 @@ views
 from rest_framework.views import APIView
 from django.http import JsonResponse
 import requests
-from User.utils.auth import update_token,get_user
+from User.utils.auth import update_token,get_user,get_token
 from . import models,ser
 # 微信登录
 def get_openid(js_code):
@@ -252,6 +252,23 @@ class MoodManage(APIView):
         }
         models.UserMood.objects.create(**dic)
         ret['message'] = '发送成功'
+        ret['code'] = 2000
+        return JsonResponse(ret)
+
+class ValidationToken(APIView):
+    def post(self, request, *args, **kwargs):
+        ret = {}
+
+        token = get_token(request)
+        l = models.Token.objects.filter(token=token)
+
+        if len(l)>0:
+            ret['data'] = True
+            # ret['message'] = 'message'
+        else:
+            # ret['message'] = 'message'
+            ret['data'] = False 
+            
         ret['code'] = 2000
         return JsonResponse(ret)
 

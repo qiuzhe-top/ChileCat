@@ -7,4 +7,5 @@ urlpatterns = [
     path('class', views.ClassList.as_view()),
     path('bindwx', views.Bindwx.as_view()),
     path('mymood', views.MoodManage.as_view()),
+    path('validationToken', views.ValidationToken.as_view()),
 ]

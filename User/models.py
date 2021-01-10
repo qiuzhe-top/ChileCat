@@ -52,6 +52,15 @@ class Token(models.Model):
         verbose_name = '用户token'
         verbose_name_plural = '用户token'
 
+class LifePer(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    
+    class Meta:
+        db_table = ''
+        managed = True
+        verbose_name = '生活部'
+        verbose_name_plural = '生活部'
+
 class UserInfo(models.Model):
     '''
     用户信息
@@ -61,8 +70,7 @@ class UserInfo(models.Model):
     identity = models.CharField(max_length = 20,choices=(
         ("student","学生"),
         ("teacher","老师"),
-        ("college","院领导"),
-        ("life","生活部")
+        ("college","院领导")
         ),default="student",verbose_name="身份")
     user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
 
