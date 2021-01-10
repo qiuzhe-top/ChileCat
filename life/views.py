@@ -378,7 +378,8 @@ class ExportExcel(APIView):
     def get(self,request):
         '''给日期,导出对应的记录的excel表,不给代表今天'''
         response = HttpResponse(content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=demo.xls'
+        filename = datetime.date.today().strftime("%Y-%m-%d")  + ' student_leak.xls'
+        response['Content-Disposition'] = 'attachment; filename=' + filename
         req_list = request.GET
         time = req_list.get('date',-1)
         if time == -1:
@@ -407,11 +408,9 @@ class ExportExcel(APIView):
                     column += 1
                 row += 1
             #循环完成
-            ws.save("demo.xls")
+            ws.save(filename)
             output = BytesIO()
             ws.save(output)
             output.seek(0)
             response.write(output.getvalue())
         return response
-                
-
