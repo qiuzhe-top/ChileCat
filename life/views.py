@@ -6,6 +6,7 @@ import random
 import math
 import datetime
 import User
+from life import ser
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.db.models import Q
@@ -153,12 +154,12 @@ class Stupositioninfo(APIView):
             'data': []
         }
         req_list = request.GET
-        roomid = req_list.get('id',-1)
-        if roomid == -1:
-            ret['code'] = 4000
-            ret['message'] = "参数错误"
-            return JsonResponse(ret)
         try:
+            roomid = int(req_list.get('id',-1))
+            if roomid == -1:
+                ret['code'] = 4000
+                ret['message'] = "参数错误"
+                return JsonResponse(ret)
             room = Room.objects.get(id=roomid)
             room_data = room.stuinroom.all()
             for i in room_data:
@@ -171,10 +172,18 @@ class Stupositioninfo(APIView):
                 unit['name'] = i.stuid.userinfo.name
                 unit['position'] = i.bedposition
                 ret['data'].append(unit)
+            ret['code'] = 2000
+            ret['message'] = "房间读取成功"
         except ObjectDoesNotExist as room_not_find:
-            print("房间不存在",room_not_find)
-        ret['code'] = 2000
-        ret['message'] = "房间读取成功"
+            print("房间不存在 ",room_not_find)
+            ret['code'] = 4000
+            ret['message'] = "房间不存在 " + room_not_find
+            return JsonResponse(ret)
+        except ValueError as id_not_number:
+            print("参数错误 ",id_not_number)
+            ret['code'] = 4000
+            ret['message'] = "参数错误 " + id_not_number
+            return JsonResponse(ret)
         return JsonResponse(ret)
 
 class Studentleak(APIView):
@@ -248,10 +257,7 @@ class Studentleak(APIView):
             return JsonResponse(ret)
 
 class Recordsearch(APIView):
-    '''
-    记录查询
-    参数:记录id,dataid
-    '''
+    '''记录查询返回所有缺勤记录'''
     def get(self,request):
         '''get'''
         ret = {
@@ -259,19 +265,9 @@ class Recordsearch(APIView):
             'message': "default message",
             'data': ""
         }
-        dataid = request.GET.get('dataid',-1)
-        if dataid == -1:
-            print("参数不完整")
-            ret['code'] = 4000
-            ret['message'] = "参数缺失"
-            return JsonResponse(ret)
-        try:
-            data = TaskRecord.objects.get(id=int(dataid))
-            #TODO(liuhai) 取出数据,序列化
-
-        except ObjectDoesNotExist as data_lost:
-            print("没有该记录")
-            ret['code'] = 4000
-            ret['message'] = "记录不存在"
-        finally:
-            return JsonResponse(ret)
+        data = TaskRecord.objects.filter(flag="0")
+        serdata = ser.TaskTecordSerializer(instance=data,many=True).data
+        ret['code'] = 2000
+        ret['message'] = "查询成功"
+        ret['data'] = serdata
+        return JsonResponse(ret)
