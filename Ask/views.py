@@ -388,7 +388,7 @@ class Audit(APIView):
         /Audit
         '''
         ret = {'code':0000,'message':"default message."}
-        #TODO(liuhai) 查找此用户的所有审批记录
+        #(liuhai) 查找此用户的所有审批记录
         user_id = get_user(request)
         req = request.GET
         print(req)
@@ -397,7 +397,9 @@ class Audit(APIView):
         try:
             class_id = Grade.objects.get(id = class_id)
             print(class_id)
-            audit_list = models.Audit.objects.filter(Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id))
+            audit_list = models.Audit.objects.filter(
+                Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id)
+                )
             print(audit_list)
             #audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
             audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
