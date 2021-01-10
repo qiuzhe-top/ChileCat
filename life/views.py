@@ -378,44 +378,40 @@ class ExportExcel(APIView):
     def get(self,request):
         '''给日期,导出对应的记录的excel表,不给代表今天'''
         response = HttpResponse(content_type='application/vnd.ms-excel')
-        print(1)
-        response['Content-Disposition'] = 'attachment; filename=' + '文件名' + '.xls'
-        print(2)
+        response['Content-Disposition'] = 'attachment; filename=demo.xls'
         req_list = request.GET
         time = req_list.get('date',-1)
-        print(3,time)
         if time == -1:
             time = date.today()
-        print(time)
         records = TaskRecord.objects.filter(Q(flag="否")&Q(createdtime__date=time))
-        print(records)
-        print(4)
+        if not records:
+            return HttpResponse(
+                json.dumps({"state": "1", "msg": "查无数据,导出失败"}), content_type="application/json"
+                )
         serrecords = ser.TaskTecordSerializer1(instance=records,many=True).data
         if serrecords:
             ws = xlwt.Workbook(encoding='utf-8')
             w = ws.add_sheet('sheet1')
             w.write(0,0,u'日期')
             w.write(0,1,u'楼号')
-            w.write(0,2,u'寝室号')
+            w.write(0,2,u'班级')
             w.write(0,3,u'学号')
             w.write(0,4,u'姓名')
             w.write(0,5,u'原因')
             row = 1
             for i in serrecords:
                 k = dict(i)
-                print(k)
                 column = 0
                 for j in k.values():
-                    print(j)
                     w.write(row,column,j)
                     column += 1
                 row += 1
             #循环完成
             ws.save("demo.xls")
-            # output = BytesIO()
-            # ws.save(output)
-            # output.seek(0)
-            # response.write(output.getvalue())
+            output = BytesIO()
+            ws.save(output)
+            output.seek(0)
+            response.write(output.getvalue())
         return response
                 
 
