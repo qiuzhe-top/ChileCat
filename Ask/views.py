@@ -89,7 +89,8 @@ class Draft(APIView):
         user_id_user = get_user(request)# 获取用户
         try:
             grade_id = user_id_user.studentinfo.grade_id
-        except:
+            #TODO(liuhai) 这里的捕获可能不对
+        except User.DoesNotExist:
             ret['code'] = 5000
             ret['message'] = "用户信息不完整无法请假"
             return JsonResponse(ret)
