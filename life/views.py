@@ -8,11 +8,13 @@ import math
 import datetime
 import xlrd
 import xlwt
+import os
 import User
 from io import BytesIO
 from datetime import date
 from life import ser
 from rest_framework.views import APIView
+from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
@@ -284,11 +286,9 @@ class Studentleak(APIView):
         try:
             worker = User.utils.auth.get_user(request)
             room = Room.objects.get(id = int(req_list.get('roomid',"")))
-            hisrecord = TaskRecord.objects.filter(
+            hisrecords = TaskRecord.objects.filter(
                 Q(createdtime__date=datetime.date.today())&Q(roomid=room)
             )
-            for i in hisrecord:
-                i.delete()
             if stuleaks != []:
                 for i in stuleaks:
                     stuid = i.get('id',-1)
@@ -298,27 +298,39 @@ class Studentleak(APIView):
                         break
                     stuid = User.models.User.objects.get(id=int(stuid))
                     reason = i.get('why',"")
+                    status = i.get('status',"1")
                     stu = StuInRoom.objects.get(stuid=stuid)
-                    stu.status = "1"
+                    stu.status = status
+                    #原来已有的记录删除,新建,更新
+                    oldrecords = TaskRecord.objects.filter(
+                        Q(createdtime__date=datetime.date.today())&
+                        Q(objstuid=stuid)
+                        )
+                    if oldrecords:
+                        for j in oldrecords:
+                            j.delete()
                     stu.save()
-                if worker == -1:
-                    ret['code'] = 4000
-                    ret['message'] = "执行人信息有误"
-                    return JsonResponse(ret)
-                budid = room.floor.budid
-                last_time = datetime.datetime.now()
-                record = TaskRecord(
-                    workerid=worker,
-                    objstuid=stuid,
-                    reason=reason,
-                    flag="否",
-                    lastmodifytime=last_time,
-                    buildingid=budid,
-                    roomid=room
-                    )
+                    if worker == -1:
+                        ret['code'] = 4000
+                        ret['message'] = "执行人信息有误"
+                        return JsonResponse(ret)
+                    budid = room.floor.budid
+                    last_time = datetime.datetime.now()
+                    record = TaskRecord(
+                        workerid=worker,
+                        objstuid=stuid,
+                        reason=reason,
+                        flag=status,
+                        lastmodifytime=last_time,
+                        buildingid=budid,
+                        roomid=room
+                        )
+                    record.save()
             #修改房间状态(被查)
             room.status = "1"
+            #print("准备保存")
             room.save()
+            #print("保存成功")
             #创建查房记录
             roomhistory = RoomHistory(
                 roomid=room,managerid=worker,
@@ -346,10 +358,12 @@ class Studentleak(APIView):
             'code': 0000,
             'message': "default message",
         }
-        data_id = request.data['id']
+        req_list = request.data
         try:
+            data_id = req_list['id']
+            req_flag = req_list.get('flag',"是")
             data = TaskRecord.objects.get(id=int(data_id))
-            data.flag = "是"
+            data.flag = req_flag
             data.save()
             ret['code'] = 2000
             ret['message'] = "销假成功"
@@ -357,6 +371,9 @@ class Studentleak(APIView):
             print("记录不存在")
             ret['code'] = 4000
             ret['message'] = "记录不存在"
+        except KeyError as key_lost:
+            ret['code'] = 4000
+            ret['message'] = "参数缺失"
         finally:
             return JsonResponse(ret)
 
@@ -370,7 +387,8 @@ class Recordsearch(APIView):
             'message': "default message",
             'data': ""
         }
-        data = TaskRecord.objects.filter(Q(flag="否")&Q(createdtime__date=today))
+        data = TaskRecord.objects.filter(Q(flag="1")&Q(createdtime__date=today))
+        print(data)
         serdata = ser.TaskTecordSerializer(instance=data,many=True).data
         ret['code'] = 2000
         ret['message'] = "查询成功"
@@ -382,13 +400,15 @@ class ExportExcel(APIView):
     def get(self,request):
         '''给日期,导出对应的记录的excel表,不给代表今天'''
         response = HttpResponse(content_type='application/vnd.ms-excel')
-        filename = datetime.date.today().strftime("%Y-%m-%d")  + ' student_leak.xls'
-        response['Content-Disposition'] = 'attachment; filename=' + filename
+        filename = datetime.date.today().strftime("%Y-%m-%d")  + ' 学生缺勤表.xls'
+        response['Content-Disposition'] = (
+            'attachment; filename={}'.format(escape_uri_path(filename))
+            )
         req_list = request.GET
         time = req_list.get('date',-1)
         if time == -1:
             time = date.today()
-        records = TaskRecord.objects.filter(Q(flag="否")&Q(createdtime__date=time))
+        records = TaskRecord.objects.filter(Q(flag="1")&Q(createdtime__date=time))
         if not records:
             return HttpResponse(
                 json.dumps({"state": "1", "msg": "查无数据,导出失败"}), content_type="application/json"
@@ -412,7 +432,8 @@ class ExportExcel(APIView):
                     column += 1
                 row += 1
             #循环完成
-            ws.save(filename)
+            path = os.getcwd()
+            ws.save(path+"/leaksfile/{}".format(filename))
             output = BytesIO()
             ws.save(output)
             output.seek(0)
