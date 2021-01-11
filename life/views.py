@@ -284,6 +284,11 @@ class Studentleak(APIView):
         try:
             worker = User.utils.auth.get_user(request)
             room = Room.objects.get(id = int(req_list.get('roomid',"")))
+            hisrecord = TaskRecord.objects.filter(
+                Q(createdtime__date=datetime.date.today())&Q(roomid=room)
+            )
+            for i in hisrecord:
+                i.delete()
             if stuleaks != []:
                 for i in stuleaks:
                     stuid = i.get('id',-1)
@@ -311,7 +316,6 @@ class Studentleak(APIView):
                     buildingid=budid,
                     roomid=room
                     )
-                record.save()
             #修改房间状态(被查)
             room.status = "1"
             room.save()
