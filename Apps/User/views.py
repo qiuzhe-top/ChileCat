@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 import requests
-from User.utils.auth import update_token,get_user,get_token
+from Apps.User.utils.auth import update_token,get_user,get_token
 from . import models,ser,models,models
 
 # 微信登录

@@ -9,8 +9,8 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
-from Ask.models import Ask,Audit
-from User.models import User,UserInfo,TeacherForCollege,College,Grade
+from Apps.Ask.models import Ask,Audit
+from Apps.User.models import User,UserInfo,TeacherForCollege,College,Grade
 from . import models,ser
 # from User.utils.auth import get_user
 from django.db.models import Q

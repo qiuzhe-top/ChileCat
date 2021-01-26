@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'Ask',
-    'User',
-    'Career',
-    'life',
+    'Apps.Ask',
+    'Apps.User',
+    'Apps.Career',
+    'Apps.life',
+    'Apps.Permission',
     'Manage',
     'corsheaders',
 ]
@@ -169,5 +170,10 @@ CORS_ALLOW_HEADERS = (
 
 #全局权限控制
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": ["Manage.utils.permission.ApiPermission", ]
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        "Apps.Permission.utils.permission.TokenAuth", 
+    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "Apps.Permission.utils.permission.ApiPermission", 
+    ]
 }

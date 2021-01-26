@@ -9,7 +9,7 @@ import time
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from User import models
+from Apps.User import models
 class TokenAuth(BaseAuthentication):
     '''
     Token

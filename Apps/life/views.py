@@ -9,10 +9,10 @@ import datetime
 import xlrd
 import xlwt
 import os
-import User
+import Apps.User
 from io import BytesIO
 from datetime import date
-from life import ser
+from Apps.life import ser
 from rest_framework.views import APIView
 from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
