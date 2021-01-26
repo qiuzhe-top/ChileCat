@@ -1,10 +1,20 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 *.pyc
 .vscode
 =======
+=======
+.gitignore
+.idea
+.vscode
+*.pyc
+>>>>>>> Develop
 .vscode/
 .gitignore
 db.sqlite3
 __pycache__
 leaksfile/
+<<<<<<< HEAD
 >>>>>>> origin/LiuHaiJia
+=======
+>>>>>>> Develop
