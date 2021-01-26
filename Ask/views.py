@@ -12,7 +12,7 @@ from django.utils import timezone
 from Ask.models import Ask,Audit
 from User.models import User,UserInfo,TeacherForCollege,College,Grade
 from . import models,ser
-from User.utils.auth import get_user
+# from User.utils.auth import get_user
 from django.db.models import Q
 from django.db.models.fields.related import ManyToManyField
 from django.db.models.fields import DateTimeField
@@ -56,7 +56,7 @@ class LeaveType(APIView):
             '病假',
             '其他'
         ]
-        # print(get_user(request))
+        # print(public_permissions)
         ret['data'] = ask_type
         ret['code'] = 2000
         ret['message'] = "执行成功"

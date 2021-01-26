@@ -3,8 +3,7 @@ admin.py
 '''
 from django.contrib import admin
 from .models import Ask,Audit
-
-# Register your models here.
+Register your models here.
 @admin.register(Ask)
 class AskTeleAdmin(admin.ModelAdmin):
     '''

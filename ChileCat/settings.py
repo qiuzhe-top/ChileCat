@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'simpleui',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'Manage.utils.middleware.LoadUserObject',
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -71,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # 'Manage.utils.context_processors.get_permissions',
             ],
         },
     },
@@ -91,10 +94,10 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chilecat',
+        'NAME': 'chilecat_1',
         'USER': 'root',
-        'PASSWORD': '123456',
-        'HOST': '47.102.215.230',
+        'PASSWORD': '314418',
+        'HOST': '47.111.1.18',
         'PORT': '3306'
     }
 }
@@ -162,3 +165,9 @@ CORS_ALLOW_HEADERS = (
     'Access-Control-Allow-Origin',
     'token',
 )
+
+
+#全局权限控制
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ["Manage.utils.permission.ApiPermission", ]
+}

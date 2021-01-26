@@ -19,7 +19,7 @@ class Info(APIView):
     http://127.0.0.1:8000/api/career/info
     page:10 per
     '''
-    def gejt(self, request):
+    def get(self, request):
         '''
         处理get请求
         '''
@@ -113,6 +113,7 @@ def news_details(carid):
         ret['message'] = "当前文章不存在"
         return ret
     car_ser = ser.CareerSerializer(instance=car,many=False).data
+    
     ret['code'] = 2000
     ret['data'] = car_ser
     return ret
