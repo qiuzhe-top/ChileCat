@@ -1,2 +1,10 @@
+<<<<<<< HEAD
 *.pyc
 .vscode
+=======
+.vscode/
+.gitignore
+db.sqlite3
+__pycache__
+leaksfile/
+>>>>>>> origin/LiuHaiJia

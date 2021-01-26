@@ -5,9 +5,11 @@ views
 # import string
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 import requests
 from User.utils.auth import update_token,get_user,get_token
-from . import models,ser
+from . import models,ser,models,models
+
 # 微信登录
 def get_openid(js_code):
     '''
@@ -24,7 +26,7 @@ def get_openid(js_code):
     try:
         openid = ret.json()['openid']
         return openid
-    except:
+    except KeyError:
         print('y 请检查 appid-secret 是否正确')
         return None
 
@@ -46,7 +48,7 @@ def wx_login(request,ret):
         ret['code'] = 2000
         ret['message'] = '登陆成功'
         ret['data'] = {'token':token}
-    except:
+    except KeyError:
         ret['code'] = 5001
         ret['message'] = '用户未绑定'
     return JsonResponse(ret)
@@ -89,7 +91,7 @@ def admin_login(request,ret):
         token = update_token(user)
         ret['data'] = {'token':token}
         return JsonResponse(ret)
-    except:
+    except ObjectDoesNotExist:
         ret['code'] = 5000
         ret['message'] = "账号密码错误"
         return JsonResponse(ret)
@@ -143,9 +145,11 @@ class Information(APIView):
             data['grade'] = user.studentinfo.grade_id.name
         ret['data'] = data
         return JsonResponse(ret)
-# 关联班级
+
 class ClassList(APIView):
+    '''关联班级'''
     def get(self, request):
+        '''关联班级'''
         ret = {}
         user = get_user(request)
         info = user.userinfo
@@ -191,7 +195,7 @@ class Bindwx(APIView):
             username = request.data['username']
             password = request.data['password']
             print(js_code,username,password)
-        except:
+        except KeyError:
             ret['code'] = 5000
             ret['message'] = "请求数据异常"
             return JsonResponse(ret)
@@ -200,7 +204,7 @@ class Bindwx(APIView):
         try:
             user = models.User.objects.get(user_name=username,pass_word=password)
             print(user)
-        except:
+        except ObjectDoesNotExist:
             ret['code'] = 5000
             ret['message'] = "登录失败"
             return JsonResponse(ret)
@@ -233,9 +237,10 @@ class Bindwx(APIView):
         ret['code'] = 2000
         return JsonResponse(ret)
 
-# 心情监测
 class MoodManage(APIView):
+    '''心情监测'''
     def post(self, request):
+        '''心情监测'''
         ret = {}
         mod_level = request.data.get('mod_level')
         message =   request.data.get('message')
@@ -254,21 +259,3 @@ class MoodManage(APIView):
         ret['message'] = '发送成功'
         ret['code'] = 2000
         return JsonResponse(ret)
-
-class ValidationToken(APIView):
-    def post(self, request, *args, **kwargs):
-        ret = {}
-
-        token = get_token(request)
-        l = models.Token.objects.filter(token=token)
-
-        if len(l)>0:
-            ret['data'] = True
-            # ret['message'] = 'message'
-        else:
-            # ret['message'] = 'message'
-            ret['data'] = False 
-            
-        ret['code'] = 2000
-        return JsonResponse(ret)
-

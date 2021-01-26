@@ -89,7 +89,8 @@ class Draft(APIView):
         user_id_user = get_user(request)# 获取用户
         try:
             grade_id = user_id_user.studentinfo.grade_id
-        except:
+            #TODO(liuhai) 这里的捕获可能不对
+        except User.DoesNotExist:
             ret['code'] = 5000
             ret['message'] = "用户信息不完整无法请假"
             return JsonResponse(ret)
@@ -388,7 +389,7 @@ class Audit(APIView):
         /Audit
         '''
         ret = {'code':0000,'message':"default message."}
-        #TODO(liuhai) 查找此用户的所有审批记录
+        #(liuhai) 查找此用户的所有审批记录
         user_id = get_user(request)
         req = request.GET
         print(req)
@@ -397,11 +398,14 @@ class Audit(APIView):
         try:
             class_id = Grade.objects.get(id = class_id)
             print(class_id)
-            audit_list = models.Audit.objects.filter(Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id))
+            audit_list = models.Audit.objects.filter(
+                Q(user_id = user_id) & Q(ask_id__grade_id__name = class_id)
+                )
             print(audit_list)
+            #audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
             audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
             print(audit_ret_list)
-            ret['data'] = audit_ret_list
+            ret['data'] = {'list':audit_ret_list}
             ret['code'] = 2000
             ret['message'] = "查询成功"
         except ObjectDoesNotExist as e:
