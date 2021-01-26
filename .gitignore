@@ -1,7 +1,9 @@
+.gitignore
 .idea
 .vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
 *.pyc
+.vscode/
+.gitignore
+db.sqlite3
+__pycache__
+leaksfile/
