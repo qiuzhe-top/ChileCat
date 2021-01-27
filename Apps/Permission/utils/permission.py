@@ -33,8 +33,8 @@ class ApiPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
-        # if request.user.userinfo.user_role.filter(name="root").exists():
-        #     return True
+        if request.user.userinfo.user_role.filter(name="root").exists():
+            return True
 
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
@@ -47,6 +47,7 @@ class ApiPermission(BasePermission):
                 role_permit=control_obj.first().per_id
                 ).exists():
                 return True
+            ApiPermission.message="没有权限"
             return False
         except AttributeError:
             ApiPermission.message = "用户未登录"
