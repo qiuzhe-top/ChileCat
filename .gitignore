@@ -2,3 +2,4 @@
 __pycache_
 migrations
 .vscode
+db.sqlite3
