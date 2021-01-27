@@ -1,25 +1,12 @@
 '''授权数据模型'''
 from django.db import models
-from Apps.User.models import UserInfo
 # Create your models here.
 
 
 class Role(models.Model):
     """角色分类表"""
     name = models.CharField(max_length = 150,verbose_name="职位")
-    ability = models.ForeignKey(
-        "Permission",
-        verbose_name="操作权限",
-        on_delete=models.CASCADE,
-        related_name="rolepermission"
-        )
-    user = models.ForeignKey(
-        "User.User",
-        verbose_name="用户",
-        on_delete=models.CASCADE,
-        related_name="roleuser"
-        )
-
+    role_permit = models.ManyToManyField("Permission",verbose_name="角色权限",blank=True)
     class Meta:
         """Meta definition for Role."""
 
@@ -121,4 +108,19 @@ class OperatePermission(models.Model):
 
     def __str__(self):
         """Unicode representation of OperatePermission."""
+        return self.name
+class WriteList(models.Model):
+    """白名单."""
+
+    name = models.CharField(max_length = 150,verbose_name="内容")
+    flag = models.CharField(max_length = 20,verbose_name="类型")
+
+    class Meta:
+        """Meta definition for WriteList."""
+
+        verbose_name = 'WriteList'
+        verbose_name_plural = 'WriteLists'
+
+    def __str__(self):
+        """Unicode representation of WriteList."""
         return self.name

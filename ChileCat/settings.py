@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chilecat',
+        'NAME': 'chilecat_1',
         'USER': 'root',
         'PASSWORD': '314418',
         'HOST': '47.111.1.18',

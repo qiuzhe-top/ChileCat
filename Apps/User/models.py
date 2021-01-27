@@ -2,7 +2,7 @@
 models
 '''
 from django.db import models
-
+from Apps.Permission.models import Role
 
 # Create your models here.
 class User(models.Model):
@@ -56,7 +56,7 @@ class Token(models.Model):
 
 class LifePer(models.Model):
     user = models.OneToOneField("User", on_delete=models.CASCADE)
-    
+
     class Meta:
         db_table = ''
         managed = True
@@ -68,14 +68,14 @@ class UserInfo(models.Model):
     用户信息
     '''
     name = models.CharField(max_length = 20,verbose_name="姓名")
-    tel = models.CharField(max_length = 20,verbose_name="电话")
+    tel = models.CharField(max_length = 20,verbose_name="电话",blank=True,null=True)
     identity = models.CharField(max_length = 20,choices=(
         ("student","学生"),
         ("teacher","老师"),
         ("college","院领导")
-        ),default="student",verbose_name="身份")
+        ),default="student",verbose_name="身份信息")
     user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
-
+    user_role = models.ManyToManyField(Role,verbose_name="身份",blank=True)
 
     def __str__(self):
         return self.name

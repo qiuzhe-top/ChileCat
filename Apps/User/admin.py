@@ -3,6 +3,7 @@ admin.py
 '''
 from django.contrib import admin
 from . import models
+from django.utils.html import format_html
 
 @admin.register(models.User)
 class UserTeleAdmin(admin.ModelAdmin):
@@ -12,7 +13,19 @@ class TokenTeleAdmin(admin.ModelAdmin):
     list_display = ("id","token","user")
 @admin.register(models.UserInfo)
 class UserInfoTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","user_id","name","tel","identity")
+    def user_to_role(self,obj):
+        roles_count = obj.user_role.count()
+        if roles_count > 0:
+            return "该用户有"+str(roles_count)+"个角色"
+        return format_html('<span style="color:#8E8E8E;">(该用户无角色)</span>')
+    # def show_tel(self,obj):
+    #     if obj.tel:
+    #         return obj.tel
+    #     return format_html('<span style="color:#8E8E8E;">(无电话信息)</span>')
+    list_display = ("id","user_id","name","tel","identity","user_to_role")
+    user_to_role.short_description = "用户角色"
+    filter_horizontal = ['user_role']
+    empty_value_display = format_html('<span style="color:#8E8E8E;">(内容为空)</span>')
 @admin.register(models.StudentInfo)
 class StudentInfoTeleAdmin(admin.ModelAdmin):
     list_display = ("id","grade_id","user_id")

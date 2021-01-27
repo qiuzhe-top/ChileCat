@@ -18,6 +18,7 @@ from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from Apps.User.models import User
 from .models import Building,Room,Manage,TaskRecord,StuInRoom,RoomHistory
 
 class SwitchKnowing(APIView):

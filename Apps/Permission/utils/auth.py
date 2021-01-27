@@ -13,29 +13,21 @@ class AuthPermission(BaseAuthentication):
     逻辑：
         url : 当前访问地址
         method : 当前访问的方法
-        if url in ApiPer表:
+        if url in API权限表:
         直接调用 TokenAuthFunction(request)
         else:
         raise exceptions.AuthenticationFailed('用户认证失败')
     '''
     def authenticate(self,request):
         print("登录验证：全局登录验证")
-        url = request.META['PATH_INFO']
-        method = request.META['REQUEST_METHOD']
-        # if ApiPermission.objects.filter(url=url,method=method).exists():
         return token_auth_function(request)
-        # print("无需认证")
-
 
 
 # 身份登录验证逻辑
 def token_auth_function(request):
     '''身份登录验证逻辑'''
     token = request.META.get("HTTP_TOKEN")
-    print(token)
     token_obj = UserModel.Token.objects.filter(token = token).first()
     if not token_obj:
         raise exceptions.AuthenticationFailed('用户认证失败')
-    request.user_obj = "token_obj.user"
-    #在rest 内部会把他们给request
     return (token_obj.user,None)
