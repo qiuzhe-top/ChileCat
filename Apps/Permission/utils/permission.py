@@ -2,7 +2,7 @@
 from rest_framework.permissions import BasePermission
 # from rest_framework import exceptions
 # from Apps.User import models as UserModel
-from django.contrib.auth.models import AnonymousUser
+# from django.contrib.auth.models import AnonymousUser
 from Apps.Permission import models
 # 全局API接口权限
 class ApiPermission(BasePermission):
@@ -33,12 +33,9 @@ class ApiPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
-        # print(request.user.userinfo.user_role.filter(name="root").exists())
         # if request.user.userinfo.user_role.filter(name="root").exists():
         #     return True
-        # if request.user.is_authenticated():
-        #     ApiPermission.message = "用户没有登录"
-        #     return False
+
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
         control_obj = models.ApiPermission.objects.filter(url=url,method=method)

@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
-import json
+# import json
 from . import models,ser
-from Manage.models import TypePar
+from .models import TypePar
 # Create your views here.
 
 

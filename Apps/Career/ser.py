@@ -1,4 +1,4 @@
-from Manage.models import TypeChild
+from .models import TypeChild
 from rest_framework import serializers
 from . import models
 
