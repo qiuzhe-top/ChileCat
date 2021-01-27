@@ -4,4 +4,3 @@ __pycache__
 leaksfile/
 migrations/
 .vscode/
-db.sqlite3
