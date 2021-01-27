@@ -1,0 +1,7 @@
+*.pyc
+db.sqlite3
+__pycache__
+leaksfile/
+migrations/
+.vscode/
+db.sqlite3
