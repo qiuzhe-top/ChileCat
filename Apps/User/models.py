@@ -3,6 +3,7 @@ models
 '''
 from django.db import models
 
+
 # Create your models here.
 class User(models.Model):
     '''
@@ -42,7 +43,7 @@ class Token(models.Model):
     Token
     '''
     token = models.CharField(max_length=100)
-    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    user = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name="用户")
 
     def __str__(self):
         return self.user.user_name + "的token:" +  self.token

@@ -12,6 +12,7 @@ from . import models,ser,models,models
 
 # 微信登录
 def get_openid(js_code):
+    
     '''
     根据jscode获取微信唯一标识
     '''

@@ -9,7 +9,7 @@ class UserTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_name","pass_word")
 @admin.register(models.Token)
 class TokenTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","token")
+    list_display = ("id","token","user")
 @admin.register(models.UserInfo)
 class UserInfoTeleAdmin(admin.ModelAdmin):
     list_display = ("id","user_id","name","tel","identity")
