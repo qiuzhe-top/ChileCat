@@ -1,5 +1,5 @@
 '''
-life数据库模型
+Life数据库模型
 '''
 from django.db import models
 import Apps.User

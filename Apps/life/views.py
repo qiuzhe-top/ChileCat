@@ -12,7 +12,7 @@ import os
 import Apps.User
 from io import BytesIO
 from datetime import date
-from Apps.life import ser
+from Apps.Life import ser
 from rest_framework.views import APIView
 from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
