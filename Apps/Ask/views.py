@@ -2,6 +2,7 @@
 必要模块引用
 '''
 import json
+import logging
 from datetime import datetime
 import pytz
 from rest_framework.views import APIView
@@ -9,14 +10,17 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
-from Apps.Ask.models import Ask,Audit
+from Apps import Ask
 from Apps.User.models import User,UserInfo,TeacherForCollege,College,Grade
+from Apps.User.utils.auth import get_user
 from . import models,ser
 # from User.utils.auth import get_user
 from django.db.models import Q
 from django.db.models.fields.related import ManyToManyField
 from django.db.models.fields import DateTimeField
 # Create your views here .
+
+logger = logging.getLogger(__name__) #日志
 
 
 def to_dict(obj, fields=None, exclude=None):
@@ -89,7 +93,7 @@ class Draft(APIView):
         user_id_user = get_user(request)# 获取用户
         try:
             grade_id = user_id_user.studentinfo.grade_id
-            #TODO(liuhai) 这里的捕获可能不对
+            #(liuhai) 这里的捕获可能不对
         except User.DoesNotExist:
             ret['code'] = 5000
             ret['message'] = "用户信息不完整无法请假"
@@ -101,7 +105,7 @@ class Draft(APIView):
         except AttributeError as no_teacher_gov:
             print("该用户没有对应的审批老师关系 ", no_teacher_gov)
             return JsonResponse({'code':4000,'message':"没有审批老师"})
-        unit = Ask(
+        unit = models.Ask(
             user_id = user_id_user,
             status = status,
             contact_info = phone,
@@ -138,7 +142,7 @@ class Draft(APIView):
         has_type = 0 if ask_type == -1 else 1   #是否存在type
         if ask_id != -1:                                    #是否存在id字段,如果有,则是单记录读取
             try:
-                ask = models.Ask.objects.get(id = ask_id)
+                ask = Ask.models.Ask.objects.get(id = ask_id)
                 # print(ask.created_time)
             except ObjectDoesNotExist as get_failed:
                 # print("get failed",get_failed)
@@ -182,7 +186,7 @@ class Draft(APIView):
                 if class_id != -1:
                     ret_list = []
                     class_id = Grade.objects.get(id = class_id)
-                    ret_list = Ask.objects.filter(grade_id=class_id,status=1)
+                    ret_list = Ask.models.Ask.objects.filter(grade_id=class_id,status=1)
                     data = ser.AskSerializer(instance=ret_list,many=True).data
                     ret['data']['list'] = data
                 else:
@@ -192,7 +196,7 @@ class Draft(APIView):
                 ret['message'] = "查询成功,查询用户为老师"
                 return JsonResponse(ret)
             elif user_auth.identity == "college":     #需要领导审核的
-                ask_list = Ask.objects.filter(
+                ask_list = Ask.models.Ask.objects.filter(
                     Q(status = 2) & Q(grade_id = class_id)
                     )
                 print(ask_list)
@@ -203,7 +207,9 @@ class Draft(APIView):
                 print("查询成功,查询用户为领导")
                 return JsonResponse(ret)
             elif user_auth.identity == "student":
-                ask_list = Ask.objects.filter(user_id = user_unit_id,status__in = ask_type) #[1,2]
+                ask_list = Ask.models.Ask.objects.filter(
+                    user_id = user_unit_id,status__in = ask_type
+                    ) #[1,2]
                 print(ask_type)
                 ret['data'] = {'list':[]}
                 for i in ask_list:
@@ -251,7 +257,7 @@ class Draft(APIView):
             ret['message'] = "lack_list_expectation."
             return JsonResponse(ret)
         try:
-            ask_unit = models.Ask.objects.get(id = ask_id)
+            ask_unit = Ask.models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find_ask:
             print("请假条不存在",not_find_ask)
             ret['code'] = 4000
@@ -281,7 +287,7 @@ class Draft(APIView):
         '''
         try:
             ask_id = int(req_list.get('id',-1))
-            ask_unit = Ask.objects.get(id = ask_id)
+            ask_unit = Ask.models.Ask.objects.get(id = ask_id)
             ask_unit.delete()
             ret['code'] = 2000
             ret['message'] = "删除成功"
@@ -345,7 +351,7 @@ class Audit(APIView):
             return JsonResponse(ret)
 
         try:
-            ask_unit = models.Ask.objects.get(id = ask_id)
+            ask_unit = Ask.models.Ask.objects.get(id = ask_id)
         except ObjectDoesNotExist as not_find:
             # print("没有找到记录",not_find)
             ret['code'] = 4000
@@ -362,13 +368,13 @@ class Audit(APIView):
             #默认第一个领导(假设只有一个)
             ask_unit.save()
 
-        old_status = models.Ask.objects.get(id = ask_id).status
+        old_status = Ask.models.Ask.objects.get(id = ask_id).status
         if old_status=="1" and user_type == "teacher":
             ask_unit.status = operate_sate
             ask_unit.save()
             ret['message'] = "修改成功"
             #审核完成后把记录放入审核情况表
-            unit = models.Audit(
+            unit = Ask.models.Audit(
                 user_id=user_id,ask_id=ask_unit,status=operate_sate,explain=statement
                 )
             unit.save()
@@ -415,7 +421,6 @@ class Audit(APIView):
             print("类型错误 ",e)
         finally:
             return JsonResponse(ret)
-
 
 # 班级+学号 获取姓名
 class GetName(APIView):

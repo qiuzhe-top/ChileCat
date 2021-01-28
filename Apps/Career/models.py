@@ -22,10 +22,6 @@ class Career(models.Model):
 
     def __str__(self):
         return self.title
-
-from django.db import models
-
-# Create your models here.
 class Primitives(models.Model):
 
     title = models.CharField(max_length = 30,verbose_name = "标题")
@@ -40,8 +36,9 @@ class Primitives(models.Model):
 class TypePar(models.Model):
 
     title = models.CharField(max_length = 30,verbose_name = "标题")
-    par_id = models.ForeignKey("Primitives", on_delete=models.CASCADE,verbose_name = "主表id" ,null=True, blank=True)
-    
+    par_id = models.ForeignKey(
+        "Primitives", on_delete=models.CASCADE,verbose_name = "主表id" ,null=True, blank=True
+        )
 
     class Meta:
         verbose_name = "分类父表"

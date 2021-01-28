@@ -6,7 +6,9 @@ from django.db import models
 class Role(models.Model):
     """角色分类表"""
     name = models.CharField(max_length = 150,verbose_name="职位")
-    role_permit = models.ManyToManyField("Permission",verbose_name="角色权限",blank=True)
+    role_permit = models.ManyToManyField(
+        "Permission",verbose_name="角色权限",blank=True,related_name="role"
+        )
     class Meta:
         """Meta definition for Role."""
 
@@ -71,7 +73,7 @@ class ElementPermission(models.Model):
     """元素显示权限"""
 
     name = models.CharField(max_length = 50,verbose_name="名称")
-    per_id = models.ForeignKey(
+    per_id = models.OneToOneField(
         "Permission", on_delete=models.CASCADE,
         verbose_name="权限",
         related_name="elementpermission"
@@ -92,7 +94,7 @@ class OperatePermission(models.Model):
     """操作权限"""
 
     name = models.CharField(max_length = 150,verbose_name="操作")
-    per_id = models.ForeignKey(
+    per_id = models.OneToOneField(
         "Permission",
         on_delete=models.CASCADE,
         verbose_name="权限",

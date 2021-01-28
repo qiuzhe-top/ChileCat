@@ -16,6 +16,7 @@ from .models import TypePar
 
 class Info(APIView):
     '''
+    信息
     http://127.0.0.1:8000/api/career/info
     page:10 per
     '''
@@ -85,17 +86,24 @@ class Info(APIView):
 
 # 获取新闻导航
 def press_navigation():
+    '''获取新闻导航'''
     ret = {}
-    t = '微信新闻导航'
-    car = TypePar.objects.get(title = t)
+    vx_news_grade = '微信新闻导航'
+    try:
+        car = TypePar.objects.get(title = vx_news_grade)
+    except TypePar.DoesNotExist:
+        ret['code'] = 4000
+        ret['data'] = "没有数据"
+        return ret
     type_child = car.typechild_set.all()
     type_child_ser = ser.TypeChildSerializer(instance=type_child,many=True).data
-    print(type_child_ser)
+    # print(type_child_ser)
     ret['code'] = 2000
     ret['data'] = type_child_ser
     return ret
 # 获取分类下的新闻列表
 def news_list(chilid):
+    '''获取分类下的新闻列表'''
     ret = {}
     child_list = models.Career.objects.filter(classify = chilid)
     child_ser = ser.CareerListSerializer(instance=child_list,many=True).data
@@ -103,22 +111,24 @@ def news_list(chilid):
     ret['code'] = 2000
     ret['data'] = child_ser
     return ret
-# 获取新闻详情
+
 def news_details(carid):
+    '''获取新闻详情'''
     ret = {}
     try:
         car = models.Career.objects.get(id = carid)
-    except:
+    except ObjectDoesNotExist:
         ret['code'] = 5000
         ret['message'] = "当前文章不存在"
         return ret
     car_ser = ser.CareerSerializer(instance=car,many=False).data
-    
     ret['code'] = 2000
     ret['data'] = car_ser
     return ret
 class NewsCat(APIView):
-    def get(self, request, *args, **kwargs):
+    '''新闻'''
+    def get(self, request):
+        '''获取新闻'''
         career_id = request.GET.get('id',-1)
         career_type = request.GET.get('type',-1)
         if career_id != -1:
@@ -127,31 +137,18 @@ class NewsCat(APIView):
             ret = news_list(career_type)
         else:
             ret = press_navigation()
-
         return JsonResponse(ret)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
+        '''提交新闻'''
         ret = {}
         data = request.data
         # lists = models.Career.objects.all()[:3]
-        s = ser.CareerForSerializer(data=data)
-        ret['code']  = s.is_valid()
-        s.save()
+        news = ser.CareerForSerializer(data=data)
+        ret['code']  = news.is_valid()
+        news.save()
         # print(s.is_valid())
         # s.update()
-        
         ret['message'] = 'message'
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def put(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-    def delete(self, request, *args, **kwargs):
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
         ret['data'] = 'data'
         return JsonResponse(ret)
