@@ -1,7 +1,7 @@
 '''管理视图'''
 from django.http import JsonResponse
 from rest_framework.views import APIView
-from openpyxl import load_workbook
+# from openpyxl import load_workbook
 from Apps.User.models import UserInfo,User
 from Apps.Life.models import Building,Room,Floor,StuInRoom
 # Create your views here.
