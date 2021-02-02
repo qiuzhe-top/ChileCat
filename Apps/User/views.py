@@ -8,7 +8,8 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 import requests
 from Apps.User.utils.auth import update_token,get_user,get_token
-from . import models,ser,models,models
+from . import models,ser
+from .models import Tpost
 
 # 微信登录
 def get_openid(js_code):
@@ -49,7 +50,7 @@ def wx_login(request,ret):
         ret['code'] = 2000
         ret['message'] = '登陆成功'
         ret['data'] = {'token':token}
-    except KeyError:
+    except Tpost.DoesNotExist:
         ret['code'] = 5001
         ret['message'] = '用户未绑定'
     return JsonResponse(ret)

@@ -3,6 +3,7 @@ models
 '''
 from django.db import models
 from Apps.Permission.models import Role
+from django.contrib.auth.models import User as djangoUser
 
 # Create your models here.
 class User(models.Model):
@@ -11,7 +12,7 @@ class User(models.Model):
     '''
     user_name = models.CharField(max_length=20,verbose_name="用户名")
     pass_word = models.CharField(max_length = 20,verbose_name="用户密码")
-
+    django_user = models.OneToOneField(djangoUser, verbose_name="django用户", on_delete=models.CASCADE,blank=True,null=True,related_name="user")
     def __str__(self):
         return self.user_name
 

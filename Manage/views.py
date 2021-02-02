@@ -1,25 +1,37 @@
 '''管理视图'''
+import logging
 from django.http import JsonResponse
 from rest_framework.views import APIView
 # from openpyxl import load_workbook
 from Apps.User.models import UserInfo,User
+from django.contrib.auth.models import User as djangoUser
 from Apps.Life.models import Building,Room,Floor,StuInRoom
 # Create your views here.
 
+logger = logging.getLogger(__name__)
 class Test(APIView):
     '''后台接口调用'''
     def get(self,request):
         '''测试接口'''
+        print(request.user)
         # excel_file = "leaksfile//roomnumbers//all.xlsx"
         # workbook = load_workbook(excel_file)
-        # # log = open(excel_file+".log","w")
-        # # serach_room("1#101")
+        # log = open(excel_file+".log","w")
+        # serach_room("1#101")
         # for sheet in workbook:
         #     for row in sheet.values:
         #         # print(row[0].strip(),row[1].strip())
         #         pass
         #         # put_stu_inroom(row[0].strip(),row[1].strip(),log)
-        # # log.close()
+        # log.close()
+
+        # user_list = User.objects.all()
+        # for user in user_list: 
+        #     user.django_user = djangoUser.objects.get(username=user.user_name)
+        #     user.save()
+        #     print(user.django_user)
+        # user = User(user_name="19530200",pass_word="123456",django_user=djangoUser.objects.get(username="19530200"))
+        # user.save()
         return JsonResponse({"message":"out"})
 
 def manual_add_stuinroom(userid,roominfo):
@@ -31,7 +43,6 @@ def manual_add_stuinroom(userid,roominfo):
         print("用户:",user,"->",room,"已添加")
     else:
         print("没有此用户")
-
 
 def put_stu_inroom(name,room,log):
     '''把学生放入寝室,注意第二个参数目前只支持xx#xxxd形式'''
@@ -72,7 +83,6 @@ def put_stu_inroom(name,room,log):
             #     )
     else:
         print("filter发生错误,它的结果既不是0,也不是1,也不是大于1,请检查代码!")
-
 
 def serach_room(roominfo):
     '''xx#xxx解析'''
