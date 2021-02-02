@@ -11,13 +11,14 @@ class ApiPermission(BasePermission):
         api权限,用来验证用户是否有权限访问对应的api
     '''
     message = '访问接口失败'
+    #TODO(liuhai) 1
     def has_permission(self, request, view):
         """
         只有拥有当前api权限的用户通过
         """
+        print("1",request.user.is_authenticated)
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
-        print(request.user)
         if url_write_list(url,method):
             return True
         control_obj = models.ApiPermission.objects.filter(url=url,method=method)
