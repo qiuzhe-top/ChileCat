@@ -27,7 +27,7 @@ class Test(APIView):
         # log.close()
 
         # user_list = User.objects.all()
-        # for user in user_list: 
+        # for user in user_list:
         #     user.django_user = djangoUser.objects.get(username=user.user_name)
         #     user.save()
         #     print(user.django_user)

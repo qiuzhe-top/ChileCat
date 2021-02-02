@@ -1,6 +1,3 @@
-'''
-views
-'''
 # import random
 # import string
 from rest_framework.views import APIView
@@ -23,7 +20,8 @@ def get_openid(js_code):
         'secret':'e8f66b9581ced527fb319c015e670044',
         'js_code':js_code
         }
-    ret = requests.get(url,params=data) #发get请求
+    ret =  requests.get(url,params=data) #发get请求
+    #TODO(zouyang): 1xx
     print(ret.json())
     try:
         openid = ret.json()['openid']

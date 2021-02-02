@@ -1,8 +1,8 @@
 '''用户认证'''
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from Apps.User import models as UserModel
-from django.contrib.auth.models import AnonymousUser
 # from Apps.Permission.models import ApiPermission
 # 
 class AuthPermission(BaseAuthentication):
