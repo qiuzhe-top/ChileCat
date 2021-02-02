@@ -4,6 +4,7 @@ from rest_framework.permissions import BasePermission
 # from Apps.User import models as UserModel
 # from django.contrib.auth.models import AnonymousUser
 from Apps.Permission import models
+from Apps.Permission.utils.auth import url_write_list
 # 全局API接口权限
 class ApiPermission(BasePermission):
     '''
@@ -14,19 +15,20 @@ class ApiPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
-        if request.user is None:
-            return True
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
+        print(request.user)
+        if url_write_list(url,method):
+            return True
         control_obj = models.ApiPermission.objects.filter(url=url,method=method)
         try:
-            if request.user.userinfo.user_role.filter(name="root").exists():
+            if request.user.user.userinfo.user_role.filter(name="root").exists():
                 return True
             if not control_obj.exists():
                 ApiPermission.message = "此接口没有开放权限,请联系管理员"
                 print("此接口没有开放权限,请联系管理员")
                 return False
-            if request.user.userinfo.user_role.filter(
+            if request.user.user.userinfo.user_role.filter(
                 role_permit=control_obj.first().per_id
                 ).exists():
                 return True

@@ -13,6 +13,7 @@ class Test(APIView):
     '''后台接口调用'''
     def get(self,request):
         '''测试接口'''
+        print(request.user)
         # excel_file = "leaksfile//roomnumbers//all.xlsx"
         # workbook = load_workbook(excel_file)
         # log = open(excel_file+".log","w")
@@ -29,7 +30,8 @@ class Test(APIView):
         #     user.django_user = djangoUser.objects.get(username=user.user_name)
         #     user.save()
         #     print(user.django_user)
-
+        # user = User(user_name="19530200",pass_word="123456",django_user=djangoUser.objects.get(username="19530200"))
+        # user.save()
         return JsonResponse({"message":"out"})
 
 def manual_add_stuinroom(userid,roominfo):

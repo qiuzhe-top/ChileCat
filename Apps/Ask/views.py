@@ -78,6 +78,7 @@ class Draft(APIView):
         ret = {'code':2000,'message':"提示信息",}
         req = request.data
         try:
+            # 获取请假条信息
             leave_type = req['leave_type']
             time_go = req['time_go']
             time_back = req['time_back']
@@ -91,6 +92,7 @@ class Draft(APIView):
             ret['message'] = "执行失败,key_get_exception."
             return JsonResponse(ret)
         user_id_user = get_user(request)# 获取用户
+        user_id_user = request.user
         try:
             grade_id = user_id_user.studentinfo.grade_id
             #(liuhai) 这里的捕获可能不对

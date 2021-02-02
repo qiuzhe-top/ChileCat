@@ -45,11 +45,12 @@ class Ask(models.Model):
         (这个default永远不应该被使用,unless改动了数据库亦或是前端创建请假条或者修改请假条缺损了)
         这个id不仅可以用来绑定老师(学生到班主任的审核),亦可用来绑定领导(班主任提交给领导的审核).具体按照逻辑来
     '''
+    # 注意，当一开始没有建立起班主任关系时讲不会传入班主任(第一审批人信息,即置空,当然,此功能由前台应用)
     pass_id = models.ForeignKey(
         'User.User',
         verbose_name="审批老师的id1",
         on_delete=models.CASCADE,
-        related_name = "pass_id",default = 1)
+        related_name = "pass_id",default = 1,blank=True,null=True)
 
     def __str__(self):
         return str(self.id)
