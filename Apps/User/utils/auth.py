@@ -43,16 +43,17 @@ def get_user(request):
     '''
     获取用户
     '''
-    try:
-        token = get_token(request)
-        print("获得的token: ",token)
-        obj = models.Token.objects.get(token=token)
-        # print(obj)
-        return obj.user
-    except ObjectDoesNotExist as token_not_exist:
-        print(token_not_exist,"not get user ")
-        return -1
-    return 1
+    return request.user
+    # try:
+    #     token = get_token(request)
+    #     print("获得的token: ",token)
+    #     obj = models.Token.objects.get(token=token)
+    #     # print(obj)
+    #     return obj.user
+    # except ObjectDoesNotExist as token_not_exist:
+    #     print(token_not_exist,"not get user ")
+    #     return -1
+    # return 1
 
 
 def md5(user):

@@ -87,7 +87,7 @@ class Idcode(APIView):
         if flag == -1:
             num = math.floor(1e5 * random.random())
             idcode = str(num)
-            ret['data'] = idcode
+            ret['data'] = num
             #获取今天时间
             manage_data = Manage.objects.filter(idcodetime=today)
             if manage_data.count() > 0:

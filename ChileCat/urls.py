@@ -18,9 +18,9 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/user/', include('Apps.User.urls')),
-    path('api/career/', include('Apps.Career.urls')),
-    path('api/ask/', include('Apps.Ask.urls')),
-    path('api/life/',include('Apps.Life.urls')),
-    path('api/manage/',include('Manage.urls')),
+    path('api/user/', include(('Apps.User.urls','Apps.User'),namespace='User')),
+    path('api/career/', include(('Apps.Career.urls','Apps.Career'),namespace='Career')),
+    path('api/ask/', include(('Apps.Ask.urls','Apps.Ask'),namespace='Ask')),
+    path('api/life/',include(('Apps.Life.urls','Apps.Life'),namespace='Life')),
+    path('api/manage/',include(('Manage.urls','Apps.Manage'),namespace='Manage')),
 ]

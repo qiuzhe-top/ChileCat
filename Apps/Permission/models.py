@@ -1,58 +1,56 @@
 '''授权数据模型'''
 from django.db import models
+from django.contrib.auth.models import Permission
 # Create your models here.
 
 
-class Role(models.Model):
-    """角色分类表"""
-    name = models.CharField(max_length = 150,verbose_name="职位")
-    role_permit = models.ManyToManyField(
-        "Permission",verbose_name="角色权限",blank=True,related_name="role"
-        )
-    class Meta:
-        """Meta definition for Role."""
+# class Role(models.Model):
+#     """角色分类表"""
+#     name = models.CharField(max_length = 150,verbose_name="职位")
+#     role_permit = models.ManyToManyField(
+#         "PermissionsExtension",verbose_name="角色权限",blank=True,related_name="role"
+#         )
+#     class Meta:
+#         """Meta definition for Role."""
 
-        verbose_name = '角色表'
-        verbose_name_plural = '角色表'
+#         verbose_name = '角色表'
+#         verbose_name_plural = '角色表'
 
-    def __str__(self):
-        """Unicode representation of Role."""
-        return self.name
+#     def __str__(self):
+#         """Unicode representation of Role."""
+#         return self.name
 
-class Permission(models.Model):
-    """权限表."""
+# class PermissionsExtension(models.Model):
+#     """权限表."""
+#     GENDER_CHOICES = (
+#         (u'1', u'API权限'),
+#         (u'2', u'元素显示权限'),
+#     )
+#     permission  = models.OneToOneField(DjangoPermission,on_delete=models.CASCADE,verbose_name=u'权限')
+#     per_type = models.CharField(max_length = 150,verbose_name="类型",default="0",choices=GENDER_CHOICES)
+#     description = models.CharField(max_length = 150,verbose_name="描述",blank=True,null=True)
 
-    name = models.CharField(max_length = 150,verbose_name="权限名称")
-    per_type = models.CharField(max_length = 150,verbose_name="类型",default="0")
-    description = models.CharField(max_length = 150,verbose_name="描述",blank=True,null=True)
+#     class Meta:
+#         """Meta definition for Permission."""
 
-    class Meta:
-        """Meta definition for Permission."""
+#         verbose_name = '权限'
+#         verbose_name_plural = '权限'
 
-        verbose_name = '权限'
-        verbose_name_plural = '权限'
-
-    def __str__(self):
-        """Unicode representation of Permission."""
-        return self.name
+#     def __str__(self):
+#         """Unicode representation of Permission."""
+#         return self.permission.name
 
 class ApiPermission(models.Model):
     """接口访问权限"""
-
-    url = models.CharField(max_length = 200,verbose_name="地址")
-    method = models.CharField(
-        max_length = 50,
-        verbose_name="请求方法",
-        choices=(
-            ("GET","get方法"),
-            ("POST","post方法"),
-            ("PUT","put方法"),
-            ("DELETE","delete方法")
-        ),
-        default="GET"
-        )
-    per_id = models.OneToOneField(
-        "Permission", on_delete=models.CASCADE,
+    
+        
+    is_verify = models.BooleanField(verbose_name="接口类型",choices=(
+            (False,"权限接口"),
+            (True,"公开接口"),
+        ),default='0')
+    
+    permission = models.OneToOneField(
+        Permission, on_delete=models.CASCADE,
         verbose_name="权限",
         related_name="apipermission",
         null=True,
@@ -62,19 +60,19 @@ class ApiPermission(models.Model):
     class Meta:
         """Meta definition for ApiPermission."""
 
-        verbose_name = '接口权限记录'
-        verbose_name_plural = '接口权限记录'
+        verbose_name = 'API权限'
+        verbose_name_plural = 'API权限'
 
     def __str__(self):
         """Unicode representation of ApiPermission."""
-        return self.method + ":" + self.url
+        return self.permission.name
 
 class ElementPermission(models.Model):
     """元素显示权限"""
 
     name = models.CharField(max_length = 50,verbose_name="名称")
     per_id = models.OneToOneField(
-        "Permission", on_delete=models.CASCADE,
+        Permission, on_delete=models.CASCADE,
         verbose_name="权限",
         related_name="elementpermission"
         )
@@ -95,7 +93,7 @@ class OperatePermission(models.Model):
 
     name = models.CharField(max_length = 150,verbose_name="操作")
     per_id = models.OneToOneField(
-        "Permission",
+        Permission,
         on_delete=models.CASCADE,
         verbose_name="权限",
         related_name="operatepermission"

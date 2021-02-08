@@ -71,6 +71,8 @@ class Draft(APIView):
     '''
     请假条 提交 获取
     '''
+    API_PERMISSIONS = ['请假条','post','delete','put']
+    # VERIFY = ''
     def post(self, request):
         '''
         提交假条

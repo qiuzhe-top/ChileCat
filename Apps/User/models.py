@@ -2,7 +2,7 @@
 models
 '''
 from django.db import models
-from Apps.Permission.models import Role
+# from Apps.Permission.models import Role
 from django.contrib.auth.models import User as djangoUser
 
 # Create your models here.
@@ -25,7 +25,7 @@ class User(models.Model):
 # 第三方账户绑定
 class Tpost(models.Model):
     '''第三方账户绑定'''
-    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    user = models.OneToOneField(djangoUser, on_delete=models.CASCADE)
     wx_openid = models.CharField(max_length=128, verbose_name=u'微信标识',null=True, blank=True)
 
     def __str__(self):
@@ -44,10 +44,10 @@ class Token(models.Model):
     Token
     '''
     token = models.CharField(max_length=100)
-    user = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name="用户")
+    user = models.OneToOneField(djangoUser, on_delete=models.CASCADE,verbose_name="用户")
 
     def __str__(self):
-        return self.user.user_name + "的token:" +  self.token
+        return self.user.username + "的token:" +  self.token
 
     class Meta:
         db_table = ''
@@ -75,8 +75,8 @@ class UserInfo(models.Model):
         ("teacher","老师"),
         ("college","院领导")
         ),default="student",verbose_name="身份信息")
-    user_id = models.OneToOneField("User", on_delete=models.CASCADE,verbose_name = "用户id")
-    user_role = models.ManyToManyField(Role,verbose_name="身份",blank=True)
+    user_id = models.OneToOneField(djangoUser, on_delete=models.CASCADE,verbose_name = "用户id")
+    # user_role = models.ManyToManyField(Role,verbose_name="身份",blank=True)
 
     def __str__(self):
         return self.name
@@ -96,10 +96,10 @@ class StudentInfo(models.Model):
         "Grade", on_delete=models.CASCADE,
         verbose_name = "班级id",related_name="studentgrade"
         )
-    user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
+    user_id = models.OneToOneField(djangoUser, verbose_name="用户", on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.user_id.user_name
+        return self.user_id.username
     class Meta:
         db_table = ''
         managed = True
@@ -111,7 +111,7 @@ class TeacherInfo(models.Model):
     老师额外信息
     '''
     teacher_extra_info = models.CharField(verbose_name="老师额外信息", max_length=50)
-    user_id = models.OneToOneField("User", verbose_name="用户", on_delete=models.CASCADE)
+    user_id = models.OneToOneField(djangoUser, verbose_name="用户", on_delete=models.CASCADE)
 
     class Meta:
         db_table = ''
@@ -124,7 +124,7 @@ class TeacherForGrade(models.Model):
     教师对应的班级
     '''
     grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE,verbose_name="班级号")
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE,verbose_name="管理者账号")
+    user_id = models.ForeignKey(djangoUser, on_delete=models.CASCADE,verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "教师班级关系"
@@ -137,7 +137,7 @@ class TeacherForCollege(models.Model):
     教师对应的分院
     '''
     college_id = models.ForeignKey("College", on_delete=models.CASCADE,verbose_name="分院号")
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE,verbose_name="管理者账号")
+    user_id = models.ForeignKey(djangoUser, on_delete=models.CASCADE,verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "教师院级关系"
@@ -171,32 +171,6 @@ class College(models.Model):
     def __str__(self):
         return self.name
 
-class Permission(models.Model):
-    '''
-    权限
-    '''
-
-    name = models.CharField(max_length = 20)
-    message = models.CharField(max_length = 50,verbose_name = "描述")
-
-    class Meta:
-        verbose_name = "权限"
-        verbose_name_plural = "权限"
-
-    def __str__(self):
-        return self.name
-
-class UserForPermission(models.Model):
-    '''
-    用户权限
-    '''
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE)
-    perm_id = models.ForeignKey("Permission", on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = "用户权限表"
-        verbose_name_plural = "用户权限表"
-
 
 
 # 心情监测
@@ -206,7 +180,7 @@ class UserMood(models.Model):
     '''
     mod_level = models.CharField(max_length=2, verbose_name=u'心情等级')
     message = models.CharField(max_length=9999, verbose_name=u'想说的话')
-    user  = models.ForeignKey("User",on_delete=models.CASCADE,verbose_name=u'学生用户')
+    user  = models.ForeignKey(djangoUser,on_delete=models.CASCADE,verbose_name=u'学生用户')
     Grade  = models.ForeignKey("Grade",on_delete=models.CASCADE,verbose_name=u'班级')
     star_time = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
 

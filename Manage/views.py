@@ -6,11 +6,10 @@ from rest_framework.views import APIView
 from Apps.User.models import UserInfo,User
 from django.contrib.auth.models import User as djangoUser
 from Apps.Life.models import Building,Room,Floor,StuInRoom
-# Create your views here.
-from Apps.Permission.utils.auth import AuthPer,AuthPermission
+
+from Apps.Permission.utils.api_permission import init_api_permissions
 logger = logging.getLogger(__name__)
 class Test(APIView):
-    # authentication_classes = [AuthPer,]
     '''后台接口调用'''
     def get(self,request):
         '''测试接口'''
@@ -118,3 +117,16 @@ def serach_room(roominfo):
     else:
         room = room.first()
     return room
+
+
+
+class ApiPer(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        init_api_permissions()
+        # ret['data'] = data
+        return JsonResponse(ret)
+
+
