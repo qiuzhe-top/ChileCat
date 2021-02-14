@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Manage.utils.middleware.LoadUserObject',
+    # 'Manage.utils.middleware.LoadUserObject',
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -174,6 +174,6 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "Apps.Permission.utils.permission.ApiPermission",
+        "Apps.Permission.utils.permission.ApiPublicPermission",
     ]
 }

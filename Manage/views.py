@@ -2,18 +2,19 @@
 import logging
 from django.http import JsonResponse
 from rest_framework.views import APIView
-from openpyxl import load_workbook
+# from openpyxl import load_workbook
 from Apps.User.models import UserInfo,User
 from django.contrib.auth.models import User as djangoUser
 from Apps.Life.models import Building,Room,Floor,StuInRoom
 # Create your views here.
-
+from Apps.Permission.utils.auth import AuthPer,AuthPermission
 logger = logging.getLogger(__name__)
 class Test(APIView):
+    # authentication_classes = [AuthPer,]
     '''后台接口调用'''
     def get(self,request):
         '''测试接口'''
-        print(request.user)
+        print('视图 当前User：',request.user)
         # excel_file = "leaksfile//roomnumbers//all.xlsx"
         # workbook = load_workbook(excel_file)
         # log = open(excel_file+".log","w")
