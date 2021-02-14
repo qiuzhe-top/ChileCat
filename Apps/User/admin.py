@@ -5,9 +5,9 @@ from django.contrib import admin
 from . import models
 from django.utils.html import format_html
 
-@admin.register(models.User)
-class UserTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","user_name","pass_word","django_user")
+# @admin.register(models.User)
+# class UserTeleAdmin(admin.ModelAdmin):
+#     list_display = ("id","user_name","pass_word","django_user")
 @admin.register(models.Token)
 class TokenTeleAdmin(admin.ModelAdmin):
     list_display = ("id","token","user")

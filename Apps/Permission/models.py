@@ -47,7 +47,7 @@ class ApiPermission(models.Model):
     is_verify = models.BooleanField(verbose_name="接口类型",choices=(
             (False,"权限接口"),
             (True,"公开接口"),
-        ),default='0')
+        ),default=False)
     
     permission = models.OneToOneField(
         Permission, on_delete=models.CASCADE,
@@ -91,8 +91,7 @@ class ElementPermission(models.Model):
 class OperatePermission(models.Model):
     """操作权限"""
 
-    name = models.CharField(max_length = 150,verbose_name="操作")
-    per_id = models.OneToOneField(
+    permission = models.OneToOneField(
         Permission,
         on_delete=models.CASCADE,
         verbose_name="权限",
@@ -108,7 +107,7 @@ class OperatePermission(models.Model):
 
     def __str__(self):
         """Unicode representation of OperatePermission."""
-        return self.name
+        return self.permission.name
 class WriteList(models.Model):
     """白名单."""
 

@@ -9,7 +9,7 @@ import datetime
 import xlrd
 import xlwt
 import os
-import Apps.User
+# import Apps.User
 from io import BytesIO
 from datetime import date
 from Apps.Life import ser
@@ -18,7 +18,8 @@ from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from Apps.User.models import User
+# from Apps.User.models import User
+from django.contrib.auth.models import User
 from .models import Building,Room,Manage,TaskRecord,StuInRoom,RoomHistory
 
 class SwitchKnowing(APIView):

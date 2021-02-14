@@ -1,13 +1,15 @@
 '''管理视图'''
 import logging
+
+from Apps.Life.models import Building, Floor, Room, StuInRoom
+from Apps.Permission.utils import expand_permission
+# from openpyxl import load_workbook
+from Apps.User.models import UserInfo
+from django.contrib.auth.models import User
+# from django.contrib.auth.models import User as djangoUser
 from django.http import JsonResponse
 from rest_framework.views import APIView
-# from openpyxl import load_workbook
-from Apps.User.models import UserInfo,User
-from django.contrib.auth.models import User as djangoUser
-from Apps.Life.models import Building,Room,Floor,StuInRoom
-
-from Apps.Permission.utils.api_permission import init_api_permissions
+from django.db.models import Q
 logger = logging.getLogger(__name__)
 class Test(APIView):
     '''后台接口调用'''
@@ -125,8 +127,12 @@ class ApiPer(APIView):
         ret = {}
         ret['message'] = 'message'
         ret['code'] = 2000
-        init_api_permissions()
+        expand_permission.init_api_permissions()
+        # expand_permission.init_operate_permissions()
         # ret['data'] = data
+        p = request.user.get_all_permissions()
+        d2 = [x[11:] for x in p if x.find('OPERATE')!= -1 ]
+        print(d2)
         return JsonResponse(ret)
 
 

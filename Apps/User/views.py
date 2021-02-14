@@ -7,14 +7,33 @@ import requests
 from Apps.User.utils.auth import update_token,get_user,get_token
 from . import models,ser
 from django.contrib.auth.models import User
+from .utils.auth import get_groups
 from django.contrib.auth import authenticate
 from Apps.Permission.utils.auth import AuthPer
-
+def get_openid(js_code):    
+    '''
+    js_code : 微信客户端发送过来的标识
+    根据js_code获取微信唯一标识
+    '''
+    url='https://api.weixin.qq.com/sns/jscode2session'
+    data = {
+        'appid':'wx9a63d4bc0c3480f3',
+        'secret':'e8f66b9581ced527fb319c015e670044',
+        'js_code':js_code
+        }
+    ret =  requests.get(url,params=data) #发get请求
+    try:
+        openid = ret.json()['openid']
+        return openid
+    except KeyError:
+        print('请检查 appid-secret 是否正确')
+        return None
 # from .models import Tpost
 class Auth(APIView):
     '''
     Auth
     '''
+    API_PERMISSIONS = ['用户','get','post','delete','put']
     def post(self, request):
         '''
         post method
@@ -74,24 +93,7 @@ class Auth(APIView):
         ret['code']=5000
         ret['message']='创建失败'
         return JsonResponse(ret)
-    def get_openid(self,js_code):    
-        '''
-        js_code : 微信客户端发送过来的标识
-        根据js_code获取微信唯一标识
-        '''
-        url='https://api.weixin.qq.com/sns/jscode2session'
-        data = {
-            'appid':'wx9a63d4bc0c3480f3',
-            'secret':'e8f66b9581ced527fb319c015e670044',
-            'js_code':js_code
-            }
-        ret =  requests.get(url,params=data) #发get请求
-        try:
-            openid = ret.json()['openid']
-            return openid
-        except KeyError:
-            print('请检查 appid-secret 是否正确')
-            return None
+
 
     def wx_login(self,request,ret):
         '''
@@ -99,7 +101,7 @@ class Auth(APIView):
         '''
         print(request.data)
         js_code = request.data['js_code']
-        open_id = self.get_openid(js_code)
+        open_id = get_openid(js_code)
 
         if open_id is None:
             ret['code'] = '5000'
@@ -115,32 +117,8 @@ class Auth(APIView):
         except models.Tpost.DoesNotExist:
             ret['code'] = 5001
             ret['message'] = '用户未绑定'
+            
         return JsonResponse(ret)
-
-
-        # token = models.Token.objects.filter(wx_openid = open_id)
-        # user = None
-        # if len(token)==0:
-        #     ran_str = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-        #     dic = {
-        #         'user_name':ran_str,
-        #         'pass_word':ran_str
-        #     }
-
-        #     user = models.User.objects.create(**dic)
-        #     dic2 = {
-        #         'token':md5(ran_str),
-        #         'wx_openid':open_id,
-        #         'user_id':user
-        #     }
-        #     ret['data'] = {'token':dic2['token']}
-        #     #print(dic2)
-        #     models.Token.objects.create(**dic2)
-        # else:
-        #     user = token[0].user_id
-        #     #print(user.id)
-        #     ret['data']= {'token':md5(open_id)}
-        #     update_token(user,ret['data']['token'])
     
     def web_login(self,request,ret):
         '''
@@ -158,23 +136,21 @@ class Auth(APIView):
             ret['message']='缺少参数：'+str(req_failed)
             return JsonResponse(ret)
 
-        try:
-            # user = models.User.objects.get(user_name=username,pass_word=password)
-            user = authenticate(username=username,password=password)
+        user = authenticate(username=username,password=password)
+        if user:
             token = update_token(user)
+            ret['code'] = 2000
             ret['data'] = {'token':token}
-            return JsonResponse(ret)
-        except ObjectDoesNotExist:
+        else:
             ret['code'] = 5000
-            ret['message'] = "账号密码错误"
-            return JsonResponse(ret)
-
+            ret['message'] = "账号或密码错误"
         return JsonResponse(ret)
 
 # 获取个人信息
 class Information(APIView):
     
-    authentication_classes = [AuthPer,]
+    # authentication_classes = [AuthPer,]
+    API_PERMISSIONS = ['获取个人信息','get']
     '''
     Information
     '''
@@ -187,16 +163,17 @@ class Information(APIView):
         '''
         ret = {'code':2000,'message':"执行成功",'data':{}}
         user = request.user
-        per = user.has_perm('Ask.add_ask')
-        per_all = user.get_all_permissions()
         data = {}
-        data['roles']=['admin']
+        p = request.user.get_all_permissions()
+        data['permissions'] = [x[11:] for x in p if x.find('OPERATE')!= -1]
+        data['roles']= get_groups(request)
         data['introduction'] = 'I am a super administrator'
         data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
         data['name'] = user.userinfo.name
-        data['role'] = user.userinfo.identity
-        if data['role'] == "student":
+        try:
             data['grade'] = user.studentinfo.grade_id.name
+        except:
+            data['grade'] = ''
         ret['data'] = data
         return JsonResponse(ret)
 
@@ -237,6 +214,7 @@ class Bindwx(APIView):
     '''
     绑定微信
     '''
+    API_PERMISSIONS = ['绑定微信','post']
     def post(self, request):
         '''
         post method
@@ -253,24 +231,27 @@ class Bindwx(APIView):
             ret['message'] = "请求数据异常"
             return JsonResponse(ret)
 
-        user = None
-        try:
-            user = models.User.objects.get(user_name=username,pass_word=password)
-            print(user)
-        except ObjectDoesNotExist:
+
+        user = authenticate(username=username,password=password)
+        if user:
+            token = update_token(user)
+            ret['data'] = {'token':token}
+        else:
             ret['code'] = 5000
-            ret['message'] = "登录失败"
+            ret['message'] = "账号或密码错误"
             return JsonResponse(ret)
+
 
         try:
             old_openid = user.tpost.wx_openid
             if old_openid:
-                print(old_openid)
+                # print(old_openid)
                 ret['code'] = 5000
                 ret['message'] = "请勿重新绑定"
                 return JsonResponse(ret)
         except:
             pass
+
 
         openid = get_openid(js_code)
         if openid is None:

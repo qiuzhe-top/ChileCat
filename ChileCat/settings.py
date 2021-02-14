@@ -173,6 +173,8 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        # "Apps.Permission.utils.permission.ApiPublicPermission",
-    ]
+        "Apps.Permission.utils.permission.ApiPublicPermission",
+    ],
+    'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
+   
 }

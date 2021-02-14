@@ -2,6 +2,8 @@
 数据库模型
 '''
 from django.db import models
+from django.contrib.auth.models import User
+
 # Create your models here.
 ASKTYPE = (
     ("0","草稿"),
@@ -15,7 +17,7 @@ class Ask(models.Model):
     请假条
     '''
     user_id = models.ForeignKey(
-        'User.User',
+        User,
         on_delete=models.CASCADE,
         verbose_name = "用户id",related_name = "user_id")
 
@@ -47,7 +49,7 @@ class Ask(models.Model):
     '''
     # 注意，当一开始没有建立起班主任关系时讲不会传入班主任(第一审批人信息,即置空,当然,此功能由前台应用)
     pass_id = models.ForeignKey(
-        'User.User',
+        User,
         verbose_name="审批老师的id1",
         on_delete=models.CASCADE,
         related_name = "pass_id",default = 1,blank=True,null=True)
@@ -62,7 +64,7 @@ class Audit(models.Model):
     '''
     审批记录
     '''
-    user_id = models.ForeignKey("User.User", on_delete=models.CASCADE,verbose_name = "用户id")
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE,verbose_name = "用户id")
     ask_id = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL,verbose_name = "请假单id")

@@ -2,7 +2,7 @@
 Life数据库模型
 '''
 from django.db import models
-import Apps.User
+from django.contrib.auth.models import User
 # Create your models here.
 class Building(models.Model):
     """楼"""
@@ -56,7 +56,7 @@ class StuInRoom(models.Model):
         'Room', on_delete=models.CASCADE,verbose_name="房间id",related_name="stuinroom"
         )
     stuid = models.ForeignKey(
-        'User.User',
+        User,
          on_delete=models.CASCADE,verbose_name="学生",related_name="stuinroom"
         )
     bedposition = models.CharField(max_length = 150,verbose_name="床铺位置",default="1")
@@ -77,7 +77,7 @@ class RoomHistory(models.Model):
         Room, on_delete=models.CASCADE,verbose_name="房间号",related_name="roomhistory"
         )
     managerid = models.ForeignKey(
-        'User.User', on_delete=models.CASCADE,verbose_name="查寝人",related_name="roomhistory"
+        User, on_delete=models.CASCADE,verbose_name="查寝人",related_name="roomhistory"
         )
     createdtime = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name="创建时间")
 
@@ -94,11 +94,11 @@ class RoomHistory(models.Model):
 class TaskRecord(models.Model):
     """任务记录(指被查到不在寝室的)"""
     workerid = models.ForeignKey(
-        'User.User', on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         verbose_name="执行者",related_name="taskworker"
         )
     objstuid = models.ForeignKey(
-        'User.User', on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         verbose_name="被执行者",related_name="taskedstu"
         )
     reason = models.CharField(max_length = 50,verbose_name="原因")
@@ -114,7 +114,7 @@ class TaskRecord(models.Model):
         related_name="taskrecord",verbose_name="寝室号"
         )
     managerid = models.ForeignKey(
-        'User.User', on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         blank=True,null=True,default="",
         verbose_name="销假人",
         related_name="销假人"

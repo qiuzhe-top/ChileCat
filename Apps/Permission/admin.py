@@ -52,4 +52,4 @@ class ElementPermissionTeleAdmin(admin.ModelAdmin):
 @admin.register(OperatePermission)
 class OperatePermissionTeleAdmin(admin.ModelAdmin):
     '''操作'''
-    list_display = ("id","name","per_id")
+    list_display = ("id","permission")
