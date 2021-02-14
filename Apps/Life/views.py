@@ -9,7 +9,7 @@ import datetime
 import xlrd
 import xlwt
 import os
-import Apps.User
+# import Apps.User
 from io import BytesIO
 from datetime import date
 from Apps.Life import ser
@@ -18,7 +18,8 @@ from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse,HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from Apps.User.models import User
+# from Apps.User.models import User
+from django.contrib.auth.models import User
 from .models import Building,Room,Manage,TaskRecord,StuInRoom,RoomHistory
 
 class SwitchKnowing(APIView):
@@ -87,7 +88,7 @@ class Idcode(APIView):
         if flag == -1:
             num = math.floor(1e5 * random.random())
             idcode = str(num)
-            ret['data'] = idcode
+            ret['data'] = num
             #获取今天时间
             manage_data = Manage.objects.filter(idcodetime=today)
             if manage_data.count() > 0:

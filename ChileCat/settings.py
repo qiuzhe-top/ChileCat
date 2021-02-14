@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 # import os
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,20 +87,16 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
-#     }
-# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chilecat_1',
-        'USER': 'root',
-        'PASSWORD': '314418',
-        'HOST': '47.111.1.18',
-        'PORT': '3306'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'chilecat_1',
+        # 'USER': 'root',
+        # 'PASSWORD': '314418',
+        # 'HOST': '47.111.1.18',
+        # 'PORT': '3306'
     }
 }
 
@@ -167,6 +164,8 @@ CORS_ALLOW_HEADERS = (
     'token',
 )
 
+# JWT 密钥
+SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 
 #全局权限控制
 REST_FRAMEWORK = {
@@ -175,5 +174,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "Apps.Permission.utils.permission.ApiPublicPermission",
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
+   
 }

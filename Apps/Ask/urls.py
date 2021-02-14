@@ -5,8 +5,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('leave_type', views.LeaveType.as_view()),
-    path('draft', views.Draft.as_view()),
-    path('audit', views.Audit.as_view()),
-    path('get_name', views.GetName.as_view()),
+    path('leave_type', views.LeaveType.as_view(),name='LeaveType'),
+    path('draft', views.Draft.as_view(),name='Draft'),
+    path('audit', views.Audit.as_view(),name='Audit'),
+    path('get_name', views.GetName.as_view(),name='GetName'),
 ]

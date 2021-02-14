@@ -10,23 +10,6 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from django.core.exceptions import ObjectDoesNotExist
 from Apps.User import models
-class TokenAuth(BaseAuthentication):
-    '''
-    Token
-    '''
-    def authenticate(self,request):
-        #判断是否在headers携带token
-        token = request.META.get("HTTP_TOKEN")
-        # token = request._request.GET.get('token')
-        token_obj = models.User_Token.objects.filter(token = token).first()
-        if not token_obj:
-            raise exceptions.AuthenticationFailed('用户认证失败')
-        #在rest 内部会把他们给request
-        return (token_obj.user,token_obj)
-    def authenticate_header(self,request):
-        pass
-
-
 
 def get_token(request):
     '''
@@ -43,18 +26,18 @@ def get_user(request):
     '''
     获取用户
     '''
-    try:
-        token = get_token(request)
-        print("获得的token: ",token)
-        obj = models.Token.objects.get(token=token)
-        # print(obj)
-        return obj.user
-    except ObjectDoesNotExist as token_not_exist:
-        print(token_not_exist,"not get user ")
-        return -1
-    return 1
+    return request.user
 
-
+def get_groups(request):
+    '''
+    获取用户身份组
+    '''
+    per = request.user.groups.all().values('name') 
+    groups = []
+    for item in per:
+        groups.append(item['name'])
+    return groups
+    
 def md5(user):
     '''
     获取md5

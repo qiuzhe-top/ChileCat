@@ -1,16 +1,17 @@
 '''管理视图'''
 import logging
+
+from Apps.Life.models import Building, Floor, Room, StuInRoom
+from Apps.Permission.utils import expand_permission
+# from openpyxl import load_workbook
+from Apps.User.models import UserInfo
+from django.contrib.auth.models import User
+# from django.contrib.auth.models import User as djangoUser
 from django.http import JsonResponse
 from rest_framework.views import APIView
-# from openpyxl import load_workbook
-from Apps.User.models import UserInfo,User
-from django.contrib.auth.models import User as djangoUser
-from Apps.Life.models import Building,Room,Floor,StuInRoom
-# Create your views here.
-from Apps.Permission.utils.auth import AuthPer,AuthPermission
+from django.db.models import Q
 logger = logging.getLogger(__name__)
 class Test(APIView):
-    # authentication_classes = [AuthPer,]
     '''后台接口调用'''
     def get(self,request):
         '''测试接口'''
@@ -27,7 +28,7 @@ class Test(APIView):
         # log.close()
 
         # user_list = User.objects.all()
-        # for user in user_list: 
+        # for user in user_list:
         #     user.django_user = djangoUser.objects.get(username=user.user_name)
         #     user.save()
         #     print(user.django_user)
@@ -118,3 +119,20 @@ def serach_room(roominfo):
     else:
         room = room.first()
     return room
+
+
+
+class ApiPer(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        expand_permission.init_api_permissions()
+        # expand_permission.init_operate_permissions()
+        # ret['data'] = data
+        p = request.user.get_all_permissions()
+        d2 = [x[11:] for x in p if x.find('OPERATE')!= -1 ]
+        print(d2)
+        return JsonResponse(ret)
+
+

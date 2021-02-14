@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.utils import timezone
 from Apps import Ask
-from Apps.User.models import User,UserInfo,TeacherForCollege,College,Grade
+from Apps.User.models import UserInfo,TeacherForCollege,College,Grade
 from Apps.User.utils.auth import get_user
 from . import models,ser
 # from User.utils.auth import get_user
@@ -71,6 +71,8 @@ class Draft(APIView):
     '''
     请假条 提交 获取
     '''
+    API_PERMISSIONS = ['请假条','post','delete']
+
     def post(self, request):
         '''
         提交假条

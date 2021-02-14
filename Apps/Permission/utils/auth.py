@@ -1,4 +1,5 @@
 '''用户认证'''
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from django.contrib.auth.models import AnonymousUser
@@ -11,19 +12,18 @@ class AuthPermission(BaseAuthentication):
         全局身份标识
     '''
     def authenticate(self,request):
-        token = request.META.get("HTTP_TOKEN")
-        token_obj = UserModel.Token.objects.filter(token = token).first()
-        if not token_obj:
-            return (AnonymousUser,None)
-        return (token_obj.user.django_user,None)
+        token = models.Token.objects.filter(token = request.META.get("HTTP_TOKEN")).first()
+        if not token:
+            return(AnonymousUser,None)
+        return (token.user,None)
 
 class AuthPer(BaseAuthentication):
     '''
-        局部身份认证
+        身份认证
     '''
     def authenticate(self,request):
-        token = request.META.get("HTTP_TOKEN")
-        token_obj = UserModel.Token.objects.filter(token = token).first()
-        if not token_obj:
+        token = models.Token.objects.filter(token = request.META.get("HTTP_TOKEN")).first()
+        if not token:
             raise exceptions.AuthenticationFailed('用户认证失败')
-        return (token_obj.user.django_user,None)
+        return (token.user,None)
+
