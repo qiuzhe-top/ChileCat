@@ -6,11 +6,13 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 ASKTYPE = (
-    ("0","草稿"),
-    ("1","班主任审核"), # 一级审核中
-    ("2","院领导审核"), # 二级审核中
-    ("3","通过"),          # 历史
-    ("4","不通过")          # 不通过
+    ("draft","草稿"),
+    ("first_audit","班主任审核"),
+    ("secord_audit","辅导员审核"),
+    ("college_audit","院级审核"),
+    ("university_audit","校级审核"),
+    ("passed","通过"),
+    ("failed","不通过")
 )
 class Ask(models.Model):
     '''
@@ -20,15 +22,11 @@ class Ask(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name = "用户id",related_name = "user_id")
-
-
-    status = models.CharField(max_length = 4,choices = ASKTYPE,verbose_name = "审核状态",default = "0")
+    status = models.CharField(max_length = 20,choices = ASKTYPE,verbose_name = "审核状态",default = "0")
     contact_info = models.CharField(max_length = 20,verbose_name = "联系信息")
-    ask_type = models.CharField(max_length = 20,choices = (
-        ("0","外出"),
-        ("1","事假"),
-        ("2","其他")
-        ),verbose_name = "状态",default = "1")
+    ask_type = models.ForeignKey(
+        "AskType", on_delete=models.CASCADE,verbose_name="请假类别",null=True,blank=True
+        )
     reason = models.CharField(max_length = 50,verbose_name = "理由")
     place = models.CharField(max_length = 50,verbose_name = "地点")
     ask_state = models.CharField(max_length = 5,verbose_name = "是否完成",choices = (
@@ -68,7 +66,7 @@ class Audit(models.Model):
     ask_id = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL,verbose_name = "请假单id")
-    status = models.CharField(max_length = 4,choices = ASKTYPE,verbose_name = "审核状态")
+    status = models.CharField(max_length = 20,choices = ASKTYPE,verbose_name = "审核状态")
     explain = models.CharField(max_length = 20,verbose_name = "审核说明")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True,verbose_name = "创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False,verbose_name = "修改时间")
@@ -79,3 +77,17 @@ class Audit(models.Model):
         ordering = ['-created_time']
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"
+
+class AskType(models.Model):
+    """请假类别."""
+
+    type_name = models.CharField(max_length = 150,verbose_name="请假类别")
+    class Meta:
+        """Meta definition for AskType."""
+
+        verbose_name = '请假类别'
+        verbose_name_plural = '请假类别表'
+
+    def __str__(self):
+        """Unicode representation of AskType."""
+        return self.type_name

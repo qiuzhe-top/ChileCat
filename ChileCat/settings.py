@@ -89,14 +89,14 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'chilecat_1',
-        # 'USER': 'root',
-        # 'PASSWORD': '314418',
-        # 'HOST': '47.111.1.18',
-        # 'PORT': '3306'
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'chilecat_1',
+        'USER': 'root',
+        'PASSWORD': '314418',
+        'HOST': '47.111.1.18',
+        'PORT': '3306'
     }
 }
 
@@ -176,5 +176,4 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.permission.ApiPublicPermission",
     ],
     'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
-   
 }

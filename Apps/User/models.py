@@ -14,7 +14,7 @@ class Tpost(models.Model):
         try:
             return self.user_id.userinfo.name
         except:
-            return self.user.user_name
+            return self.user.username
 
     class Meta:
         db_table = ''
@@ -120,7 +120,7 @@ class Grade(models.Model):
     '''
     班级
     '''
-    name = models.CharField(max_length = 20,verbose_name = "班级号")
+    name = models.CharField(max_length = 20,verbose_name = "班级号",unique=True)
     college_id = models.ForeignKey("College", on_delete=models.CASCADE,verbose_name="学院")
 
     class Meta:

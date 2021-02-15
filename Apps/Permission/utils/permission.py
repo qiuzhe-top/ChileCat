@@ -1,10 +1,6 @@
 '''权限'''
-from Apps.Permission import models
-from Apps.Permission.models import ApiPermission
-from django.contrib.auth.models import AnonymousUser, Permission, User
-from django.http import JsonResponse
 from rest_framework.permissions import BasePermission
-
+from django.contrib.auth.models import AnonymousUser, Permission
 # 全局API接口权限
 class ApiPublicPermission(BasePermission):
     '''
@@ -15,6 +11,8 @@ class ApiPublicPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
+        if request.user is None:
+            return True
         print("1",request.user.is_authenticated)
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
@@ -25,20 +23,18 @@ class ApiPublicPermission(BasePermission):
         url_permission = url + ':' + method
 
         # 白名单功能
-        if Permission.objects.filter(codename = url_permission,apipermission__is_verify = True).exists():
+        if Permission.objects.filter(
+            codename = url_permission,apipermission__is_verify = True
+            ).exists():
             return True
 
         # 是否登录
         if request.user == AnonymousUser:
             self.message = '用户认证失败'
-            return False 
+            return False
 
         # 权限验证
         if request.user.has_perm('Permission.'+url_permission):
             return True
 
         return False
-
-
-
-

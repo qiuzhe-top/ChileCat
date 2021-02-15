@@ -21,7 +21,6 @@ class AskSerializer(serializers.ModelSerializer):
         model = models.Ask
     # fields = "__all__"
         fields = ('id', 'reason', 'ask_type','place','start_time','end_time','students_name','min') # 包含
-        exclude = ('image',) # 不包含
 
 
 class AuditSerializer(serializers.ModelSerializer):

@@ -3,52 +3,13 @@ from django.db import models
 from django.contrib.auth.models import Permission
 # Create your models here.
 
-
-# class Role(models.Model):
-#     """角色分类表"""
-#     name = models.CharField(max_length = 150,verbose_name="职位")
-#     role_permit = models.ManyToManyField(
-#         "PermissionsExtension",verbose_name="角色权限",blank=True,related_name="role"
-#         )
-#     class Meta:
-#         """Meta definition for Role."""
-
-#         verbose_name = '角色表'
-#         verbose_name_plural = '角色表'
-
-#     def __str__(self):
-#         """Unicode representation of Role."""
-#         return self.name
-
-# class PermissionsExtension(models.Model):
-#     """权限表."""
-#     GENDER_CHOICES = (
-#         (u'1', u'API权限'),
-#         (u'2', u'元素显示权限'),
-#     )
-#     permission  = models.OneToOneField(DjangoPermission,on_delete=models.CASCADE,verbose_name=u'权限')
-#     per_type = models.CharField(max_length = 150,verbose_name="类型",default="0",choices=GENDER_CHOICES)
-#     description = models.CharField(max_length = 150,verbose_name="描述",blank=True,null=True)
-
-#     class Meta:
-#         """Meta definition for Permission."""
-
-#         verbose_name = '权限'
-#         verbose_name_plural = '权限'
-
-#     def __str__(self):
-#         """Unicode representation of Permission."""
-#         return self.permission.name
-
 class ApiPermission(models.Model):
     """接口访问权限"""
-    
-        
+
     is_verify = models.BooleanField(verbose_name="接口类型",choices=(
             (False,"权限接口"),
             (True,"公开接口"),
         ),default=False)
-    
     permission = models.OneToOneField(
         Permission, on_delete=models.CASCADE,
         verbose_name="权限",
@@ -77,7 +38,6 @@ class ElementPermission(models.Model):
         related_name="elementpermission"
         )
 
-
     class Meta:
         """Meta definition for ElementPermission."""
 
@@ -97,7 +57,6 @@ class OperatePermission(models.Model):
         verbose_name="权限",
         related_name="operatepermission"
         )
-
 
     class Meta:
         """Meta definition for OperatePermission."""

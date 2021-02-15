@@ -2,7 +2,7 @@
 admin.py
 '''
 from django.contrib import admin
-from .models import Ask,Audit
+from .models import Ask,Audit,AskType
 @admin.register(Ask)
 class AskTeleAdmin(admin.ModelAdmin):
     '''
@@ -18,3 +18,9 @@ class AuditTeleAdmin(admin.ModelAdmin):
     审核
     '''
     list_display = ("id","user_id","ask_id","created_time","modify_time")
+@admin.register(AskType)
+class AskTypeTeleAdmin(admin.ModelAdmin):
+    '''
+    请假类别
+    '''
+    list_display = ("id","type_name")
