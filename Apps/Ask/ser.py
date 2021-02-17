@@ -17,6 +17,7 @@ class AskSerializer(serializers.ModelSerializer):
     """请假条序列化"""
     students_name = serializers.SerializerMethodField()
     min = serializers.SerializerMethodField()
+    ask_type = serializers.SerializerMethodField()
 
     def get_students_name(self, obj):
         """取出关联列表的用户姓名"""
@@ -28,10 +29,26 @@ class AskSerializer(serializers.ModelSerializer):
         hours = times.total_seconds() % (60 * 60 * 24) / 60 / 60  # 剩余的小时
         return str(times.days) + '天 ' + str(format(hours, '.1f')) + '时'
 
+    def get_ask_type(self, obj):
+        """取出请假类型"""
+        return obj.ask_type.type_name
+
     class Meta:
         model = models.Ask
         # fields = "__all__"
-        fields = ('id', 'reason', 'ask_type', 'place', 'start_time', 'end_time', 'students_name', 'min')  # 包含
+        fields = (
+            'id', 'students_name', 'reason', 'contact_info',
+            'status', 'ask_type', 'ask_state',
+            'place', 'start_time', 'end_time',
+            'created_time', 'modify_time', 'min'
+        )  # 包含
+
+
+class AskAbbrSerializer(AskSerializer):
+    """请假条简略序列化"""
+
+    class Meta(AskSerializer.Meta):
+        fields = ('id', 'reason', 'ask_type', 'place', 'start_time', 'end_time', 'students_name', 'min')
 
 
 class AskAntiSerializer(serializers.Serializer):
@@ -43,7 +60,7 @@ class AskAntiSerializer(serializers.Serializer):
             'user_id': user,
             'status': validated_data.get('status'),
             'contact_info': validated_data.get('phone'),
-            'ask_type': models.AskType.objects.get(id=validated_data.get('ask_type')),
+            'ask_type': models.AskType.objects.get(type_name=validated_data.get('ask_type')),
             'reason': validated_data.get('reason'),
             'place': validated_data.get('place'),
             'ask_state': validated_data.get('user'),
@@ -58,7 +75,7 @@ class AskAntiSerializer(serializers.Serializer):
         instance.user_id = validated_data.get('user', instance.user_id)
         instance.status = validated_data.get('status', instance.status)
         instance.contact_info = validated_data.get('phone', instance.contact_info)
-        instance.ask_type = validated_data.get('ask_type', instance.ask_state)
+        instance.ask_type = models.AskType.objects.get(type_name=validated_data.get('ask_type', instance.ask_type))
         instance.reason = validated_data.get('reason', instance.reason)
         instance.place = validated_data.get('place', instance.place)
         instance.ask_state = validated_data.get('status', instance.ask_state)

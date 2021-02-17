@@ -118,9 +118,9 @@ class TeacherForGrade(models.Model):
 
 
 class TeacherForCollege(models.Model):
-    '''
+    """
     教师对应的分院
-    '''
+    """
     college_id = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="分院号")
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="管理者账号")
 
@@ -130,9 +130,9 @@ class TeacherForCollege(models.Model):
 
 
 class Grade(models.Model):
-    '''
+    """
     班级
-    '''
+    """
     name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
     college_id = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="学院")
 
@@ -145,9 +145,9 @@ class Grade(models.Model):
 
 
 class College(models.Model):
-    '''
+    """
     分院
-    '''
+    """
     name = models.CharField(max_length=50, verbose_name="学院名称")
 
     class Meta:
@@ -160,9 +160,9 @@ class College(models.Model):
 
 # 心情监测
 class UserMood(models.Model):
-    '''
+    """
     心情监测
-    '''
+    """
     mod_level = models.CharField(max_length=2, verbose_name=u'心情等级')
     message = models.CharField(max_length=9999, verbose_name=u'想说的话')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=u'学生用户')
@@ -170,7 +170,7 @@ class UserMood(models.Model):
     star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
 
     def riqi(self):
-        '''日期'''
+        """日期"""
         return '666'
 
     # 设置方法字段在admin中显示的标题

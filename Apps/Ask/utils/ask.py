@@ -38,7 +38,7 @@ class AskToTeacher(AskOperate):
     def views(self):
         print("老师查看请假条")
         AskOperate._ask_list = Ask.objects.filter(pass_id=self._user)
-        return ser.AskSerializer(instance=AskOperate._ask_list, many=True).data
+        return ser.AskAbbrSerializer(instance=AskOperate._ask_list, many=True).data
 
     def undo_pass(self, ask_id):
         """老师不批准请假条"""
@@ -54,6 +54,7 @@ class AskToTeacher(AskOperate):
         """老师通过请假条"""
         try:
             self._ask_list = Ask.objects.get(id=ask_id)
+
             self._ask_list.status = status
             self._ask_list.save()
             return True
@@ -66,15 +67,18 @@ class AskToStudent(AskOperate):
     学生->请假条
     """
 
-    def views(self, audit_type=0):
+    def views(self, audit_type):
         """学生查看请假条
         0表示审核中,1表示完成
         """
-        print("学生查看请假条,type =", audit_type)
-        __status = ["passed", "failed"] if audit_type == "1" else [
-            "draft", "first_audit", "scored_audit", "college_audit", "university_audit"]
-        AskOperate._ask_list = Ask.objects.filter(user_id=self._user, status__in=__status)
-        return ser.AskSerializer(instance=AskOperate._ask_list, many=True).data
+        # print("学生查看请假条,type =", audit_type)
+        if not audit_type:
+            AskOperate._ask_list = Ask.objects.filter(user_id=self._user)
+        else:
+            __status = ["passed", "failed"] if audit_type == "1" else [
+                "draft", "first_audit", "scored_audit", "college_audit", "university_audit"]
+            AskOperate._ask_list = Ask.objects.filter(user_id=self._user, status__in=__status)
+        return ser.AskAbbrSerializer(instance=AskOperate._ask_list, many=True).data
 
     def submit(self, ask_id):
         """学生提交请假条"""
@@ -94,4 +98,6 @@ class AskToStudent(AskOperate):
         except Ask.DoesNotExist:
             return False
 
-
+    def renew(self):
+        """续假"""
+        # TODO 这个就更不急了
