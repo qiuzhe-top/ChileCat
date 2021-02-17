@@ -1,63 +1,97 @@
-'''根据权限处理请假条'''
+"""根据权限处理请假条"""
 from django.contrib.auth.models import AnonymousUser
 from Apps.Ask import ser
 from Apps.Ask.models import Ask
 
 
-class AskOperate():
-    '''不要为了设计模式而写设计模式,虽然只是复习'''
-    __statement = "接口类"
-    _ask_list = Ask.objects.none()
+class AskOperate:
+    """操作主类"""
     _user = AnonymousUser
-    _ask_id = Ask.objects.none()
-    def __init__(self,askid=0):
-        self._ask_id = askid
-    def view(self):
-        '''查看'''
+    _ask_list = Ask.objects.none()  # <QuerySet[]>
+
+    def __init__(self, user=AnonymousUser):
+        self._user = user
+
+    def view(self, ask_id):
+        """目的:查看单条"""
         try:
-            self._ask_list = Ask.objects.get(id=self._ask_id)
-        except Ask.DoesNotExist as ask_unexist:
-            return ask_unexist
-        return ser.AskSerializer(instance=self._ask_list).data
+            self._ask_list = Ask.objects.get(id=ask_id)
+            return ser.AskSerializer(instance=self._ask_list).data
+        except Ask.DoesNotExist:
+            return False
+
+    def delete(self, ask_id):
+        """删除请假条"""
+        try:
+            self._ask_list = Ask.objects.get(id=ask_id)
+            self._ask_list.delete()
+        except Ask.DoesNotExist as ask_not_exist:
+            return ask_not_exist
+        return True
+
 
 class AskToTeacher(AskOperate):
-    '''
+    """
     老师->请假条
-    '''
-    def __init__(self, user,askid=0):
-        super().__init__(askid)
-        AskOperate._user = user
-        AskOperate._ask_list = Ask.objects.filter(pass_id=self._user)
-        # AskOperate._ask_id = askid
-    def view(self):
+    """
+
+    def views(self):
         print("老师查看请假条")
-        return ser.AskSerializer(instance=self._ask_list,many=True).data
-    def undopass(self):
-        '''老师不批准请假条'''
-    def dopass(self):
-        '''老师通过请假条'''
+        AskOperate._ask_list = Ask.objects.filter(pass_id=self._user)
+        return ser.AskSerializer(instance=AskOperate._ask_list, many=True).data
+
+    def undo_pass(self, ask_id):
+        """老师不批准请假条"""
+        try:
+            self._ask_list = Ask.objects.get(id=ask_id)
+            self._ask_list.status = "failed"
+            self._ask_list.save()
+            return True
+        except Ask.DoesNotExist:
+            return False
+
+    def do_pass(self, ask_id, status):
+        """老师通过请假条"""
+        try:
+            self._ask_list = Ask.objects.get(id=ask_id)
+            self._ask_list.status = status
+            self._ask_list.save()
+            return True
+        except Ask.DoesNotExist:
+            return False
+
 
 class AskToStudent(AskOperate):
-    '''
+    """
     学生->请假条
-    '''
-    def __init__(self,user,askid=0):
-        super().__init__(askid)
-        AskOperate._user = user
-        AskOperate._ask_list = Ask.objects.filter(user_id=self._user)
-        # AskOperate._ask_id = askid
-    def view(self):
-        print("学生查看请假条")
-        return ser.AskSerializer(instance=self._ask_list,many=True).data
-    def submit(self):
-        '''学生提交请假条'''
+    """
 
-    def delete(self):
-        '''学生删除请假条'''
+    def views(self, audit_type=0):
+        """学生查看请假条
+        0表示审核中,1表示完成
+        """
+        print("学生查看请假条,type =", audit_type)
+        __status = ["passed", "failed"] if audit_type == "1" else [
+            "draft", "first_audit", "scored_audit", "college_audit", "university_audit"]
+        AskOperate._ask_list = Ask.objects.filter(user_id=self._user, status__in=__status)
+        return ser.AskSerializer(instance=AskOperate._ask_list, many=True).data
+
+    def submit(self, ask_id):
+        """学生提交请假条"""
         try:
-            Ask.objects.get(id=self._ask_id).delete()
-        except Ask.DoesNotExist as ask_unexist:
-            return ask_unexist
-        return True
-    def modify(self):
-        '''学生修改请假条'''
+            self._ask_list = Ask.objects.get(id=ask_id)
+            ser.AskAntiSerializer(Ask).update(self._ask_list, {'status': "first_audit"})
+            return True
+        except Ask.DoesNotExist:
+            return False
+
+    def modify(self, ask_id, validated_data):
+        """学生修改请假条"""
+        try:
+            self._ask_list = Ask.objects.get(id=ask_id)
+            ser.AskAntiSerializer(Ask).update(self._ask_list, validated_data)
+            return True
+        except Ask.DoesNotExist:
+            return False
+
+

@@ -11,7 +11,8 @@ from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo,Grade,College,User,StudentInfo
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from Apps.Ask.utils.ask import AskToTeacher,AskToStudent,AskOperate
-
+from Apps.Ask.models import Ask
+from Apps.Ask.ser import AskSerializer
 
 logger = logging.getLogger(__name__)
 class Test(APIView):
@@ -19,8 +20,8 @@ class Test(APIView):
     def get(self,request):
         '''测试接口'''
         print('视图 当前User：',request.user)
-        user = User.objects.get(username="admin")
-        tea = AskToTeacher(user)
+        tea = AskToTeacher(User.objects.get(username="admin"))
+        print(User.objects.get(username="admin").groups.filter(name="teacher").exists())
         # import_student("leaksfile//stu20.xlsx",0)#只能针对 id 班级 学号 姓名 这样的表格
         # import_studata("leaksfile//副本智慧交通学院学生寝室信息表（全).xlsx")
         # excel_file = "leaksfile//roomnumbers//all.xlsx"

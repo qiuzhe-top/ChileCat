@@ -105,7 +105,7 @@ def add_api_permission(codename,name,is_verify):
 
 def clean_api_permisson():
     '''去除接口'''
-    Permission.objects.filter(codename__contains ='/api').delete()
+    Permission.objects.delete()
 
 def init_api_permissions():
     '''
