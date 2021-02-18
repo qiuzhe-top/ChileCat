@@ -24,7 +24,7 @@ class Ask(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name="用户id", related_name="user_id")
-    status = models.CharField(max_length=20, choices=ASKTYPE, verbose_name="审核状态", default="0")
+    status = models.CharField(max_length=20, choices=ASKTYPE, verbose_name="审核状态", default="draft")
     contact_info = models.CharField(max_length=20, verbose_name="联系信息")
     ask_type = models.ForeignKey(
         "AskType", on_delete=models.CASCADE, verbose_name="请假类别", null=True, blank=True
@@ -43,14 +43,11 @@ class Ask(models.Model):
         'User.Grade', null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name=u'班级')
     '''
-        当请假条没有绑定老师数据的时候默认绑定给id为1的用户
-        (这个default永远不应该被使用,unless改动了数据库亦或是前端创建请假条或者修改请假条缺损了)
-        这个id不仅可以用来绑定老师(学生到班主任的审核),亦可用来绑定领导(班主任提交给领导的审核).具体按照逻辑来
+        目前设计为一个班级固定对应一个老师
     '''
-    # 注意，当一开始没有建立起班主任关系时讲不会传入班主任(第一审批人信息,即置空,当然,此功能由前台应用)
     pass_id = models.ForeignKey(
         User,
-        verbose_name="审批老师的id1",
+        verbose_name="审批老师的id",
         on_delete=models.CASCADE,
         related_name="pass_id", default=1, blank=True, null=True)
 

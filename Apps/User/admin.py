@@ -28,7 +28,7 @@ class UserInfoTeleAdmin(admin.ModelAdmin):
     empty_value_display = format_html('<span style="color:#8E8E8E;">(内容为空)</span>')
 @admin.register(models.StudentInfo)
 class StudentInfoTeleAdmin(admin.ModelAdmin):
-    list_display = ("id","grade_id","user_id")
+    list_display = ("id", "grade_id", "user_id", "students_photo", "parents_call")
 @admin.register(models.TeacherInfo)
 class TeacherInfoTeleAdmin(admin.ModelAdmin):
     list_display = ("id","teacher_extra_info","user_id")

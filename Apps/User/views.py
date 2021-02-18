@@ -10,14 +10,16 @@ from django.contrib.auth.models import User
 from .utils.auth import get_groups
 from django.contrib.auth import authenticate
 from Apps.Permission.utils.auth import AuthPer
-
+from Apps.User.utils.user import UserExtraOperate
+from Apps.User.utils.exceptions import *
 
 def get_openid(js_code):
-    '''
+    """
     js_code : 微信客户端发送过来的标识
     根据js_code获取微信唯一标识
-    '''
+    """
     url = 'https://api.weixin.qq.com/sns/jscode2session'
+
     data = {
         'appid': 'wx9a63d4bc0c3480f3',
         'secret': 'e8f66b9581ced527fb319c015e670044',
@@ -32,79 +34,66 @@ def get_openid(js_code):
         return None
 
 
-# from .models import Tpost
 class Auth(APIView):
-    '''
+    """
     Auth
-    '''
+    """
     API_PERMISSIONS = ['用户', 'get', 'post', 'delete', 'put']
 
     def post(self, request):
-        '''
-        post method
-        '''
-        ret = {}
+        """
+        登录
+        """
+        ret = {'code': 0000, 'message': "", 'data': {'token': ""}}
+        login_type = self.request.data.get('type', None)
+        user = UserExtraOperate(self.request)
         try:
-            login_type = request.data['type']
-        except KeyError as req_failed:
+            token = user.login(login_type)
+            ret['data']['token'] = token
+            ret['message'] = "获取成功"
+            ret['code'] = 2000
+        except VxBindException as not_bind:
+            print(not_bind)
+            ret['message'] = str(not_bind)
+            ret['code'] = 5001
+        except VxAuthException as auth_filed:
+            print(auth_filed)
+            ret['message'] = str(auth_filed)
             ret['code'] = 5000
-            ret['message'] = '缺少参数：' + str(req_failed)
-            return JsonResponse(ret)
-
-        if login_type == 'wx':
-            self.wx_login(request, ret)
-        elif login_type == 'web':
-            self.web_login(request, ret)
-        else:
+        except WebLoginException as web_failed:
+            print(web_failed)
+            ret['message'] = str(web_failed)
             ret['code'] = 5000
-            ret['message'] = '参数异常：' + login_type
-            return JsonResponse(ret)
-
-        return JsonResponse(ret)
-
-    def delete(self, request):
-        """
-        doc string
-        """
-        ret = {'code': 2000, 'message': "执行成功", 'data': {}}
+        except ParamException as leak_param:
+            print(leak_param)
+            ret['message'] = str(leak_param)
+            ret['code'] = 5000
+        print(ret)
         return JsonResponse(ret)
 
     def put(self, request):
-        '''
+        """
         注册账户
-        '''
-        ret = {}
-
+        """
+        # TODO 注册已完成
+        ret = {'code': 0000, 'message': ""}
         try:
-            username = request.data['username']
-            password = request.data['password']
-            repeat_password = request.data['repeat_password']
-        except KeyError as req_failed:
-            ret['code'] = 5000
-            ret['message'] = '缺少参数：' + str(req_failed)
-            return JsonResponse(ret)
-
-        if password != repeat_password:
-            ret['code'] = 5000
-            ret['message'] = '两次密码不一致'
-            return JsonResponse(ret)
-
-        user = User.objects.create_user(username, '', password)
-        if user:
+            user = UserExtraOperate(self.request)
+            user.register()
+            ret['message'] = "注册成功"
             ret['code'] = 2000
-            ret['message'] = '创建成功'
-            return JsonResponse(ret)
-
-        ret['code'] = 5000
-        ret['message'] = '创建失败'
+        except ParamException as leak_param:
+            ret['message'] = str(leak_param)
+            ret['code'] = 5000
         return JsonResponse(ret)
 
     def wx_login(self, request, ret):
-        '''
+        # TODO wx_login 已搬移
+        """
         微信登录
-        '''
+        """
         print(request.data)
-        js_code = request.data['js_code']
+        js_code = self.request.data['js_code']
         open_id = get_openid(js_code)
 
         if open_id is None:
@@ -125,13 +114,14 @@ class Auth(APIView):
         return JsonResponse(ret)
 
     def web_login(self, request, ret):
-        '''
+        # TODO web_login已搬移
+        """
         平台账户登录
         获取账号密码
         验证账户密码
         返回token或错误
         DJanog rest_framework jwt 登录
-        '''
+        """
         try:
             username = request.data['username']
             password = request.data['password']

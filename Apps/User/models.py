@@ -74,8 +74,9 @@ class StudentInfo(models.Model):
         verbose_name="班级id", related_name="studentgrade"
     )
     user_id = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
+    parents_call = models.CharField(max_length=20, verbose_name="家长联系信息", null=True, blank=True)
+    students_photo = models.CharField(max_length=500, verbose_name="学生照片", null=True, blank=True)
 
-    # 家长电话
     def __str__(self):
         return self.user_id.username
 
@@ -107,7 +108,8 @@ class TeacherForGrade(models.Model):
     grade_id = models.OneToOneField(
         "Grade", on_delete=models.CASCADE, verbose_name="班级号", related_name="related_to_teacher"
     )
-    user_id = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="管理者账号", related_name="related_to_grade")
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="管理者账号",
+                                   related_name="related_to_grade")
 
     class Meta:
         verbose_name = "教师班级关系"
@@ -117,15 +119,30 @@ class TeacherForGrade(models.Model):
         return self.user_id.userinfo.name + "->" + self.grade_id.name
 
 
+class TeacherForWholeGrade(models.Model):
+    """辅导员对应的年级"""
+    user_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+    )
+    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE, null=True, blank=True, verbose_name="班级")
+
+    class Meta:
+        verbose_name = "辅导员班级关系"
+        verbose_name_plural = "辅导员班级关系"
+
+    def __str__(self):
+        return self.user_id.userinfo.name + " -> " + self.grade_id.name
+
+
 class TeacherForCollege(models.Model):
     """
-    教师对应的分院
+    领导对应的分院
     """
     college_id = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="分院号")
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="管理者账号")
 
     class Meta:
-        verbose_name = "教师院级关系"
+        verbose_name = "老师院级关系"
         verbose_name_plural = "教师院级关系"
 
 
