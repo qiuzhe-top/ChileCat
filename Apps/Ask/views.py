@@ -181,10 +181,10 @@ class Audit(APIView):
 # 班级+学号 获取姓名
 class GetName(APIView):
     def get(self, request):
-        # TODO 未完成
+        # TODO 班级+学号获取姓名(为什么不放在user?)
         ret = {}
-        class_name = request.data['classname']
-        sno = request.data['sno']
+        class_name = self.request.data['classname']
+        sno = self.request.data['sno']
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'

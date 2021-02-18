@@ -17,8 +17,9 @@ class AskOperate:
         try:
             self._ask_list = Ask.objects.get(id=ask_id)
             return ser.AskSerializer(instance=self._ask_list).data
-        except Ask.DoesNotExist:
-            return False
+        except Ask.DoesNotExist as ask_un_exist:
+            print(ask_un_exist)
+            return ask_un_exist
 
     def delete(self, ask_id):
         """删除请假条"""
@@ -47,8 +48,9 @@ class AskToTeacher(AskOperate):
             self._ask_list.status = "failed"
             self._ask_list.save()
             return True
-        except Ask.DoesNotExist:
-            return False
+        except Ask.DoesNotExist as ask_not_exist:
+            print(ask_not_exist)
+            return ask_not_exist
 
     def do_pass(self, ask_id, status):
         """老师通过请假条"""
@@ -58,8 +60,9 @@ class AskToTeacher(AskOperate):
             self._ask_list.status = status
             self._ask_list.save()
             return True
-        except Ask.DoesNotExist:
-            return False
+        except Ask.DoesNotExist as ask_not_exist:
+            print(ask_not_exist)
+            return ask_not_exist
 
 
 class AskToStudent(AskOperate):
@@ -86,8 +89,9 @@ class AskToStudent(AskOperate):
             self._ask_list = Ask.objects.get(id=ask_id)
             ser.AskAntiSerializer(Ask).update(self._ask_list, {'status': "first_audit"})
             return True
-        except Ask.DoesNotExist:
-            return False
+        except Ask.DoesNotExist as ask_not_exist:
+            print(ask_not_exist)
+            return ask_not_exist
 
     def modify(self, ask_id, validated_data):
         """学生修改请假条"""
@@ -95,9 +99,10 @@ class AskToStudent(AskOperate):
             self._ask_list = Ask.objects.get(id=ask_id)
             ser.AskAntiSerializer(Ask).update(self._ask_list, validated_data)
             return True
-        except Ask.DoesNotExist:
-            return False
+        except Ask.DoesNotExist as ask_not_exist:
+            print(ask_not_exist)
+            return ask_not_exist
 
     def renew(self):
         """续假"""
-        # TODO 这个就更不急了
+        # TODO 续假不急

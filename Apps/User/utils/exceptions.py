@@ -14,7 +14,7 @@ class VxAuthException(VxLoginException):
 
 
 class VxBindException(VxLoginException):
-    """微信未绑定"""
+    """微信绑定异常"""
 
 
 class WebLoginException(LoginExcept):

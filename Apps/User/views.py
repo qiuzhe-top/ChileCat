@@ -1,42 +1,16 @@
-# import random
-# import string
+"""用户模块"""
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from django.core.exceptions import ObjectDoesNotExist
-import requests
-from Apps.User.utils.auth import update_token, get_user, get_token
 from . import models, ser
 from django.contrib.auth.models import User
 from .utils.auth import get_groups
-from django.contrib.auth import authenticate
-from Apps.Permission.utils.auth import AuthPer
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
-
-def get_openid(js_code):
-    """
-    js_code : 微信客户端发送过来的标识
-    根据js_code获取微信唯一标识
-    """
-    url = 'https://api.weixin.qq.com/sns/jscode2session'
-
-    data = {
-        'appid': 'wx9a63d4bc0c3480f3',
-        'secret': 'e8f66b9581ced527fb319c015e670044',
-        'js_code': js_code
-    }
-    ret = requests.get(url, params=data)  # 发get请求
-    try:
-        openid = ret.json()['openid']
-        return openid
-    except KeyError:
-        print('请检查 appid-secret 是否正确')
-        return None
 
 
 class Auth(APIView):
     """
-    Auth
+    登录和注册
     """
     API_PERMISSIONS = ['用户', 'get', 'post', 'delete', 'put']
 
@@ -53,29 +27,23 @@ class Auth(APIView):
             ret['message'] = "获取成功"
             ret['code'] = 2000
         except VxBindException as not_bind:
-            print(not_bind)
             ret['message'] = str(not_bind)
             ret['code'] = 5001
         except VxAuthException as auth_filed:
-            print(auth_filed)
             ret['message'] = str(auth_filed)
             ret['code'] = 5000
         except WebLoginException as web_failed:
-            print(web_failed)
             ret['message'] = str(web_failed)
             ret['code'] = 5000
         except ParamException as leak_param:
-            print(leak_param)
             ret['message'] = str(leak_param)
             ret['code'] = 5000
-        print(ret)
         return JsonResponse(ret)
 
     def put(self, request):
         """
         注册账户
         """
-        # TODO 注册已完成
         ret = {'code': 0000, 'message': ""}
         try:
             user = UserExtraOperate(self.request)
@@ -87,62 +55,9 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
-    def wx_login(self, request, ret):
-        # TODO wx_login 已搬移
-        """
-        微信登录
-        """
-        print(request.data)
-        js_code = self.request.data['js_code']
-        open_id = get_openid(js_code)
 
-        if open_id is None:
-            ret['code'] = '5000'
-            ret['message'] = '微信验证失败'
-            return JsonResponse(ret)
-
-        try:
-            user = models.Tpost.objects.get(wx_openid=open_id).user
-            token = update_token(user)
-            ret['code'] = 2000
-            ret['message'] = '登陆成功'
-            ret['data'] = {'token': token}
-        except models.Tpost.DoesNotExist:
-            ret['code'] = 5001
-            ret['message'] = '用户未绑定'
-
-        return JsonResponse(ret)
-
-    def web_login(self, request, ret):
-        # TODO web_login已搬移
-        """
-        平台账户登录
-        获取账号密码
-        验证账户密码
-        返回token或错误
-        DJanog rest_framework jwt 登录
-        """
-        try:
-            username = request.data['username']
-            password = request.data['password']
-        except KeyError as req_failed:
-            ret['code'] = 5000
-            ret['message'] = '缺少参数：' + str(req_failed)
-            return JsonResponse(ret)
-
-        user = authenticate(username=username, password=password)
-        if user:
-            token = update_token(user)
-            ret['code'] = 2000
-            ret['data'] = {'token': token}
-        else:
-            ret['code'] = 5000
-            ret['message'] = "账号或密码错误"
-        return JsonResponse(ret)
-
-
-# 获取个人信息
 class Information(APIView):
+    """获取个人信息"""
     # authentication_classes = [AuthPer,]
     API_PERMISSIONS = ['获取个人信息', 'get']
     '''
@@ -167,7 +82,7 @@ class Information(APIView):
         data['name'] = user.userinfo.name
         try:
             data['grade'] = user.studentinfo.grade_id.name
-        except:
+        except User.DoesNotExist:
             data['grade'] = ''
         ret['data'] = data
         return JsonResponse(ret)
@@ -175,7 +90,6 @@ class Information(APIView):
 
 class ClassList(APIView):
     """关联班级"""
-
     def get(self, request):
         """关联班级"""
         ret = {}
@@ -208,7 +122,7 @@ class ClassList(APIView):
 
 
 # 绑定微信
-class Bindwx(APIView):
+class BindVx(APIView):
     """
     绑定微信
     """
@@ -216,73 +130,31 @@ class Bindwx(APIView):
 
     def post(self, request):
         """
-        post method
+        微信绑定
         """
-        ret = {}
-
+        ret = {'code': 0000, 'message': "", 'data': {'token': ""}}
         try:
-            js_code = request.data['js_code']
-            username = request.data['username']
-            password = request.data['password']
-            print(js_code, username, password)
-        except KeyError:
+            ret['data']['token'] = UserExtraOperate(self.request).vx_bind()
+            ret['code'] = 2000
+            ret['message'] = "绑定成功"
+        except VxBindException as bind_failed:
             ret['code'] = 5000
-            ret['message'] = "请求数据异常"
-            return JsonResponse(ret)
-
-        user = authenticate(username=username, password=password)
-        if user:
-            token = update_token(user)
-            ret['data'] = {'token': token}
-        else:
-            ret['code'] = 5000
-            ret['message'] = "账号或密码错误"
-            return JsonResponse(ret)
-
-        try:
-            old_openid = user.tpost.wx_openid
-            if old_openid:
-                # print(old_openid)
-                ret['code'] = 5000
-                ret['message'] = "请勿重新绑定"
-                return JsonResponse(ret)
-        except:
-            pass
-
-        openid = get_openid(js_code)
-        if openid is None:
-            ret['code'] = 5000
-            ret['message'] = "微信用户异常"
-            return JsonResponse(ret)
-
-        tpost, b = models.Tpost.objects.get_or_create(user=user)
-
-        if tpost.wx_openid:
-            ret['code'] = 5000
-            ret['message'] = "请勿重新绑定"
-            return JsonResponse(ret)
-
-        tpost.wx_openid = openid
-        tpost.save()
-
-        ret['message'] = '绑定成功'
-        ret['code'] = 2000
+            ret['message'] = str(bind_failed)
         return JsonResponse(ret)
 
 
 class MoodManage(APIView):
-    '''心情监测'''
+    """心情监测"""
 
     def post(self, request):
-        '''心情监测'''
+        """心情监测"""
         ret = {}
-        mod_level = request.data.get('mod_level')
-        message = request.data.get('message')
+        mod_level = self.request.data.get('mod_level')
+        message = self.request.data.get('message')
         print(mod_level, message)
-        user = get_user(request)
+        user = self.request.user
         grade = user.studentinfo.grade_id
         print(mod_level, message, user, grade)
-
         dic = {
             'user': user,
             'Grade': grade,
