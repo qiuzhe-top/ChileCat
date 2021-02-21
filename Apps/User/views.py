@@ -63,7 +63,6 @@ class Information(APIView):
     '''
     Information
     '''
-
     def get(self, request):
         """
         get method
@@ -134,6 +133,7 @@ class BindVx(APIView):
         """
         ret = {'code': 0000, 'message': "", 'data': {'token': ""}}
         try:
+            print("绑定微信界面")
             ret['data']['token'] = UserExtraOperate(self.request).vx_bind()
             ret['code'] = 2000
             ret['message'] = "绑定成功"
@@ -164,4 +164,5 @@ class MoodManage(APIView):
         models.UserMood.objects.create(**dic)
         ret['message'] = '发送成功'
         ret['code'] = 2000
+        print(ret)
         return JsonResponse(ret)

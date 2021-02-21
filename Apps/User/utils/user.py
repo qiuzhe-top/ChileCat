@@ -1,7 +1,7 @@
 """用户操作"""
 import requests
 from django.contrib.auth import authenticate
-from Apps.User.models import Tpost
+from Apps.User.models import Tpost, User
 from Apps.User.utils import auth
 from Apps.User.utils.exceptions import *
 
@@ -80,7 +80,7 @@ class UserExtraOperate(object):
         raise ParamException("没有获取到用户名,密码等参数")
 
     def vx_bind(self):
-        pass
+        VxBind(self._request).bind()
 
 
 class VxBind(object):
@@ -101,11 +101,17 @@ class VxBind(object):
             __token = auth.update_token(user)
         else:
             return LoginExcept("用户不存在")
-        old_openid = user.tpost.wx_openid
+        old_openid = None
+        try:
+
+            tpost = Tpost.objects.get(user=user)
+            old_openid = tpost.wx_openid
+        except Tpost.DoesNotExist:
+            old_openid = None
         if old_openid:
             # print(old_openid)
             raise VxBindException("请勿重新绑定")
-        openid = user.get_openid(js_code)
+        openid = get_openid(js_code)
         if openid is None:
             raise VxBindException("微信用户异常")
 
@@ -158,6 +164,6 @@ class WebLogin(Login):
             if __user:
                 __token = auth.update_token(__user)
                 return __token
-            raise False
+            raise WebLoginException("登录失败: 账号密码错误")
         # 参数缺失
         raise ParamException("参数缺失: 获取用户名密码失败")

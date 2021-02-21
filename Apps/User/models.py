@@ -1,6 +1,6 @@
-'''
+"""
 models
-'''
+"""
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -12,10 +12,7 @@ class Tpost(models.Model):
     wx_openid = models.CharField(max_length=128, verbose_name=u'微信标识', null=True, blank=True)
 
     def __str__(self):
-        try:
-            return self.user_id.userinfo.name
-        except:
-            return self.user.username
+        return self.user.username
 
     class Meta:
         db_table = ''
@@ -119,19 +116,19 @@ class TeacherForGrade(models.Model):
         return self.user_id.userinfo.name + "->" + self.grade_id.name
 
 
-class TeacherForWholeGrade(models.Model):
-    """辅导员对应的年级"""
-    user_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
-    )
-    grade_id = models.ForeignKey("Grade", on_delete=models.CASCADE, null=True, blank=True, verbose_name="班级")
-
-    class Meta:
-        verbose_name = "辅导员班级关系"
-        verbose_name_plural = "辅导员班级关系"
-
-    def __str__(self):
-        return self.user_id.userinfo.name + " -> " + self.grade_id.name
+# class TeacherForWholeGrade(models.Model):
+#     """辅导员对应的年级"""
+#     user_id = models.ForeignKey(
+#         User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+#     )
+#     grade_id = models.ForeignKey("WholeGrade", on_delete=models.CASCADE, null=True, blank=True, verbose_name="班级")
+#
+#     class Meta:
+#         verbose_name = "辅导员班级关系"
+#         verbose_name_plural = "辅导员班级关系"
+#
+#     def __str__(self):
+#         return self.user_id.userinfo.name + " -> " + self.grade_id.name
 
 
 class TeacherForCollege(models.Model):
@@ -152,10 +149,29 @@ class Grade(models.Model):
     """
     name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
     college_id = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="学院")
+    whole_grade = models.ForeignKey(
+        "WholeGrade", on_delete=models.CASCADE, related_name="grade", verbose_name="年级",
+        null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "班级"
         verbose_name_plural = "班级"
+
+    def __str__(self):
+        return self.name
+
+
+class WholeGrade(models.Model):
+    """年级"""
+    user_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+    )
+    name = models.CharField(max_length=20, verbose_name="年级")
+
+    class Meta:
+        verbose_name = "年级"
+        verbose_name_plural = "年级"
 
     def __str__(self):
         return self.name

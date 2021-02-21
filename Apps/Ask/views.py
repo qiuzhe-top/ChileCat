@@ -5,11 +5,10 @@ import logging
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator
 from Apps import Ask
-from Apps.User.models import UserInfo, TeacherForCollege, College, Grade, User
-from Apps.User.utils.auth import get_user
-from Apps.Ask.utils import ask
+from Apps.User.models import Grade, User
+from django.contrib.auth.models import AnonymousUser
+from Apps.Ask.utils import ask, audit, exceptions
 from . import models, ser
 from django.db.models import Q
 
@@ -57,7 +56,7 @@ class Draft(APIView):
         se = ser.AskAntiSerializer(instance=Ask)
         se.create(req)
         ret['code'] = 2000
-        ret['message'] = "创建成功 / 草稿保存成功"
+        ret['message'] = "提交成功"
         return JsonResponse(ret)
 
     def get(self, request):
@@ -68,23 +67,26 @@ class Draft(APIView):
         ID存在则使用单个匹配模式
         否则按照身份获取
         """
-        ret = {'code': 0000, 'message': "no message", 'data': {'list': []}}
+        ret = {'code': 0000, 'message': "no message", 'data': {}}
         req_list = self.request.query_params
-        # self.request.user = User.objects.get(username="admin")
+        # self.request.user = User.objects.get(username="19530226")
+        if self.request.user == AnonymousUser:
+            ret['message'] = "没有用户"
+            ret['code'] = 2000
+            return JsonResponse(ret)
         try:
             ask_id = int(req_list.get('id', -1))
-            if ask_id != -1:
-                ask_list = Ask.utils.ask.AskOperate().view(ask_id)
-            else:
-                if self.request.user.groups.filter(name="teacher").exists():
-                    ask_list = Ask.utils.ask.AskToTeacher(self.request.user).views()
-                else:
-                    ask_list = Ask.utils.ask.AskToStudent(self.request.user).views(req_list.get('type'))
-        except ValueError as not_number:
-            return JsonResponse({'code': 4000, 'message': "id_not_number."})
-        ret['data']['list'] = ask_list
-        ret['message'] = "获取成功"
-        ret['code'] = 2000
+            view_type = req_list.get('type', None)
+            monitor = req_list.get('monitor', None)
+            ask_list = Ask.utils.ask.AskOperate(self.request.user).view(ask_id, view_type, monitor)
+            ret['data'] = ask_list
+            ret['message'] = "获取成功"
+            ret['code'] = 2000
+        except TypeError:
+            return JsonResponse({'code': 4000, 'message': "缺少id"})
+        except Ask.models.Ask.DoesNotExist:
+            ret['message'] = "没有此id的请假条"
+            ret['code'] = 4000
         return JsonResponse(ret)
 
     def put(self, request):
@@ -97,14 +99,16 @@ class Draft(APIView):
         }
         req = self.request.data
         ask_id = req.get('id')
-        # print(req)
-        # self.request.user = User.objects.get(username="19530226")
-        if Ask.utils.ask.AskToStudent(self.request.user).modify(ask_id, req):
-            ret['code'] = 2000
-            ret['message'] = "修改成功"
-        else:
+        try:
+            if Ask.utils.ask.AskToStudent(self.request.user).modify(ask_id, req):
+                ret['message'] = "修改成功"
+                ret['code'] = 2000
+            else:
+                ret['message'] = "修改失败"
+                ret['code'] = 4000
+        except exceptions.AskException as ask_except:
+            ret['message'] = str(ask_except)
             ret['code'] = 4000
-            ret['message'] = "修改失败"
         return JsonResponse(ret)
 
     def delete(self, request):
@@ -113,9 +117,6 @@ class Draft(APIView):
         """
         ret = {'code': 0000, 'message': 'default message'}
         req_list = self.request.data
-        '''
-        回传数据:id = 2
-        '''
         if Ask.utils.ask.AskToStudent.delete(req_list.get('id')):
             ret['code'] = 2000
             ret['message'] = "撤销成功"
@@ -139,8 +140,16 @@ class Audit(APIView):
             'code': 0000,
             'message': "default info."
         }
-        user_id = self.request.user
-        # TODO 不急,占坑
+        self.request.user = User.objects.get(username="19530226")
+        ask_id = self.request.data.get('id', None)
+        operate_sate = self.request.data.get('operate_sate')
+        try:
+            audit.AuditOperate(self.request, ask_id).audit(operate_sate)
+            ret['message'] = "操作成功"
+            ret['code'] = 2000
+        except exceptions.AuditException as audit_error:
+            ret['message'] = str(audit_error)
+            ret['code'] = 4000
         return JsonResponse(ret)
 
     def get(self, request):

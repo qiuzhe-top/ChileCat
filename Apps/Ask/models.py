@@ -5,10 +5,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
-ASKTYPE = (
+ASK_TYPE = (
     ("draft", "草稿"),
     ("first_audit", "班主任审核"),
-    ("scored_audit", "辅导员审核"),
+    ("second_audit", "辅导员审核"),
     ("college_audit", "院级审核"),
     ("university_audit", "校级审核"),
     ("passed", "通过"),
@@ -24,7 +24,7 @@ class Ask(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name="用户id", related_name="user_id")
-    status = models.CharField(max_length=20, choices=ASKTYPE, verbose_name="审核状态", default="draft")
+    status = models.CharField(max_length=20, choices=ASK_TYPE, verbose_name="审核状态", default="draft")
     contact_info = models.CharField(max_length=20, verbose_name="联系信息")
     ask_type = models.ForeignKey(
         "AskType", on_delete=models.CASCADE, verbose_name="请假类别", null=True, blank=True
@@ -37,6 +37,7 @@ class Ask(models.Model):
     ), default="0")
     start_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="开始时间")
     end_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="结束时间")
+    extra_end_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="续假时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     grade_id = models.ForeignKey(
@@ -52,7 +53,7 @@ class Ask(models.Model):
         related_name="pass_id", default=1, blank=True, null=True)
 
     def __str__(self):
-        return str(self.id)
+        return "请假条id: " + str(self.id)
 
     class Meta:
         verbose_name = "请假条"
@@ -67,7 +68,7 @@ class Audit(models.Model):
     ask_id = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="请假单id")
-    status = models.CharField(max_length=20, choices=ASKTYPE, verbose_name="审核状态")
+    status = models.CharField(max_length=20, choices=ASK_TYPE, verbose_name="操作后状态")
     explain = models.CharField(max_length=20, verbose_name="审核说明")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")

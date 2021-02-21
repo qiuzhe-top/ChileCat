@@ -8,13 +8,13 @@ from rest_framework.views import APIView
 # from django.contrib.auth.models import User as djangoUser
 # from django.db.models import Q
 from Apps.Permission.utils import expand_permission
-from Apps.User.models import UserInfo, Grade, College, User, StudentInfo
+from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from Apps.Ask.utils.ask import AskToTeacher, AskToStudent, AskOperate
 from Apps.Ask.models import Ask
 from Apps.Ask.ser import AskSerializer
 from Apps.User.utils.user import UserExtraOperate
-from django.contrib.auth import authenticate
+from Apps.Ask.utils.audit import *
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,12 @@ class Test(APIView):
         print(self.request.query_params)
         print(self.request.data)
         print(self.request.META.get("HTTP_TOKEN"))
+        # self.request.user = User.objects.get(username="19530226")
+        # ask = Ask.objects.get(id=6)
+        # SecondAudit(self.request.user, ask).audit()
+
         # print('视图 当前User：', request.user)
-        print(authenticate(username="19530226", password="12345"))
+        # print(authenticate(username="19530226", password="12345"))
         # import_student("leaksfile//stu20.xlsx",0)#只能针对 id 班级 学号 姓名 这样的表格
         # import_studata("leaksfile//副本智慧交通学院学生寝室信息表（全).xlsx")
         # excel_file = "leaksfile//roomnumbers//all.xlsx"
@@ -139,7 +143,8 @@ def import_student(file, log):
             name = str(info[3]).strip()
             print(grade, user_id, name)
             if not User.objects.filter(username=user_id).exists():
-                user = User(username=user_id, password="123456")
+                user = User(username=user_id)
+                user.set_password("123456")
                 user.save()
             else:
                 user = User.objects.get(username=user_id)
@@ -211,7 +216,7 @@ class ApiPer(APIView):
         """test"""
         ret = {'message': 'message', 'code': 2000}
         expand_permission.init_api_permissions()
-        # expand_permission.init_operate_permissions()
+        expand_permission.init_operate_permissions()
         # ret['data'] = data
         p = request.user.get_all_permissions()
         d2 = [x[11:] for x in p if x.find('OPERATE') != -1]

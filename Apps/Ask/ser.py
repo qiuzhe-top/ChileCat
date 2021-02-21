@@ -3,6 +3,16 @@
 from rest_framework import serializers
 from . import models
 
+ASK_TYPE = {
+    "draft": "草稿",
+    "first_audit": "班主任审核",
+    "scored_audit": "辅导员审核",
+    "college_audit": "院级审核",
+    "university_audit": "校级审核",
+    "passed": "通过",
+    "failed": "不通过"
+}
+
 
 class AskTypeSerializer(serializers.ModelSerializer):
     """请假类型序列化"""
@@ -45,22 +55,25 @@ class AskSerializer(serializers.ModelSerializer):
         model = models.Ask
         # fields = "__all__"
         fields = (
-            'id', 'place', 'reason', 'ask_type',
-            'created_time', 'modify_time', 'min',
-            'students_name', 'students_photo',
-            'parents_call', 'status', 'ask_state',
-            'start_time', 'end_time',
+            'id', 'place', 'reason', 'ask_type', 'contact_info', 'status',
+            'created_time', 'modify_time', 'min', 'students_name',
+            'students_photo', 'parents_call', 'status', 'ask_state',
+            'start_time', 'end_time', 'extra_end_time',
         )  # 包含
 
 
 class AskAbbrSerializer(AskSerializer):
     """请假条简略序列化"""
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return ASK_TYPE.get(obj.status)
 
     class Meta(AskSerializer.Meta):
         fields = (
             'id', 'reason', 'ask_type', 'place',
             'start_time', 'end_time', 'students_name',
-            'min',
+            'min', 'status'
         )
 
 
@@ -69,17 +82,17 @@ class AskAntiSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = validated_data.get('user')
-        print(validated_data.get('leave_type'))
         validated_data_new = {
             'user_id': user,
-            'status': validated_data.get('status'),
+            'status': "first_audit",
             'contact_info': validated_data.get('phone'),
-            'ask_type': models.AskType.objects.get(type_name=validated_data.get('leave_type')),
+            'ask_type': models.AskType.objects.get(type_name=validated_data.get('ask_type')),
             'reason': validated_data.get('reason'),
             'place': validated_data.get('place'),
             'ask_state': validated_data.get('ask_state', "0"),
             'start_time': validated_data.get('time_go'),
             'end_time': validated_data.get('time_back'),
+            'extra_end_time': validated_data.get('extra_end_time', validated_data.get('time_back')),
             'grade_id': user.studentinfo.grade_id,
             'pass_id': user.studentinfo.grade_id.related_to_teacher.user_id,
         }
@@ -95,6 +108,7 @@ class AskAntiSerializer(serializers.Serializer):
         instance.ask_state = validated_data.get('status', instance.ask_state)
         instance.start_time = validated_data.get('time_go', instance.start_time)
         instance.end_time = validated_data.get('time_back', instance.end_time)
+        instance.extra_end_time = validated_data.get('extra_end_time', instance.extra_end_time)
         instance.grade_id = instance.user_id.studentinfo.grade_id
         instance.pass_id = instance.grade_id.related_to_teacher.user_id
         instance.save()

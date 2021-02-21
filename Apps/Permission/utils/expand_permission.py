@@ -7,7 +7,9 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from rest_framework.views import exception_handler
-from Apps.Permission.models import ApiPermission,OperatePermission
+from Apps.Permission.models import ApiPermission, OperatePermission
+
+
 # from django.shortcuts import get_object_or_404
 
 def custom_exception_handler(exc, context):
@@ -19,26 +21,28 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
     # Now add the HTTP status code to the response.
     if response is not None:
-        response.data['code'] = 5500 if(
-            response.data['detail'] == '用户认证失败'
-            )else(
+        response.data['code'] = 5500 if (
+                response.data['detail'] == '用户认证失败'
+        ) else (
             response.status_code
-            )
+        )
         # response.data['code'] = response.status_code
         response.data['message'] = response.data['detail']
-        del response.data['detail'] #删除detail字段
+        del response.data['detail']  # 删除detail字段
     return response
 
-def get_obj(app,object_name,name):
+
+def get_obj(app, object_name, name):
     '''
     反射获取成员
     :param app: Django App 名称
     :param object_name: 视图CBV的类
     :param name: 视图类的变量
     '''
-    pack = __import__("Apps."+app+".views",fromlist = True)
-    class_obj = getattr(pack,object_name)
-    return getattr(class_obj,name,[])
+    pack = __import__("Apps." + app + ".views", fromlist=True)
+    class_obj = getattr(pack, object_name)
+    return getattr(class_obj, name, [])
+
 
 # API 权限管理
 def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
@@ -58,7 +62,7 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
             if not item.name:
                 url_ordered_dict[url] = []
                 continue
-            url_ordered_dict[url] = get_obj(pre_namespace,item.name,'API_PERMISSIONS')
+            url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'API_PERMISSIONS')
         elif isinstance(item, URLResolver):
             if pre_namespace:
                 if item.namespace:
@@ -72,7 +76,8 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
                     namespace = None
             recursion_urls(
                 namespace, pre_url + str(item.pattern), item.url_patterns, url_ordered_dict
-                )
+            )
+
 
 def get_all_url_dict():
     """
@@ -85,42 +90,46 @@ def get_all_url_dict():
     recursion_urls(None, '/', main_urls.urlpatterns, url_ordered_dict)  # 递归去获取所有的路由
     return url_ordered_dict
 
-def add_permission(content_type,codename,name):
+
+def add_permission(content_type, codename, name):
     '''
     添加权限
     '''
     return Permission.objects.update_or_create(
-        codename= codename,
+        codename=codename,
         content_type=content_type,
-        defaults={'name':name}
+        defaults={'name': name}
     )
 
-def add_api_permission(codename,name,is_verify):
+
+def add_api_permission(codename, name, is_verify):
     '''
     添加接口权限
     '''
     content_type = ContentType.objects.get_for_model(ApiPermission)
-    permission,flag = add_permission(content_type,codename,name)
-    ApiPermission.objects.update_or_create(permission = permission,defaults={'is_verify':is_verify})
+    permission, flag = add_permission(content_type, codename, name)
+    ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify})
+
 
 def clean_api_permisson():
     '''去除接口'''
     Permission.objects.delete()
+
 
 def init_api_permissions():
     '''
     根据当前URL路由自动初始化API权限
     '''
     method = set(['get', 'post', 'put', 'delete'])
-    method_no = method.union(set(['',None]))
+    method_no = method.union(set(['', None]))
     url_dic = get_all_url_dict()
-    for key,value in url_dic.items():
+    for key, value in url_dic.items():
         method_public = method.intersection(set(value))
         for item in method:
-            url = key+':'+item.upper()
-            name = url if len(value) == 0 or value[0] in method_no else value[0]+':'+item.upper()
+            url = key + ':' + item.upper()
+            name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
             flag = item in method_public
-            add_api_permission(url,name,flag)
+            add_api_permission(url, name, flag)
             # print(url,name,flag)
         # name = v[0]
         # if name in method or name in ['',None]:
@@ -134,21 +143,24 @@ def init_api_permissions():
         #     for item in method:
         #         add_api_permission(k+':'+item.upper(),'',False)
 
+
 # 功能权限管理
-def add_fun_permission(codename,name):
-    '''功能权限管理'''
+def add_fun_permission(codename, name):
+    """功能权限管理"""
     content_type = ContentType.objects.get_for_model(OperatePermission)
-    permission,flag = add_permission(content_type,codename,name)
-    OperatePermission.objects.update_or_create(permission = permission)
+    permission, flag = add_permission(content_type, codename, name)
+    OperatePermission.objects.update_or_create(permission=permission)
+
+
 def init_operate_permissions():
-    '''功能权限管理'''
+    """功能权限管理"""
     permissions_list = {
-        'OPERATE_KNOWING':'查寝点名',
-        'OPERATE_HEALTH':'卫生检查',
-        'OPERATE_LATE':'晚自修检查',
-        'OPERATE_ASK_CLASS':'请假条管理-班主任',
-        'OPERATE_ASK_TUTOR':'请假条管理-辅导员',
-        'OPERATE_ASK_COURT':'请假条管理-院领导',
+        'OPERATE_KNOWING': '查寝点名',
+        'OPERATE_HEALTH': '卫生检查',
+        'OPERATE_LATE': '晚自修检查',
+        'OPERATE_ASK_CLASS': '请假条管理-班主任',
+        'OPERATE_ASK_TUTOR': '请假条管理-辅导员',
+        'OPERATE_ASK_COURT': '请假条管理-院领导',
     }
-    for key,value in permissions_list.items():
-        add_fun_permission(key,value)
+    for key, value in permissions_list.items():
+        add_fun_permission(key, value)
