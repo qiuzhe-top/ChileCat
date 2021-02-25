@@ -28,12 +28,13 @@ class AskSerializer(serializers.ModelSerializer):
     students_name = serializers.SerializerMethodField()
     min = serializers.SerializerMethodField()
     ask_type = serializers.SerializerMethodField()
-    students_photo = serializers.SerializerMethodField()
-    parents_call = serializers.SerializerMethodField()
+    photo = serializers.SerializerMethodField()
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
 
     def get_students_name(self, obj):
         """取出关联列表的用户姓名"""
-        return obj.user_id.userinfo.name
+        return obj.user.userinfo.name
 
     def get_min(self, obj):
         """计算时间"""
@@ -45,11 +46,15 @@ class AskSerializer(serializers.ModelSerializer):
         """取出请假类型"""
         return obj.ask_type.type_name
 
-    def get_students_photo(self, obj):
-        return obj.user_id.studentinfo.students_photo
+    def get_photo(self, obj):
+        return obj.user.userinfo.photo
 
-    def get_parents_call(self, obj):
-        return obj.user_id.studentinfo.parents_call
+
+    def get_start_time(self, obj):
+        return obj.start_time.strftime("%Y/%m/%d %H:%M:%S")
+
+    def get_end_time(self, obj):
+        return obj.end_time.strftime("%Y/%m/%d %H:%M:%S")
 
     class Meta:
         model = models.Ask
@@ -57,7 +62,7 @@ class AskSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'place', 'reason', 'ask_type', 'contact_info', 'status',
             'created_time', 'modify_time', 'min', 'students_name',
-            'students_photo', 'parents_call', 'status', 'ask_state',
+            'photo', 'parents_call', 'status', 'ask_state',
             'start_time', 'end_time', 'extra_end_time',
         )  # 包含
 
@@ -83,7 +88,7 @@ class AskAntiSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = validated_data.get('user')
         validated_data_new = {
-            'user_id': user,
+            'user': user,
             'status': "first_audit",
             'contact_info': validated_data.get('phone'),
             'ask_type': models.AskType.objects.get(type_name=validated_data.get('ask_type')),
@@ -93,13 +98,13 @@ class AskAntiSerializer(serializers.Serializer):
             'start_time': validated_data.get('time_go'),
             'end_time': validated_data.get('time_back'),
             'extra_end_time': validated_data.get('extra_end_time', validated_data.get('time_back')),
-            'grade_id': user.studentinfo.grade_id,
-            'pass_id': user.studentinfo.grade_id.related_to_teacher.user_id,
+            'grade': user.studentinfo.grade,
+            'approve_user': user.studentinfo.grade.related_to_teacher.user,
         }
         return models.Ask.objects.create(**validated_data_new)
 
     def update(self, instance, validated_data):
-        instance.user_id = validated_data.get('user', instance.user_id)
+        instance.user = validated_data.get('user', instance.user)
         instance.status = validated_data.get('status', instance.status)
         instance.contact_info = validated_data.get('phone', instance.contact_info)
         instance.ask_type = models.AskType.objects.get(type_name=validated_data.get('ask_type', instance.ask_type))
@@ -109,15 +114,15 @@ class AskAntiSerializer(serializers.Serializer):
         instance.start_time = validated_data.get('time_go', instance.start_time)
         instance.end_time = validated_data.get('time_back', instance.end_time)
         instance.extra_end_time = validated_data.get('extra_end_time', instance.extra_end_time)
-        instance.grade_id = instance.user_id.studentinfo.grade_id
-        instance.pass_id = instance.grade_id.related_to_teacher.user_id
+        instance.grade = instance.user.studentinfo.grade
+        instance.approve_user = instance.grade.related_to_teacher.user
         instance.save()
         return instance
 
 
 class AuditSerializer(serializers.ModelSerializer):
     """审批记录序列化"""
-    name = serializers.CharField(source="ask_id.user_id.userinfo.name")
+    name = serializers.CharField(source="ask_id.user.userinfo.name")
     place = serializers.CharField(source="ask_id.place")
     end_time = serializers.DateTimeField(source="ask_id.end_time")
     start_time = serializers.DateTimeField(source="ask_id.start_time")
@@ -125,7 +130,7 @@ class AuditSerializer(serializers.ModelSerializer):
     min = serializers.SerializerMethodField()
 
     def get_min(self, obj):
-        times = obj.ask_id.end_time - obj.ask_id.start_time
+        times = obj.ask.end_time - obj.ask.start_time
         hours = times.total_seconds() % (60 * 60 * 24) / 60 / 60  # 剩余的小时
         return str(times.days) + '天 ' + str(format(hours, '.1f')) + '时'
 

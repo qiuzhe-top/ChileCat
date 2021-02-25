@@ -10,7 +10,7 @@ class Career(models.Model):
     note = models.CharField(max_length=300, verbose_name="介绍")
     text = models.TextField(verbose_name=u'正文')
     source = models.CharField(max_length=100, verbose_name="地址", null=True, blank=True)
-    viewnum = models.IntegerField(verbose_name="浏览数", default=0)
+    view_num = models.IntegerField(verbose_name="浏览数", default=0)
     star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
     classify = models.ForeignKey('TypeChild', on_delete=models.CASCADE, verbose_name=u'分类')
@@ -35,9 +35,9 @@ class Primitives(models.Model):
         return self.title
 
 
-class TypePar(models.Model):
+class TypeParent(models.Model):
     title = models.CharField(max_length=30, verbose_name="标题")
-    par_id = models.ForeignKey(
+    primitives_list = models.ForeignKey(
         "Primitives", on_delete=models.CASCADE, verbose_name="主表id", null=True, blank=True
     )
 
@@ -51,7 +51,7 @@ class TypePar(models.Model):
 
 class TypeChild(models.Model):
     title = models.CharField(max_length=30, verbose_name="标题")
-    par_id = models.ForeignKey("TypePar", on_delete=models.CASCADE, verbose_name="父表id")
+    parent_list = models.ForeignKey("TypeParent", on_delete=models.CASCADE, verbose_name="父表id")
 
     class Meta:
         verbose_name = "分类子表"

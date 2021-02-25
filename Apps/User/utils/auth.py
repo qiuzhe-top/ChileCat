@@ -1,14 +1,9 @@
-'''
+"""
 用户登录接口
-'''
-# import json
-# import os
-# import time
+"""
+
 import hashlib
 import time
-from rest_framework import exceptions
-from rest_framework.authentication import BaseAuthentication
-from django.core.exceptions import ObjectDoesNotExist
 from Apps.User import models
 
 

@@ -87,6 +87,10 @@ class Draft(APIView):
         except Ask.models.Ask.DoesNotExist:
             ret['message'] = "没有此id的请假条"
             ret['code'] = 4000
+        except exceptions.AskException as ask_expect:
+            ret['message'] = str(ask_expect)
+            ret['code'] = 4000
+        print(ret)
         return JsonResponse(ret)
 
     def put(self, request):
@@ -117,7 +121,8 @@ class Draft(APIView):
         """
         ret = {'code': 0000, 'message': 'default message'}
         req_list = self.request.data
-        if Ask.utils.ask.AskToStudent.delete(req_list.get('id')):
+        ask_id = req_list.get('id')
+        if Ask.utils.ask.AskToStudent(self.request.user).delete(ask_id):
             ret['code'] = 2000
             ret['message'] = "撤销成功"
         else:

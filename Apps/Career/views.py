@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
 # import json
 from . import models, ser
-from .models import TypePar
+from .models import TypeParent
 
 
 # Create your views here.
@@ -92,8 +92,8 @@ def press_navigation():
     ret = {}
     vx_news_grade = '微信新闻导航'
     try:
-        car = TypePar.objects.get(title=vx_news_grade)
-    except TypePar.DoesNotExist:
+        car = TypeParent.objects.get(title=vx_news_grade)
+    except TypeParent.DoesNotExist:
         ret['code'] = 4000
         ret['data'] = "没有数据"
         return ret

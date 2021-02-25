@@ -84,7 +84,7 @@ class AskAudit(object):
 
     def _add_record(self, status, explain):
         audit = Audit.objects.create(
-            user_id=self._user, ask_id=self._ask,
+            user=self._user, ask=self._ask,
             status=status, explain=explain,
             modify_time=datetime.datetime.now()
         )
@@ -103,9 +103,9 @@ class FirstAudit(AskAudit):
     def audits(self, explain=""):
         print("班主任审批并提交")
         self.__ask.status = "second_audit"
-        __next_pass_user = self.__ask.grade_id.whole_grade.user_id
+        __next_pass_user = self.__ask.grade.whole_grade.user
         if __next_pass_user:
-            self.__ask.pass_id = __next_pass_user
+            self.__ask.approve_user = __next_pass_user
             self.__ask.save()
             self._add_record(self.__ask.status, explain)
             return True
@@ -124,9 +124,9 @@ class SecondAudit(AskAudit):
     def audits(self, explain=""):
         print("辅导员审核")
         self.__ask.status = "college_audit"
-        college = self.__ask.grade_id.college_id
+        college = self.__ask.grade.college
         try:
-            self.__ask.pass_id = TeacherForCollege.objects.get(college_id=college).user_id
+            self.__ask.approve_user = TeacherForCollege.objects.get(college=college).user
         except TeacherForCollege.DoesNotExist:
             raise NextAuditException("该分院没有设置领导")
         self.__ask.save()
@@ -146,7 +146,7 @@ class CollegeAudit(AskAudit):
         print("院级审核")
         self.__ask.status = "university_audit"
         self._add_record(self.__ask.status, explain)
-        if not self.__ask.grade_id.college_id:
+        if not self.__ask.grade.college:
             pass
         # TODO 交给校级审批
 

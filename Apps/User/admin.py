@@ -25,7 +25,7 @@ class UserInfoTeleAdmin(admin.ModelAdmin):
     #     if obj.tel:
     #         return obj.tel
     #     return format_html('<span style="color:#8E8E8E;">(无电话信息)</span>')
-    list_display = ("id", "user_id", "name", "tel", "identity")  # ,"user_to_role"
+    list_display = ("id", "user", "name", "tel", "identity",  "photo")  # ,"user_to_role"
     # user_to_role.short_description = "用户角色"
     # filter_horizontal = ['user_role']
     empty_value_display = format_html('<span style="color:#8E8E8E;">(内容为空)</span>')
@@ -33,27 +33,27 @@ class UserInfoTeleAdmin(admin.ModelAdmin):
 
 @admin.register(models.StudentInfo)
 class StudentInfoTeleAdmin(admin.ModelAdmin):
-    list_display = ("id", "grade_id", "user_id", "students_photo", "parents_call")
+    list_display = ("id", "grade", "user")
 
 
 @admin.register(models.TeacherInfo)
 class TeacherInfoTeleAdmin(admin.ModelAdmin):
-    list_display = ("id", "teacher_extra_info", "user_id")
+    list_display = ("id", "teacher_extra_info", "user")
 
 
 @admin.register(models.TeacherForGrade)
 class TeacherForGradeTeleAdmin(admin.ModelAdmin):
-    list_display = ("id", "grade_id", "user_id")
+    list_display = ("id", "grade", "user")
 
 
 @admin.register(models.TeacherForCollege)
 class TeacherForCollegeTeleAdmin(admin.ModelAdmin):
-    list_display = ("college_id", "user_id")
+    list_display = ("college", "user")
 
 
 @admin.register(models.Grade)
 class GradeTeleAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "college_id", "whole_grade")
+    list_display = ("id", "name", "college", "whole_grade")
 
 
 @admin.register(models.College)
@@ -61,19 +61,19 @@ class CollegeTeleAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
-@admin.register(models.Tpost)
+@admin.register(models.OtherUser)
 class TpostTeleAdmin(admin.ModelAdmin):
     list_display = ('id', 'user')
 
 
 @admin.register(models.WholeGrade)
 class WholeGradeTeleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user_id', 'name')
+    list_display = ('id', 'user', 'name')
 
 
 @admin.register(models.UserMood)
 class UserMoodTeleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mod_level', 'message', 'user', 'Grade', 'riqi')
+    list_display = ('id', 'mod_level', 'message', 'user', 'Grade', 'date')
     search_fields = ('user', 'Grade', 'mod_level')  # 添加快速查询栏
 
     def func(self, request, queryset):

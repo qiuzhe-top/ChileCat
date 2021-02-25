@@ -92,9 +92,9 @@ def get_all_url_dict():
 
 
 def add_permission(content_type, codename, name):
-    '''
+    """
     添加权限
-    '''
+    """
     return Permission.objects.update_or_create(
         codename=codename,
         content_type=content_type,
@@ -103,25 +103,25 @@ def add_permission(content_type, codename, name):
 
 
 def add_api_permission(codename, name, is_verify):
-    '''
+    """
     添加接口权限
-    '''
+    """
     content_type = ContentType.objects.get_for_model(ApiPermission)
     permission, flag = add_permission(content_type, codename, name)
     ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify})
 
 
 def clean_api_permisson():
-    '''去除接口'''
+    """去除接口"""
     Permission.objects.delete()
 
 
 def init_api_permissions():
-    '''
+    """
     根据当前URL路由自动初始化API权限
-    '''
-    method = set(['get', 'post', 'put', 'delete'])
-    method_no = method.union(set(['', None]))
+    """
+    method = {'get', 'post', 'put', 'delete'}
+    method_no = method.union({'', None})
     url_dic = get_all_url_dict()
     for key, value in url_dic.items():
         method_public = method.intersection(set(value))
@@ -161,6 +161,7 @@ def init_operate_permissions():
         'OPERATE_ASK_CLASS': '请假条管理-班主任',
         'OPERATE_ASK_TUTOR': '请假条管理-辅导员',
         'OPERATE_ASK_COURT': '请假条管理-院领导',
+        'OPERATE_MONITOR_VIEW': "班委查看请假条",
     }
     for key, value in permissions_list.items():
         add_fun_permission(key, value)

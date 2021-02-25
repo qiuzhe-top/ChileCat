@@ -24,7 +24,7 @@ class CareerSerializer(serializers.ModelSerializer):
     last_time = serializers.SerializerMethodField()
 
     def get_start_time(self, obj):
-        return obj.star_time.strftime('%Y-%m-%d %H:%M:%S')
+        return obj.created_time.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_last_time(self, obj):
         return obj.last_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -42,10 +42,10 @@ class CareerForSerializer(serializers.ModelSerializer):
     note = serializers.CharField()
     text = serializers.CharField()
     source = serializers.CharField(required=False)
-    viewnum = serializers.IntegerField(max_value=4)
+    view_num = serializers.IntegerField(max_value=4)
     classify = serializers.StringRelatedField()
 
     class Meta:
         model = models.Career
         # fields = "__all__"
-        fields = ('id', 'title', 'note', 'text', 'source', 'viewnum', 'classify')  # 包含
+        fields = ('id', 'title', 'note', 'text', 'source', 'view_num', 'classify')  # 包含

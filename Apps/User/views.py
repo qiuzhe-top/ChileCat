@@ -4,8 +4,12 @@ from django.http import JsonResponse
 from . import models, ser
 from django.contrib.auth.models import User
 from .utils.auth import get_groups
+from Apps.User.models import StudentInfo, TeacherForGrade
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
+from django.contrib.auth.models import Permission
+from Apps.Permission.models import OperatePermission
+from django.contrib.contenttypes.models import ContentType
 
 
 class Auth(APIView):
@@ -55,6 +59,10 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
+    def delete(self, request):
+        ret = {'code': 2000}
+        return JsonResponse(ret)
+
 
 class Information(APIView):
     """获取个人信息"""
@@ -63,6 +71,7 @@ class Information(APIView):
     '''
     Information
     '''
+
     def get(self, request):
         """
         get method
@@ -72,16 +81,20 @@ class Information(APIView):
         """
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
         user = self.request.user
-        data = {}
-        p = self.request.user.get_all_permissions()
-        data['permissions'] = [x[11:] for x in p if x.find('OPERATE') != -1]
+        data = {'permissions': []}
+        # self.request.user = User.objects.get(username="19530226")
+        p = self.request.user.user_permissions.filter(
+            content_type=ContentType.objects.get_for_model(OperatePermission)).values()
+        for permission in p:
+            if "operatepermission" not in permission['codename']:
+                data['permissions'].append(permission['codename'])
         data['roles'] = get_groups(request)
         data['introduction'] = 'I am a super administrator'
         data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
         data['name'] = user.userinfo.name
         try:
-            data['grade'] = user.studentinfo.grade_id.name
-        except User.DoesNotExist:
+            data['grade'] = StudentInfo.objects.get(user_id=self.request.user).grade.name
+        except StudentInfo.DoesNotExist:
             data['grade'] = ''
         ret['data'] = data
         return JsonResponse(ret)
@@ -89,18 +102,20 @@ class Information(APIView):
 
 class ClassList(APIView):
     """关联班级"""
+
     def get(self, request):
         """关联班级"""
+        # TODO 关联班级
         ret = {}
         user = self.request.user
         info = user.userinfo
         ser_list = ''
         if info.identity == "student":
-            grade = user.studentinfo.grade_id
+            grade = user.studentinfo.grade
             # django 序列化
             ser_list = ser.GradeSerializer(instance=grade, many=False).data
         elif info.identity == "teacher":
-            grade = user.teacherforgrade_set.all()
+            grade = TeacherForGrade.objects.filter(user_id=self.request.user)
             ser_list = ser.TeacherForGradeSerializer(instance=grade, many=True).data
         elif info.identity == "college":
             college_list = user.teacherforcollege_set.all()
@@ -153,7 +168,7 @@ class MoodManage(APIView):
         message = self.request.data.get('message')
         print(mod_level, message)
         user = self.request.user
-        grade = user.studentinfo.grade_id
+        grade = user.studentinfo.grade
         print(mod_level, message, user, grade)
         dic = {
             'user': user,

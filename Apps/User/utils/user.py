@@ -1,7 +1,7 @@
 """用户操作"""
 import requests
 from django.contrib.auth import authenticate
-from Apps.User.models import Tpost, User
+from Apps.User.models import OtherUser, User
 from Apps.User.utils import auth
 from Apps.User.utils.exceptions import *
 
@@ -104,9 +104,9 @@ class VxBind(object):
         old_openid = None
         try:
 
-            tpost = Tpost.objects.get(user=user)
+            tpost = OtherUser.objects.get(user=user)
             old_openid = tpost.wx_openid
-        except Tpost.DoesNotExist:
+        except OtherUser.DoesNotExist:
             old_openid = None
         if old_openid:
             # print(old_openid)
@@ -115,7 +115,7 @@ class VxBind(object):
         if openid is None:
             raise VxBindException("微信用户异常")
 
-        tpost, b = Tpost.objects.get_or_create(user=user)
+        tpost, b = OtherUser.objects.get_or_create(user=user)
 
         if tpost.wx_openid:
             return VxBindException("请勿重新绑定")
@@ -144,10 +144,10 @@ class VxLogin(Login):
             # 获取openid失败
             raise VxAuthException("获取openid失败")
         try:
-            __user = Tpost.objects.get(wx_openid=__open_id).user
+            __user = OtherUser.objects.get(wx_openid=__open_id).user
             __token = auth.update_token(__user)
             return __token
-        except Tpost.DoesNotExist:
+        except OtherUser.DoesNotExist:
             raise VxBindException("微信未绑定")
 
 

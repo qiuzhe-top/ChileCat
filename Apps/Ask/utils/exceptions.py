@@ -27,3 +27,7 @@ class AskException(AskAndAuditException):
 
 class AskAddTimeException(AskException):
     """续假异常"""
+
+
+class AskViewException(AskException):
+    """查看请假条异常"""

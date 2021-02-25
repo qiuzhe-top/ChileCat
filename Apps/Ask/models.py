@@ -20,12 +20,13 @@ class Ask(models.Model):
     """
     请假条
     """
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name="用户id", related_name="user_id")
+        verbose_name="用户id", related_name="user")
     status = models.CharField(max_length=20, choices=ASK_TYPE, verbose_name="审核状态", default="draft")
-    contact_info = models.CharField(max_length=20, verbose_name="联系信息")
+    contact_info = models.CharField(max_length=20, verbose_name="联系信息", null=True, blank=True)
+    parents_call = models.CharField(max_length=20, verbose_name="家长联系信息", null=True, blank=True)
     ask_type = models.ForeignKey(
         "AskType", on_delete=models.CASCADE, verbose_name="请假类别", null=True, blank=True
     )
@@ -40,13 +41,13 @@ class Ask(models.Model):
     extra_end_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="续假时间")
     created_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
     modify_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    grade_id = models.ForeignKey(
+    grade = models.ForeignKey(
         'User.Grade', null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name=u'班级')
     '''
         目前设计为一个班级固定对应一个老师
     '''
-    pass_id = models.ForeignKey(
+    approve_user = models.ForeignKey(
         User,
         verbose_name="审批老师的id",
         on_delete=models.CASCADE,
@@ -64,8 +65,8 @@ class Audit(models.Model):
     """
     审批记录
     """
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户id")
-    ask_id = models.ForeignKey(
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户id")
+    ask = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="请假单id")
     status = models.CharField(max_length=20, choices=ASK_TYPE, verbose_name="操作后状态")

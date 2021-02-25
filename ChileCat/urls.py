@@ -15,12 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from Manage.views import Index
+
 
 urlpatterns = [
+    path('', Index.as_view()),
     path('admin/', admin.site.urls),
-    path('api/user/', include(('Apps.User.urls','Apps.User'),namespace='User')),
-    path('api/career/', include(('Apps.Career.urls','Apps.Career'),namespace='Career')),
-    path('api/ask/', include(('Apps.Ask.urls','Apps.Ask'),namespace='Ask')),
-    path('api/life/',include(('Apps.Life.urls','Apps.Life'),namespace='Life')),
-    path('api/manage/',include(('Manage.urls','Apps.Manage'),namespace='Manage')),
+    path('api/user/', include(('Apps.User.urls', 'Apps.User'), namespace='User')),
+    path('api/career/', include(('Apps.Career.urls', 'Apps.Career'), namespace='Career')),
+    path('api/ask/', include(('Apps.Ask.urls', 'Apps.Ask'), namespace='Ask')),
+    path('api/life/', include(('Apps.Life.urls', 'Apps.Life'), namespace='Life')),
+    path('api/manage/', include(('Manage.urls', 'Apps.Manage'), namespace='Manage')),
 ]

@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <meta http-equiv="Content-Type" charset="utf-8">
+    <link rel="icon" href="{% static 'Manage/images/favicon.ico' %}">
+    <title>Django Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="{% static 'Manage/index.css' %}">
+<body>
+    <div id="page_head">头部导航
+        <audio id="bgm" src="{% static 'Manage/sounds/Akie秋绘 - 心拍数♯0822.mp3' %}" controls="controls">这里是一个音频</audio>
+    </div>
+    <div id="title"><h1>Django 主页(暂时停止施工)</h1><h3 id="subtitle">---特别难看的</h3></div>
+    <div id="link_list">
+        <p>链接列表</p>
+        {% if display_list %}
+            <ul id="link_table">
+                {% for display in display_list %}
+                    <li style="list-style-type: none">
+                    <a href="{{ id_code }}" class="links">{{ display }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        {% else %}
+            <p>No api_permission</p>
+        {% endif %}
+    </div>
+    <!--放一个加入permission的操作框-->
+    <div id="add_permission">
+    <p>添加api</p>
+        <form id="spi_submit">
+            <label><input type="text" id="permission" placeholder="请输入要添加的权限名"></label>
+            <input type="submit">
+        </form>
+
+    </div>
+    <div>new div</div>
+    <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+  </body>
+</html>

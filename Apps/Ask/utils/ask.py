@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth.models import AnonymousUser
 from Apps.Ask import ser
 from Apps.Ask.models import Ask
-from Apps.Ask.utils.exceptions import AskAddTimeException
+from Apps.Ask.utils.exceptions import AskAddTimeException, AskViewException
 from Apps.User.models import StudentInfo
 
 COMPLETED = {"passed", "failed"}
@@ -20,31 +20,26 @@ class AskOperate(object):
 
     def view(self, ask_id=-1, view_type=None, monitor=None):
         """目的:查看单条"""
-        try:
-            if ask_id != -1:
-                self._ask_list = Ask.objects.get(id=ask_id)
-                return ser.AskSerializer(instance=self._ask_list).data
+
+        if ask_id != -1:
+            self._ask_list = Ask.objects.get(id=ask_id)
+            return ser.AskSerializer(instance=self._ask_list).data
+        else:
+            if self._user.groups.filter(name="teacher").exists():
+                ask_list = {'list': AskToTeacher(self._user).views()}
             else:
-                if self._user.groups.filter(name="teacher").exists():
-                    ask_list = {'list': AskToTeacher(self._user).views()}
+                if monitor:
+                    ask_list = {'list': MonitorAsk(self._user).views(view_type)}
                 else:
-                    if monitor:
-                        ask_list = {'list': MonitorAsk(self._user).views(view_type)}
-                    else:
-                        ask_list = {'list': AskToStudent(self._user).views(view_type)}
-            if not self._ask_list:
-                self._ask_list = ask_list
-            return self._ask_list
-        except Ask.DoesNotExist as ask_un_exist:
-            raise ask_un_exist
+                    ask_list = {'list': AskToStudent(self._user).views(view_type)}
+        if not self._ask_list:
+            self._ask_list = ask_list
+        return self._ask_list
 
     def delete(self, ask_id):
         """删除请假条"""
-        try:
-            self._ask_list = Ask.objects.get(id=ask_id)
-            self._ask_list.delete()
-        except Ask.DoesNotExist as ask_not_exist:
-            return ask_not_exist
+        self._ask_list = Ask.objects.get(id=ask_id)
+        self._ask_list.delete()
         return True
 
 
@@ -55,8 +50,8 @@ class AskToTeacher(AskOperate):
 
     def views(self):
         print("老师查看请假条")
-        AskOperate._ask_list = Ask.objects.filter(pass_id=self._user)
-        return ser.AskAbbrSerializer(instance=AskOperate._ask_list, many=True).data
+        self._ask_list = Ask.objects.filter(papprove_user=self._user)
+        return ser.AskSerializer(instance=self._ask_list, many=True).data
 
 
 class AskToStudent(AskOperate):
@@ -66,6 +61,7 @@ class AskToStudent(AskOperate):
 
     def __init__(self, user):
         super().__init__(user)
+        self._user = user
 
     def views(self, audit_type):
         """
@@ -77,37 +73,36 @@ class AskToStudent(AskOperate):
         if audit_type:
             __status = COMPLETED if audit_type == "1" else UNCOMPLETED
             self._ask_list = self._ask_list.filter(user_id=self._user, status__in=__status)
+        print("fun:", self._ask_list)
         return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
 
     def submit(self, ask_id):
         """学生提交请假条"""
-        try:
-            self._ask_list = Ask.objects.get(id=ask_id)
-            ser.AskAntiSerializer(Ask).update(self._ask_list, {'status': "first_audit"})
-            return True
-        except Ask.DoesNotExist as ask_not_exist:
-            print(ask_not_exist)
-            return ask_not_exist
+        self._ask_list = Ask.objects.get(id=ask_id)
+        ser.AskAntiSerializer(Ask).update(self._ask_list, {'status': "first_audit"})
+        return True
 
     def modify(self, ask_id, validated_data):
         """学生修改请假条"""
         # 如果是续假
-        if validated_data.get('extra_time', False):
-            return self.__add_time(ask_id)
-        try:
-            self._ask_list = Ask.objects.get(id=ask_id)
-            ser.AskAntiSerializer(Ask).update(self._ask_list, validated_data)
-            return True
-        except Ask.DoesNotExist as ask_not_exist:
-            print(ask_not_exist)
-            return ask_not_exist
+        extra_end_time = validated_data.get('time_back', None)
+        if extra_end_time:
+            return self.__add_time(ask_id, extra_end_time)
+        self._ask_list = Ask.objects.get(id=ask_id)
+        ser.AskAntiSerializer(Ask).update(self._ask_list, validated_data)
+        return True
 
-    def __add_time(self, ask_id):
+    def __add_time(self, ask_id, extra_end_time):
         """续假"""
         # TODO 续假
         self._ask_list = Ask.objects.get(id=ask_id)
-        if self._ask_list.end_time == self._ask_list.extra_end_time:
-            raise AskAddTimeException("续假时间为0")
+        if self._ask_list.status not in COMPLETED:
+            # TODO 只有完成状态的请假条才能续假
+            raise AskAddTimeException("此请假条不能续假")
+        print(self._ask_list.end_time, self._ask_list.extra_end_time)
+        if self._ask_list.end_time == self._ask_list.extra_end_time or self._ask_list.extra_end_time == extra_end_time:
+            raise AskAddTimeException("续假时间太短")
+        self._ask_list.extra_end_time = extra_end_time
         # 把续假时间变成普通的审核时间，再重新交给班主任审核
         self._ask_list.end_time, self._ask_list.extra_end_time = self._ask_list.extra_end_time, self._ask_list.end_time
         self._ask_list.status = "first_audit"
@@ -118,14 +113,19 @@ class AskToStudent(AskOperate):
 class MonitorAsk(AskOperate):
     """班委"""
 
+    def __init__(self, user):
+        super().__init__(user)
+        self.__user = user
+
     def views(self, audit_type=None):
         print("班委查看请假条")
-        # TODO 班委
-        grade = StudentInfo.objects.get(user_id=self._user).grade_id
-        today = datetime.datetime.today()
-        fifteen_ago = today - datetime.timedelta(days=15)
-        self._ask_list = Ask.objects.filter(grade_id=grade, start_time__gte=fifteen_ago)
-        if audit_type:
-            __status = COMPLETED if audit_type == "1" else UNCOMPLETED
-            self._ask_list = self._ask_list.filter(grade_id=grade, status__in=__status)
-        return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
+        if self.__user.has_perm("Permission.OPERATE_MONITOR_VIEW"):
+            grade = StudentInfo.objects.get(user=self._user).grade
+            today = datetime.datetime.today()
+            fifteen_ago = today - datetime.timedelta(days=15)
+            self._ask_list = Ask.objects.filter(grade=grade, start_time__gte=fifteen_ago)
+            if audit_type:
+                __status = COMPLETED if audit_type == "1" else UNCOMPLETED
+                self._ask_list = self._ask_list.filter(grade=grade, status__in=__status)
+            return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
+        raise AskViewException("权限不够")
