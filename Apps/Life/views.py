@@ -189,7 +189,6 @@ class StudentLeak(APIView):
 
     def post(self, request):
         """缺勤提交"""
-        # TODO 缺勤提交重构
         ret = {
             'code': 0000,
             'message': "default message",
@@ -235,7 +234,6 @@ class ExportExcel(APIView):
         'method': {'GET'}
     }
 
-    # TODO 暂不考虑封装
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""
         response = HttpResponse(content_type='application/vnd.ms-excel')

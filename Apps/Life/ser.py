@@ -24,7 +24,6 @@ class TaskRecordSerializer(serializers.ModelSerializer):
 class TaskRecordAntiSerializer(serializers.ModelSerializer):
     """查寝记录反序列化"""
 
-    # TODO 查寝记录反向序列化
     def create(self, validated_data):
         return TaskRecord.objects.create(**validated_data)
 

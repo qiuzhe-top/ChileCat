@@ -6,7 +6,7 @@ from . import models
 ASK_TYPE = {
     "draft": "草稿",
     "first_audit": "班主任审核",
-    "scored_audit": "辅导员审核",
+    "second_audit": "辅导员审核",
     "college_audit": "院级审核",
     "university_audit": "校级审核",
     "passed": "通过",
@@ -76,9 +76,9 @@ class AskAbbrSerializer(AskSerializer):
 
     class Meta(AskSerializer.Meta):
         fields = (
-            'id', 'reason', 'ask_type', 'place',
+            'id', 'reason', 'status', 'ask_type', 'place',
             'start_time', 'end_time', 'students_name',
-            'min', 'status'
+            'min'
         )
 
 

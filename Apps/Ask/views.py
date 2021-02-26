@@ -82,13 +82,11 @@ class Draft(APIView):
         """
         ret = {'code': 0000, 'message': "no message", 'data': {}}
         req_list = self.request.query_params
-        # self.request.user = User.objects.get(username="19530226")
         if self.request.user == AnonymousUser:
             ret['message'] = "没有用户"
             ret['code'] = 2000
             return JsonResponse(ret)
         try:
-            print(req_list.get('id', -1))
             ask_id = int(req_list.get('id', -1))
             view_type = req_list.get('type', None)
             monitor = req_list.get('monitor', None)
@@ -179,33 +177,8 @@ class Audit(APIView):
         查看历史记录
         /Audit
         """
-        ret = {'code': 0000, 'message': "default message."}
-        #  查找此用户的所有审批记录
-        user_id = self.request.user
-        req = self.request.query_params
-        print(req)
-        class_id = int(req.get('classid', -1))
-        print(class_id)
-        try:
-            class_id = Grade.objects.get(id=class_id)
-            print(class_id)
-            audit_list = models.Audit.objects.filter(
-                Q(user_id=user_id) & Q(ask__grade__name=class_id)
-            )
-            print(audit_list)
-            # audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
-            audit_ret_list = ser.AuditSerializer(instance=audit_list, many=True).data
-            print(audit_ret_list)
-            ret['data'] = {'list': audit_ret_list}
-            ret['code'] = 2000
-            ret['message'] = "查询成功"
-        except ObjectDoesNotExist as e:
-            print("查找错误", e)
-            ret['message'] = e
-        except TypeError as e:
-            print("类型错误 ", e)
-        finally:
-            return JsonResponse(ret)
+        ret = {'code': 2000, 'message': "查询成功", 'list': audit.AuditOperate.views(user=self.request.user)}
+        return JsonResponse(ret)
 
 
 class ExportWord(APIView):
@@ -240,7 +213,6 @@ class ExportWord(APIView):
 # 班级+学号 获取姓名
 class GetName(APIView):
     def get(self, request):
-        # TODO 班级+学号获取姓名
         ret = {}
         class_name = self.request.data['classname']
         sno = self.request.data['sno']

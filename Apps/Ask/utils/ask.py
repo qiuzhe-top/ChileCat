@@ -6,11 +6,10 @@ from Apps.Ask import ser
 from Apps.Ask.models import Ask
 from Apps.Ask.utils.exceptions import AskAddTimeException, AskViewException
 from Apps.User.models import StudentInfo
-from Apps.Life.models import Room
 from docxtpl import DocxTemplate
 
 COMPLETED = {"passed", "failed"}
-UNCOMPLETED = {"draft", "first_audit", "scored_audit", "college_audit", "university_audit"}
+UNCOMPLETED = {"draft", "first_audit", "second_audit", "college_audit", "university_audit"}
 
 
 class AskOperate(object):
@@ -27,6 +26,7 @@ class AskOperate(object):
             self._ask_list = Ask.objects.get(id=ask_id)
             return ser.AskSerializer(instance=self._ask_list).data
         else:
+            # TODO 判断老师的条件
             if self._user.groups.filter(name="teacher").exists():
                 ask_list = {'list': AskToTeacher(self._user).views()}
             else:
@@ -85,8 +85,8 @@ class AskToTeacher(AskOperate):
     """
 
     def views(self):
-        print("老师查看请假条")
-        self._ask_list = Ask.objects.filter(papprove_user=self._user)
+        print("老师查看请假条:")
+        self._ask_list = Ask.objects.filter(approve_user=self._user, status="first_audit")
         return ser.AskSerializer(instance=self._ask_list, many=True).data
 
 
@@ -121,6 +121,7 @@ class AskToStudent(AskOperate):
         """学生修改请假条"""
         # 如果是续假
         extra_end_time = validated_data.get('time_back', None)
+        print("续假:", extra_end_time)
         if extra_end_time:
             return self.__add_time(ask_id, extra_end_time)
         self._ask_list = Ask.objects.get(id=ask_id)
@@ -132,8 +133,9 @@ class AskToStudent(AskOperate):
         self._ask_list = Ask.objects.get(id=ask_id)
         if self._ask_list.status not in COMPLETED:
             raise AskAddTimeException("此请假条不能续假")
-        print(self._ask_list.end_time, self._ask_list.extra_end_time)
-        if self._ask_list.end_time == self._ask_list.extra_end_time or self._ask_list.extra_end_time == extra_end_time:
+        print(self._ask_list.end_time, extra_end_time)
+        # TODO 续假时间不能比原来时间小
+        if self._ask_list.extra_end_time >= datetime.datetime.strptime(extra_end_time, "%Y-%m-%d %H:%M"):
             raise AskAddTimeException("续假时间太短")
         self._ask_list.extra_end_time = extra_end_time
         # 把续假时间变成普通的审核时间，再重新交给班主任审核
@@ -152,6 +154,7 @@ class MonitorAsk(AskOperate):
 
     def views(self, audit_type=None):
         print("班委查看请假条")
+        # TODO 判断班委的条件
         if self.__user.has_perm("Permission.OPERATE_MONITOR_VIEW"):
             grade = StudentInfo.objects.get(user=self._user).grade
             today = datetime.datetime.today()
@@ -161,4 +164,4 @@ class MonitorAsk(AskOperate):
                 __status = COMPLETED if audit_type == "1" else UNCOMPLETED
                 self._ask_list = self._ask_list.filter(grade=grade, status__in=__status)
             return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
-        raise AskViewException("权限不够")
+        raise AskViewException("没有权限!")

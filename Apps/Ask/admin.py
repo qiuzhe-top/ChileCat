@@ -17,7 +17,7 @@ class AskTeleAdmin(admin.ModelAdmin):
 @admin.register(Audit)
 class AuditTeleAdmin(admin.ModelAdmin):
     """审核"""
-    list_display = ("id", "user", "ask", "status", "created_time", "modify_time")
+    list_display = ("id", "user", "approve_teacher", "ask", "status", "created_time", "modify_time")
 
 
 @admin.register(AskType)

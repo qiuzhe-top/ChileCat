@@ -24,15 +24,17 @@ class AuditOperate(object):
         except Audit.DoesNotExist:
             return False
 
-    def views(self, user):
+    @staticmethod
+    def views(user):
         """查看关于用户/此用户进行的审批记录"""
+        return ser.AuditSerializer(instance=Audit.objects.filter(approve_teacher=user), many=True).data
 
     def audit(self, decide=""):
         """审核"""
         if decide == "passed":
             AskAudit(self._request.user, self._ask).pass_audit()
         elif decide == "failed":
-            AskAudit(self._request.user, self._ask).unpass_audit()
+            AskAudit(self._request.user, self._ask).un_pass_audit()
         else:
             if self._ask.status == "first_audit":
                 FirstAudit(self._request.user, self._ask).audits()
@@ -58,8 +60,8 @@ class AskAudit(object):
     def pass_audit(self, explain=""):
         return self._pass_audit(explain)
 
-    def unpass_audit(self, explain=""):
-        return self._unpass_audit(explain)
+    def un_pass_audit(self, explain=""):
+        return self._un_pass_audit(explain)
 
     def audits(self, explain=""):
         pass
@@ -73,7 +75,7 @@ class AskAudit(object):
         self._add_record(self._ask.status, explain)
         return True
 
-    def _unpass_audit(self, explain=""):
+    def _un_pass_audit(self, explain=""):
         # 续假不通过就要把时间改回去
         if self._ask.end_time != self._ask.extra_end_time:
             self._ask.end_time, self._ask.extra_end_time = self._ask.extra_end_time, self._ask.end_time
@@ -86,7 +88,8 @@ class AskAudit(object):
         audit = Audit.objects.create(
             user=self._user, ask=self._ask,
             status=status, explain=explain,
-            modify_time=datetime.datetime.now()
+            modify_time=datetime.datetime.now(),
+            approve_teacher=self._user
         )
         audit.save()
         return True
@@ -147,8 +150,11 @@ class CollegeAudit(AskAudit):
         self.__ask.status = "university_audit"
         self._add_record(self.__ask.status, explain)
         if not self.__ask.grade.college:
-            pass
-        # TODO 交给校级审批
+            head_teacher = TeacherForCollege.objects.get(college=self.__ask.grade.college).user
+            self.__ask.approve_user = head_teacher
+            self.__ask.save()
+            return True
+        raise NextAuditException("该班级没有分配学院")
 
 
 class UniversityAudit(AskAudit):

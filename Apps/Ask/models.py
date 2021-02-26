@@ -30,7 +30,7 @@ class Ask(models.Model):
     ask_type = models.ForeignKey(
         "AskType", on_delete=models.CASCADE, verbose_name="请假类别", null=True, blank=True
     )
-    reason = models.CharField(max_length=50, verbose_name="理由")
+    reason = models.CharField(max_length=200, verbose_name="理由")
     place = models.CharField(max_length=50, verbose_name="地点")
     ask_state = models.CharField(max_length=50, verbose_name="是否完成", choices=(
         ("1", "完成"),
@@ -71,6 +71,9 @@ class Audit(models.Model):
     审批记录
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户id")
+    approve_teacher = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="审批人id", related_name="audit_teacher"
+    )
     ask = models.ForeignKey(
         "Ask", null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="请假单id")

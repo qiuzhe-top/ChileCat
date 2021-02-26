@@ -118,9 +118,9 @@ class ClassList(APIView):
 
     def get(self, request):
         """关联班级"""
-        # TODO 关联班级
         ret = {}
         user = self.request.user
+        print(user)
         info = user.userinfo
         ser_list = ''
         if info.identity == "student":
