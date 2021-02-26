@@ -54,7 +54,6 @@ class AskOperate(object):
         """输出到word"""
         ask = Ask.objects.get(id=int(ask_id))
         room = ask.user.stu_in_room.first()
-        print(room)
         today = datetime.date.today()
         path = os.getcwd()
         doc = DocxTemplate(path+"\\Apps\\Ask\\utils\\学生请假离校审批表.docx")

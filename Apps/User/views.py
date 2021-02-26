@@ -16,6 +16,10 @@ class Auth(APIView):
     """
     登录和注册
     """
+    auth = {
+        'name': ("api-auth", "api-注册登录相关"),
+        'method': {'POST', 'PUT', 'DELETE'}
+    }
     API_PERMISSIONS = ['用户', 'get', 'post', 'delete', 'put']
 
     def post(self, request):
@@ -59,13 +63,18 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
-    def delete(self, request):
+    @staticmethod
+    def delete(request):
         ret = {'code': 2000}
         return JsonResponse(ret)
 
 
 class Information(APIView):
     """获取个人信息"""
+    auth = {
+        'name': ("api-information", "api-个人信息相关"),
+        'method': {'GET'}
+    }
     # authentication_classes = [AuthPer,]
     API_PERMISSIONS = ['获取个人信息', 'get']
     '''
@@ -102,6 +111,10 @@ class Information(APIView):
 
 class ClassList(APIView):
     """关联班级"""
+    auth = {
+        'name': ("api-class_bind", "api-关联班级"),
+        'method': {'GET'}
+    }
 
     def get(self, request):
         """关联班级"""
@@ -140,6 +153,10 @@ class BindVx(APIView):
     """
     绑定微信
     """
+    auth = {
+        'name': ("api-vx_bind", "api-绑定微信"),
+        'method': {'POST'}
+    }
     API_PERMISSIONS = ['绑定微信', 'post']
 
     def post(self, request):
@@ -160,6 +177,10 @@ class BindVx(APIView):
 
 class MoodManage(APIView):
     """心情监测"""
+    auth = {
+        'name': ("api-mood", "api-心情相关"),
+        'method': {'POST'}
+    }
 
     def post(self, request):
         """心情监测"""

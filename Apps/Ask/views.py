@@ -27,6 +27,10 @@ class LeaveType(APIView):
     """
     请假类别
     """
+    auth = {
+        'name': ("api-leave_type", "api-请假类别相关"),
+        'method': {'GET'}
+    }
 
     @staticmethod
     def get(request):
@@ -49,6 +53,10 @@ class Draft(APIView):
     """
     请假条 提交 获取
     """
+    auth = {
+        'name': ("api-draft", "api-请假条操作相关"),
+        'method': {'GET', 'POST', 'PUT', 'DELETE'}
+    }
     API_PERMISSIONS = ['请假条', 'post', 'delete']
 
     def post(self, request):
@@ -140,6 +148,10 @@ class Audit(APIView):
     """
     老师审核请假条
     """
+    auth = {
+        'name': ("api-draft", "api-请假条审核相关"),
+        'method': {'GET', 'PUT'}
+    }
 
     def put(self, request):
         """
@@ -198,6 +210,10 @@ class Audit(APIView):
 
 class ExportWord(APIView):
     """输出到word"""
+    auth = {
+        'name': ("api-export_word", "api-请假条生成word"),
+        'method': {'GET'}
+    }
 
     def get(self, request):
         """输出word"""

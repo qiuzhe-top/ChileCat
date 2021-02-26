@@ -14,6 +14,9 @@ class Building(models.Model):
         """Meta definition for building."""
         verbose_name = '宿舍楼'
         verbose_name_plural = '宿舍楼'
+        permissions = [
+            {'operate-building_view', "operate-查询宿舍楼权限"}
+        ]
 
     def __str__(self):
         """Unicode representation of building."""
@@ -32,6 +35,9 @@ class Floor(models.Model):
         """Meta definition for floor."""
         verbose_name = '楼层'
         verbose_name_plural = '楼层'
+        permissions = [
+            {'operate-floor_view', "operate-查询宿舍楼层权限"}
+        ]
 
     def __str__(self):
         """Unicode representation of floor."""
@@ -51,6 +57,9 @@ class Room(models.Model):
 
         verbose_name = '房间'
         verbose_name_plural = '房间'
+        permissions = [
+            {'operate-room_view', "operate-查询宿舍楼房间权限"}
+        ]
 
     def __str__(self):
         """返回房间号"""
@@ -73,6 +82,9 @@ class StuInRoom(models.Model):
     class Meta:
         verbose_name = '寝室信息'
         verbose_name_plural = '寝室信息'
+        permissions = [
+            {'operate-stu_in_room_view', "operate-查询学生位置权限"}
+        ]
 
     def __str__(self):
         """返回房间号"""
@@ -93,6 +105,9 @@ class RoomHistory(models.Model):
         """Meta definition for RoomHistory."""
         verbose_name = '寝室被查记录'
         verbose_name_plural = '寝室被查记录'
+        permissions = [
+            {'operate-room_history_view', "operate-查询查寝记录权限"}
+        ]
 
     def __str__(self):
         """Unicode representation of RoomHistory."""
@@ -113,10 +128,6 @@ class TaskRecord(models.Model):
     flag = models.CharField(max_length=20, verbose_name="是否归寝")
     created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
     last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
-    building = models.ForeignKey(
-        'Building', on_delete=models.CASCADE,
-        verbose_name="楼id", related_name="task_building"
-    )
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE,
         related_name="task_room", verbose_name="寝室号"
@@ -133,6 +144,10 @@ class TaskRecord(models.Model):
 
         verbose_name = '查寝记录'
         verbose_name_plural = '查寝记录'
+        permissions = [
+            {'operate-task_record_add', "operate-缺勤记录添加权限(查寝权限)"},
+            {'operate-task_record_cancel', "operate-销假权限"}
+        ]
 
     def __str__(self):
         """查寝记录: XXX"""
@@ -150,7 +165,12 @@ class Manage(models.Model):
 
         verbose_name = '管理列表'
         verbose_name_plural = '管理列表'
+        permissions = [
+            {'operate-verification_code_flash', "operate-刷新验证码权限"},
+            {'operate-verification_code_generate', "operate-生成验证码权限"},
+            {'operate-verification_code_view', "operate-查看验证码权限"}
+        ]
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return "验证码: " + self.verification_code + "时间: " + self.generate_time.strftime("%Y-%m-%d-%H")
+        return "验证码: " + self.verification_code + " 时间: " + self.generate_time.strftime("%Y-%m-%d-%H")

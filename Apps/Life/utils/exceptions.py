@@ -9,6 +9,10 @@ class ActivityException(LifeException):
     """活动相关的异常"""
 
 
+class TimeActivityException(ActivityException):
+    """活动时间异常"""
+
+
 class VerificationCodeException(ActivityException):
     """验证码相关异常"""
 

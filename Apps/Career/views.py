@@ -17,11 +17,11 @@ from .models import TypeParent
 
 
 class Info(APIView):
-    '''
+    """
     信息
     http://127.0.0.1:8000/api/career/info
     page:10 per
-    '''
+    """
 
     def get(self, request):
         """

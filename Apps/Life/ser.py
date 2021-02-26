@@ -8,13 +8,13 @@ class TaskRecordSerializer(serializers.ModelSerializer):
     """查寝记录数据的序列化"""
     classname = serializers.CharField(source='student_approved.studentinfo.grade.name')
     room_name = serializers.SerializerMethodField()
-    student = serializers.CharField(source='student_approved.user_name')
+    student = serializers.CharField(source='student_approved.username')
     student_name = serializers.CharField(source='student_approved.userinfo.name')
     worker_name = serializers.CharField(source='worker.userinfo.name')
 
-    def get_room_name(self, value):
+    def get_room_name(self, obj):
         """自定义寝室号格式"""
-        return value.building.name + "-" + value.room.floor.name + value.room.name
+        return obj.room.floor.building.name + "-" + obj.room.floor.name + obj.room.name
 
     class Meta:
         model = TaskRecord
@@ -23,10 +23,21 @@ class TaskRecordSerializer(serializers.ModelSerializer):
 
 class TaskRecordAntiSerializer(serializers.ModelSerializer):
     """查寝记录反序列化"""
+
     # TODO 查寝记录反向序列化
     def create(self, validated_data):
-
         return TaskRecord.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.worker = validated_data.get('worker', instance.worker)
+        instance.student_approved = validated_data.get('student_approved', instance.student_approved)
+        instance.reason = validated_data.get('reason', instance.reason)
+        instance.flag = validated_data.get('flag', instance.flag)
+        instance.room = validated_data.get('room', instance.room)
+        instance.last_modify_time = datetime.datetime.now()
+        instance.manager = validated_data.get('manager', instance.manager)
+        instance.save()
+        return instance
 
 
 class TaskRecordExcelSerializer(TaskRecordSerializer):

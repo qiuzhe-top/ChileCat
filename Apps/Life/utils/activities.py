@@ -10,7 +10,6 @@ class ActivityControl(object):
     """活动控制"""
 
     def __init__(self):
-        # TODO warning: if id=1 record is deleted system will destroyed.
         if Manage.objects.all().count() == 0:
             manage = Manage(1, datetime.date.today(), "000000", "0")
             manage.save()
@@ -22,7 +21,11 @@ class ActivityControl(object):
 
     def get_verification_code(self):
         """获取验证码"""
-        return self.__flag.verification_code
+        today = datetime.date.today()
+        if self.__flag.generate_time == today:
+            return self.__flag.verification_code
+        else:
+            raise TimeVerificationCodeException("今日未发布验证码")
 
     def generate_verification_code(self):
         """生成验证码"""
@@ -39,8 +42,8 @@ class ActivityControl(object):
 
     def switch(self):
         """开启/关闭活动"""
-        self.__flag = "1" if self.__flag.console_code == "0" else "0"
-        return self.__flag
+        self.__flag.console_code = "1" if self.__flag.console_code == "0" else "0"
+        return self.__flag.console_code
 
     @staticmethod
     def initialization():
@@ -58,9 +61,9 @@ class ActivityControl(object):
     def verify(self, verification_code):
         """验证验证码"""
         if self.__flag.generate_time != datetime.date.today():
-            return "今日未发布验证码"
+            raise TimeVerificationCodeException("今日未发布验证码")
         else:
             if self.__flag.verification_code == verification_code:
                 return True
             else:
-                return "验证码不通过"
+                raise VerifyVerificationCodeException("验证不通过")

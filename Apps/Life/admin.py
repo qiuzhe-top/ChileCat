@@ -51,8 +51,7 @@ class TaskRecordTeleAdmin(admin.ModelAdmin):
     """任务记录(被查)"""
     list_display = (
         "id", "worker", "student_approved", "reason", "flag"
-        , "created_time", "last_modify_time", "building",
-        "manager",
+        , "created_time", "last_modify_time", "manager",
     )
 
 

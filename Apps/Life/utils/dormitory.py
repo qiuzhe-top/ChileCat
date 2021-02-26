@@ -37,7 +37,7 @@ class Room(object):
         """获取学生位置等信息"""
         room_info = []
         room = models.Room.objects.get(id=room_id)
-        room_data = room.stuinroom.all()
+        room_data = room.stu_in_room.all()
         for i in room_data:
             unit = {'id': i.student.id,
                     'name': i.student.userinfo.name, 'status': i.status, 'position': i.bed_position}

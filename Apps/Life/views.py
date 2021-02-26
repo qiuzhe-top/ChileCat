@@ -2,27 +2,30 @@
 查寝api视图
 """
 import json
-import random
-import math
 import datetime
 import xlwt
 import os
 from io import BytesIO
 from datetime import date
 from Apps.Life import ser
-from Apps.Life.utils import dormitory
+from Apps.Life.utils import dormitory, activities, leak
 from Apps.Life.utils.exceptions import *
 from rest_framework.views import APIView
 from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import User
-from .models import Building, Room, Manage, TaskRecord, StuInRoom, RoomHistory
+from .models import TaskRecord
 
 
 class SwitchKnowing(APIView):
     """全局开关,控制查寝活动能否进行"""
+    auth = {
+        'name': ("api-control_life_activity", "api-活动控制"),
+        'method': {'GET', 'POST', 'PUT'}
+        }
+
+    activity = activities.ActivityControl()
 
     def get(self, request):
         """获取当前是否开启活动"""
@@ -31,7 +34,7 @@ class SwitchKnowing(APIView):
             'message': "default message",
             'data': ""
         }
-        flag = Manage.objects.get(id=1).console_code
+        flag = self.activity.get_verification_code()
         ret['code'] = 2000
         ret['message'] = "状态获取成功"
         ret['data'] = flag
@@ -39,24 +42,7 @@ class SwitchKnowing(APIView):
 
     def post(self, request):
         """开启活动"""
-        ret = {
-            'code': 0000,
-            'message': "default message",
-            'data': ""
-        }
-        # TODO 请注意,如果id=1的被删除了,那么会导致验证码功能不能使用,请改善
-        flag = Manage.objects.get(id=1)
-        if flag.console_code == "0":
-            flag.console_code = "1"
-        elif flag.console_code == "1":
-            flag.console_code = "0"
-        else:
-            ret['code'] = 4000
-            ret['message'] = "console不为1或者0,请去数据库检查"
-        flag.save()
-        ret['data'] = flag.console_code
-        ret['code'] = 2000
-        ret['message'] = "切换成功"
+        ret = {'code': 2000, 'message': "切换成功", 'data': self.activity.switch()}
         return JsonResponse(ret)
 
     def put(self, request):
@@ -65,49 +51,28 @@ class SwitchKnowing(APIView):
             'code': 0000,
             'message': "default message"
         }
-        rooms = Room.objects.all()
-        for room in rooms:
-            room.status = "0"
-            room.save()
-        status = StuInRoom.objects.all()
-        for stu in status:
-            stu.status = "0"
-            stu.save()
+        self.activity.initialization()
         ret['code'] = 2000
         ret['message'] = "状态重置成功"
         return JsonResponse(ret)
 
 
 class VerificationCode(APIView):
-    """获取验证码"""
+    """获取验证码 url:/api/life/idcode"""
+    auth = {
+        'name': ("api-verification_code", "api-验证码相关"),
+        'method': {'GET', 'POST', 'PUT'}
+    }
+    activity = activities.ActivityControl()
 
     def get(self, request):
-        """get"""
-        ret = {
-            'code': 0000,
-            'message': "default message",
-            'data': ""
-        }
-        flag = request.GET.get('flag', -1)
-        today = date.today()
-        if flag == -1:
-            num = math.floor(1e5 * random.random())
-            idcode = str(num)
-            ret['data'] = num
-            # 获取今天时间
-            manage_data = Manage.objects.filter(idcodetime=today)
-            if manage_data.count() > 0:
-                manage_data.first().verification_code = idcode
-            manage = Manage(1, today, idcode, "0")
-            manage.save()
-            ret['code'] = 2000
-            ret['message'] = "获取验证码成功"
-        else:
-            idcode = Manage.objects.get(id=1)
-            if idcode.generate_time == today:
-                ret['data'] = idcode.verification_code
-                ret['code'] = 2000
-                ret['message'] = "获取验证码成功"
+        """获取"""
+        ret = {'code': 2000, 'message': "获取验证码成功", 'data': self.activity.get_verification_code()}
+        return JsonResponse(ret)
+
+    def put(self, request):
+        """生成验证码"""
+        ret = {'code': 2000, 'message': "生成验证码成功", 'data': self.activity.generate_verification_code()[0]}
         return JsonResponse(ret)
 
     def post(self, request):
@@ -116,29 +81,24 @@ class VerificationCode(APIView):
             'code': 0000,
             'message': "default message"
         }
-        reqlist = request.data
-        req_idcode = reqlist.get('idcode', -1)
-        if req_idcode == -1:
-            ret['code'] = 4000
-            ret['message'] = "参数错误,没有验证码信息"
-            return JsonResponse(ret)
-        today = date.today()
-        manage_data = Manage.objects.filter(idcodetime=today)
-        if manage_data.count() == 0:
-            ret['code'] = 4000
-            ret['message'] = "今日未发布验证码"
-            return JsonResponse(ret)
-        if manage_data.first().verification_code == req_idcode:
+        req_list = self.request.data
+        req_id_code = req_list.get('idcode', -1)
+        try:
+            self.activity.verify(req_id_code)
             ret['code'] = 2000
             ret['message'] = "验证成功"
-        else:
+        except VerificationCodeException as code_error:
             ret['code'] = 4000
-            ret['message'] = "验证失败"
+            ret['message'] = str(code_error)
         return JsonResponse(ret)
 
 
 class BuildingInfo(APIView):
     """获取楼号,包括层号"""
+    auth = {
+        'name': ("api-building_info", "api-获取楼层号"),
+        'method': {'GET'}
+    }
 
     @staticmethod
     def get(request):
@@ -153,6 +113,10 @@ class RoomInfo(APIView):
     需要参数:
         id,层号
     """
+    auth = {
+        'name': ("api-room_info", "api-获取房间信息"),
+        'method': {'GET'}
+    }
 
     def get(self, request):
         """get"""
@@ -180,6 +144,10 @@ class StudentPositionInfo(APIView):
     需要前端给门号
         id
     """
+    auth = {
+        'name': ("api-student_position", "api-获取学生位置"),
+        'method': {'GET'}
+    }
 
     def get(self, request):
         """拉取房间每个人的位置"""
@@ -194,17 +162,17 @@ class StudentPositionInfo(APIView):
             ret['data'] = dormitory.Room.student_info(room_id)
             ret['code'] = 2000
             ret['message'] = "房间读取成功"
-        except ObjectDoesNotExist as room_not_find:
+        except ObjectDoesNotExist:
             ret['code'] = 4000
             ret['message'] = "房间或者房间内数据有误"
             ret['data'] = []
-        except ValueError as id_not_number:
+        except ValueError:
             ret['code'] = 4000
             ret['message'] = "参数错误"
         return JsonResponse(ret)
 
 
-class Studentleak(APIView):
+class StudentLeak(APIView):
     """
     学生缺勤
     前端提供:学生id,原因,房间id.
@@ -214,6 +182,10 @@ class Studentleak(APIView):
     销假不在这里进行,故不设置
     para: id,why,roomid
     """
+    auth = {
+        'name': ("api-student_leak", "api-缺勤,销假相关"),
+        'method': {'POST', 'PUT'}
+    }
 
     def post(self, request):
         """缺勤提交"""
@@ -222,79 +194,10 @@ class Studentleak(APIView):
             'code': 0000,
             'message': "default message",
         }
-        print(Manage.objects.get(id=1).console_code)
-        if Manage.objects.get(id=1).console_code == "0":
-            ret['code'] = 4000
-            ret['message'] = "任务未开始!"
-            return JsonResponse(ret)
-        req_list = request.data
-        stuleaks = req_list.get('datas', [])
-        try:
-            worker = self.request.user
-            room = Room.objects.get(id=int(req_list.get('roomid', "")))
-            hisrecords = TaskRecord.objects.filter(
-                Q(createdtime__date=datetime.date.today()) & Q(roomid=room)
-            )
-            if stuleaks:
-                for i in stuleaks:
-                    stuid = i.get('id', -1)
-                    if stuid == -1:
-                        ret['code'] = 4000
-                        ret['message'] = "内部数据错误"
-                        break
-                    stuid = User.objects.get(id=int(stuid))
-                    reason = i.get('why', "")
-                    status = i.get('status', "1")
-                    stu = StuInRoom.objects.get(stuid=stuid)
-                    stu.status = status
-                    # 原来已有的记录删除,新建,更新
-                    oldrecords = TaskRecord.objects.filter(
-                        Q(createdtime__date=datetime.date.today()) &
-                        Q(objstuid=stuid)
-                    )
-                    if oldrecords:
-                        for j in oldrecords:
-                            j.delete()
-                    stu.save()
-                    if worker == -1:
-                        ret['code'] = 4000
-                        ret['message'] = "执行人信息有误"
-                        return JsonResponse(ret)
-                    budid = room.floor.budid
-                    last_time = datetime.datetime.now()
-                    record = TaskRecord(
-                        workerid=worker,
-                        objstuid=stuid,
-                        reason=reason,
-                        flag=status,
-                        lastmodifytime=last_time,
-                        buildingid=budid,
-                        roomid=room
-                    )
-                    record.save()
-            # 修改房间状态(被查)
-            room.status = "1"
-            # print("准备保存")
-            room.save()
-            # print("保存成功")
-            # 创建查房记录
-            roomhistory = RoomHistory(
-                roomid=room, managerid=worker,
-                createdtime=datetime.datetime.now()
-            )
-            roomhistory.save()
-            ret['code'] = 2000
-            ret['message'] = "提交成功"
-        except AttributeError as str_not_get:
-            print(str_not_get)
-            ret['code'] = 4000
-            ret['message'] = "房间号有误"
-        except ObjectDoesNotExist as para_lost:
-            print(para_lost)
-            ret['code'] = 4000
-            ret['message'] = "学生不存在"
-        finally:
-            return JsonResponse(ret)
+        leak.Leak(self.request).submit()
+        ret['code'] = 2000
+        ret['message'] = "提交成功"
+        return JsonResponse(ret)
 
     def put(self, request):
         """
@@ -305,49 +208,34 @@ class Studentleak(APIView):
             'code': 0000,
             'message': "default message",
         }
-        req_list = self.request.data
-        try:
-            data_id = req_list['id']
-            req_flag = req_list.get('flag', "是")
-            data = TaskRecord.objects.get(id=int(data_id))
-            data.flag = req_flag
-            data.save()
-            ret['code'] = 2000
-            ret['message'] = "销假成功"
-        except ObjectDoesNotExist as data_lost:
-            print("记录不存在")
-            ret['code'] = 4000
-            ret['message'] = "记录不存在"
-        except KeyError as key_lost:
-            ret['code'] = 4000
-            ret['message'] = "参数缺失"
-        finally:
-            return JsonResponse(ret)
+        leak.Leak(self.request).cancel()
+        ret['code'] = 2000
+        ret['message'] = "销假成功"
+        return JsonResponse(ret)
 
 
 class RecordSearch(APIView):
     """记录查询返回所有缺勤记录"""
+    auth = {
+        'name': ("api-leaks_search", "api-缺勤查询"),
+        'method': {'POST'}
+    }
 
     def get(self, request):
-        """get"""
-        today = date.today()
-        ret = {
-            'code': 0000,
-            'message': "default message",
-            'data': ""
-        }
-        data = TaskRecord.objects.filter(Q(flag="1") & Q(created_time__date=today))
-        print(data)
-        ser_data = ser.TaskRecordSerializer(instance=data, many=True).data
-        ret['code'] = 2000
-        ret['message'] = "查询成功"
-        ret['data'] = ser_data
+        """不给日期默认今天"""
+        search_date = self.request.data.get('date')
+        ret = {'code': 2000, 'message': "查询成功", 'data': leak.Leak.today_leaks(search_date)}
         return JsonResponse(ret)
 
 
 class ExportExcel(APIView):
     """导出excel """
+    auth = {
+        'name': ("api-export_excel", "api-缺勤导出excel"),
+        'method': {'GET'}
+    }
 
+    # TODO 暂不考虑封装
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""
         response = HttpResponse(content_type='application/vnd.ms-excel')
@@ -359,10 +247,10 @@ class ExportExcel(APIView):
         time = req_list.get('date', -1)
         if time == -1:
             time = date.today()
-        records = TaskRecord.objects.filter(Q(flag="1") & Q(created_time__date=time))
+        records = TaskRecord.objects.filter(Q(flag="否") & Q(created_time__date=time))
         if not records:
             return HttpResponse(
-                json.dumps({"state": "1", "msg": "查无数据,导出失败"}), content_type="application/json"
+                json.dumps({"state": "1", "msg": "无数据,导出失败"}), content_type="application/json"
             )
         ser_records = ser.TaskRecordExcelSerializer(instance=records, many=True).data
         if ser_records:
