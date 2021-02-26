@@ -3,13 +3,13 @@ import logging
 import re
 from django.http import JsonResponse, HttpResponse
 from openpyxl import load_workbook
-from rest_framework.views import APIView, Response
+from rest_framework.views import APIView
 from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from django.template import loader
 from Apps.Permission.models import *
-
+from docxtpl import DocxTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,32 @@ class Test(APIView):
 
     def get(self, request):
         """测试接口"""
-        print(self.request.query_params)
-        print(self.request.data)
-        print(self.request.META.get("HTTP_TOKEN"))
+        print("GET参数:", self.request.query_params)
+        print("request data:", self.request.data)
+        print("TOKEN:", self.request.META.get("HTTP_TOKEN"))
         print('测试接口')
 
+        doc = DocxTemplate("leaksfile//学生请假离校审批表.docx")
+        context = {'info': {
+            'name': "张三",
+            'tel': "0123456789",
+            'no': "10000000",
+            'gender': "男",
+            'college': "智慧交通学院",
+            'room': "3#101",
+            'reason': "感冒",
+            'place': "浙江医院三墩院区",
+            'start_time': "2020-01-01 16:00",
+            'end_time': "2020-01-01 18:00"
+        },
+            'date': {
+                'year': "2020",
+                'month': "01",
+                'day': "01",
+            }
+        }
+        doc.render(context)
+        doc.save("leaksfile//leakword//temp.docx")
 
         # 班级改小写
         # grades = Grade.objects.all()
@@ -47,7 +68,7 @@ class Test(APIView):
 
 
 def put_stu_room(stu, room, log):
-    """把学生放入寝室,注意第二个参数目前只支持xx#xxxd形式"""
+    """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
     student = stu
     history = StuInRoom.objects.filter(room=search_room(room), student=student)
     if history.exists():

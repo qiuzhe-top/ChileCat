@@ -1,7 +1,9 @@
 """
 必要模块引用
 """
+import datetime
 import logging
+from io import BytesIO
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +13,10 @@ from django.contrib.auth.models import AnonymousUser
 from Apps.Ask.utils import ask, audit, exceptions
 from . import models, ser
 from django.db.models import Q
+from django.utils.encoding import escape_uri_path
+from django.http import HttpResponse
+from rest_framework.response import Response
+from rest_framework import status
 
 # Create your views here .
 
@@ -29,7 +35,6 @@ class LeaveType(APIView):
         /api/ask/leave_type
         """
         ret = {'code': 0000, 'message': "提示信息", 'data': []}
-        # ask_type = ser.AskTypeSerializer(instance=Ask.models.AskType.objects.all(), many=True).data
         ask_type = []
         for i in Ask.models.AskType.objects.all():
             ask_type.append(i.type_name)
@@ -75,6 +80,7 @@ class Draft(APIView):
             ret['code'] = 2000
             return JsonResponse(ret)
         try:
+            print(req_list.get('id', -1))
             ask_id = int(req_list.get('id', -1))
             view_type = req_list.get('type', None)
             monitor = req_list.get('monitor', None)
@@ -82,15 +88,14 @@ class Draft(APIView):
             ret['data'] = ask_list
             ret['message'] = "获取成功"
             ret['code'] = 2000
-        except TypeError:
-            return JsonResponse({'code': 4000, 'message': "缺少id"})
+        except ValueError:
+            return JsonResponse({'code': 4000, 'message': "id异常"})
         except Ask.models.Ask.DoesNotExist:
             ret['message'] = "没有此id的请假条"
             ret['code'] = 4000
         except exceptions.AskException as ask_expect:
             ret['message'] = str(ask_expect)
             ret['code'] = 4000
-        print(ret)
         return JsonResponse(ret)
 
     def put(self, request):
@@ -166,7 +171,6 @@ class Audit(APIView):
         #  查找此用户的所有审批记录
         user_id = self.request.user
         req = self.request.query_params
-        # TODO 占坑 同样的不急
         print(req)
         class_id = int(req.get('classid', -1))
         print(class_id)
@@ -174,7 +178,7 @@ class Audit(APIView):
             class_id = Grade.objects.get(id=class_id)
             print(class_id)
             audit_list = models.Audit.objects.filter(
-                Q(user_id=user_id) & Q(ask_id__grade_id__name=class_id)
+                Q(user_id=user_id) & Q(ask__grade__name=class_id)
             )
             print(audit_list)
             # audit_ret_list = ser.AuditSerializer(instance=audit_list,many=True).data
@@ -192,10 +196,35 @@ class Audit(APIView):
             return JsonResponse(ret)
 
 
+class ExportWord(APIView):
+    """输出到word"""
+
+    def get(self, request):
+        """输出word"""
+        try:
+            ask_id = self.request.query_params.get('ask_id')
+            print_ask = Ask.models.Ask.objects.get(id=ask_id)
+            doc = ask.AskOperate.export_word(ask_id)
+            filename = "id=" + str(print_ask.id) + " " + str(
+                datetime.date.today()) + " " + print_ask.user.userinfo.name + "的请假条.docx"
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml'
+                                                 '.document')
+            response['Content-Disposition'] = (
+                'attachment; filename={}'.format(escape_uri_path(filename))
+            )
+            output = BytesIO()
+            doc.save(output)
+            output.seek(0)
+            response.write(output.getvalue())
+            return response
+        except Ask.models.Ask.DoesNotExist:
+            return Response(data="没有此请假条", status=status.HTTP_400_BAD_REQUEST)
+
+
 # 班级+学号 获取姓名
 class GetName(APIView):
     def get(self, request):
-        # TODO 班级+学号获取姓名(为什么不放在user?)
+        # TODO 班级+学号获取姓名
         ret = {}
         class_name = self.request.data['classname']
         sno = self.request.data['sno']

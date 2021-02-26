@@ -101,9 +101,7 @@ class VxBind(object):
             __token = auth.update_token(user)
         else:
             return LoginExcept("用户不存在")
-        old_openid = None
         try:
-
             tpost = OtherUser.objects.get(user=user)
             old_openid = tpost.wx_openid
         except OtherUser.DoesNotExist:

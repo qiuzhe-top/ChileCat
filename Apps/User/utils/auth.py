@@ -14,9 +14,9 @@ def get_token(request):
     try:
         token = request.META.get("HTTP_TOKEN")
         print(token)
+        return token
     except KeyError as identifier:
         print(identifier, 'no token')
-    return token
 
 
 def get_user(request):

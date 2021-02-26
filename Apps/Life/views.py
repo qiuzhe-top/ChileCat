@@ -78,7 +78,7 @@ class SwitchKnowing(APIView):
         return JsonResponse(ret)
 
 
-class Idcode(APIView):
+class VerificationCode(APIView):
     """获取验证码"""
 
     def get(self, request):
@@ -137,7 +137,7 @@ class Idcode(APIView):
         return JsonResponse(ret)
 
 
-class Buildinginfo(APIView):
+class BuildingInfo(APIView):
     """获取楼号,包括层号"""
 
     @staticmethod
@@ -147,7 +147,7 @@ class Buildinginfo(APIView):
         return JsonResponse(ret)
 
 
-class Roominfo(APIView):
+class RoomInfo(APIView):
     """
     获取房间信息
     需要参数:
@@ -174,7 +174,7 @@ class Roominfo(APIView):
         return JsonResponse(ret)
 
 
-class Stupositioninfo(APIView):
+class StudentPositionInfo(APIView):
     """
     学生位置(学生信息)
     需要前端给门号
@@ -235,7 +235,7 @@ class Studentleak(APIView):
             hisrecords = TaskRecord.objects.filter(
                 Q(createdtime__date=datetime.date.today()) & Q(roomid=room)
             )
-            if stuleaks != []:
+            if stuleaks:
                 for i in stuleaks:
                     stuid = i.get('id', -1)
                     if stuid == -1:
@@ -325,7 +325,7 @@ class Studentleak(APIView):
             return JsonResponse(ret)
 
 
-class Recordsearch(APIView):
+class RecordSearch(APIView):
     """记录查询返回所有缺勤记录"""
 
     def get(self, request):
@@ -336,12 +336,12 @@ class Recordsearch(APIView):
             'message': "default message",
             'data': ""
         }
-        data = TaskRecord.objects.filter(Q(flag="1") & Q(createdtime__date=today))
+        data = TaskRecord.objects.filter(Q(flag="1") & Q(created_time__date=today))
         print(data)
-        serdata = ser.TaskRecordSerializer(instance=data, many=True).data
+        ser_data = ser.TaskRecordSerializer(instance=data, many=True).data
         ret['code'] = 2000
         ret['message'] = "查询成功"
-        ret['data'] = serdata
+        ret['data'] = ser_data
         return JsonResponse(ret)
 
 
@@ -355,17 +355,17 @@ class ExportExcel(APIView):
         response['Content-Disposition'] = (
             'attachment; filename={}'.format(escape_uri_path(filename))
         )
-        req_list = request.GET
+        req_list = self.request.query_params
         time = req_list.get('date', -1)
         if time == -1:
             time = date.today()
-        records = TaskRecord.objects.filter(Q(flag="1") & Q(createdtime__date=time))
+        records = TaskRecord.objects.filter(Q(flag="1") & Q(created_time__date=time))
         if not records:
             return HttpResponse(
                 json.dumps({"state": "1", "msg": "查无数据,导出失败"}), content_type="application/json"
             )
-        serrecords = ser.TaskRecordExcelSerializer(instance=records, many=True).data
-        if serrecords:
+        ser_records = ser.TaskRecordExcelSerializer(instance=records, many=True).data
+        if ser_records:
             ws = xlwt.Workbook(encoding='utf-8')
             w = ws.add_sheet('sheet1')
             w.write(0, 0, u'日期')
@@ -375,7 +375,7 @@ class ExportExcel(APIView):
             w.write(0, 4, u'姓名')
             w.write(0, 5, u'原因')
             row = 1
-            for i in serrecords:
+            for i in ser_records:
                 k = dict(i)
                 column = 0
                 for j in k.values():

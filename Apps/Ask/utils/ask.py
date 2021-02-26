@@ -1,17 +1,20 @@
 """根据权限处理请假条"""
+import os
 import datetime
 from django.contrib.auth.models import AnonymousUser
 from Apps.Ask import ser
 from Apps.Ask.models import Ask
 from Apps.Ask.utils.exceptions import AskAddTimeException, AskViewException
 from Apps.User.models import StudentInfo
+from Apps.Life.models import Room
+from docxtpl import DocxTemplate
 
 COMPLETED = {"passed", "failed"}
 UNCOMPLETED = {"draft", "first_audit", "scored_audit", "college_audit", "university_audit"}
 
 
 class AskOperate(object):
-    """操作主类"""
+    """请假条操作"""
     _user = AnonymousUser
     _ask_list = Ask.objects.none()  # <QuerySet[]>
 
@@ -19,8 +22,7 @@ class AskOperate(object):
         self._user = user
 
     def view(self, ask_id=-1, view_type=None, monitor=None):
-        """目的:查看单条"""
-
+        """查看请假条"""
         if ask_id != -1:
             self._ask_list = Ask.objects.get(id=ask_id)
             return ser.AskSerializer(instance=self._ask_list).data
@@ -41,6 +43,41 @@ class AskOperate(object):
         self._ask_list = Ask.objects.get(id=ask_id)
         self._ask_list.delete()
         return True
+
+    def statistics(self):
+        """统计请假"""
+        self._ask_list = Ask.objects.all()
+        return ser.AskSerializer(instance=self._ask_list, many=True).data
+
+    @staticmethod
+    def export_word(ask_id):
+        """输出到word"""
+        ask = Ask.objects.get(id=int(ask_id))
+        room = ask.user.stu_in_room.first()
+        print(room)
+        today = datetime.date.today()
+        path = os.getcwd()
+        doc = DocxTemplate(path+"\\Apps\\Ask\\utils\\学生请假离校审批表.docx")
+        context = {'info': {
+            'name': ask.user.userinfo.name,
+            'tel': ask.contact_info if ask.contact_info else "",
+            'no': ask.user.username,
+            'gender': "男",
+            'college': ask.grade.college.name,
+            'room': room,
+            'reason': ask.reason,
+            'place': ask.place,
+            'start_time': ask.start_time,
+            'end_time': ask.end_time,
+        },
+            'date': {
+                'year': today.year,
+                'month': today.month,
+                'day': today.day,
+            }
+        }
+        doc.render(context)
+        return doc
 
 
 class AskToTeacher(AskOperate):
@@ -73,7 +110,6 @@ class AskToStudent(AskOperate):
         if audit_type:
             __status = COMPLETED if audit_type == "1" else UNCOMPLETED
             self._ask_list = self._ask_list.filter(user_id=self._user, status__in=__status)
-        print("fun:", self._ask_list)
         return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
 
     def submit(self, ask_id):
@@ -94,10 +130,8 @@ class AskToStudent(AskOperate):
 
     def __add_time(self, ask_id, extra_end_time):
         """续假"""
-        # TODO 续假
         self._ask_list = Ask.objects.get(id=ask_id)
         if self._ask_list.status not in COMPLETED:
-            # TODO 只有完成状态的请假条才能续假
             raise AskAddTimeException("此请假条不能续假")
         print(self._ask_list.end_time, self._ask_list.extra_end_time)
         if self._ask_list.end_time == self._ask_list.extra_end_time or self._ask_list.extra_end_time == extra_end_time:

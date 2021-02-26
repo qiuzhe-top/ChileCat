@@ -15,7 +15,7 @@ class Room(object):
             info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
             floors = building.floor.all()
             for floor in floors:
-                floor = {'id': floor.id, 'name': "第" + floor.floornum + "层"}
+                floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
                 info['list'].append(floor)
             buildings_info.append(info)
         return buildings_info
