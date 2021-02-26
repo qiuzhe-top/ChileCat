@@ -60,9 +60,9 @@ class Ask(models.Model):
         verbose_name = "请假条"
         verbose_name_plural = "请假条"
         permissions = [
-            {'operate-ask_view', "operate-普通查看请假条权限"},
-            {'operate-ask_teacher_view', "operate-老师查看请假条权限"},
-
+            ('operate-ask_view', "operate-普通查看请假条权限"),
+            ('operate-ask_monitor_view', "operate-班委查看请假条权限"),
+            ('operate-ask_teacher_view', "operate-老师查看请假条权限"),
         ]
 
 
@@ -87,10 +87,10 @@ class Audit(models.Model):
         verbose_name = "审核情况表"
         verbose_name_plural = "审核情况表"
         permissions = [
-            {'operate-audit_class_teacher', "operate-班主任审批请假条权限"},
-            {'operate-audit_grade_teacher', "operate-辅导员审批请假条权限"},
-            {'operate-audit_college_teacher', "operate-院领导审核假条权限"},
-            {'operate-audit_school_teacher', "operate-校长审核假条权限"}
+            ('operate-audit_class_teacher', "operate-班主任审批请假条权限"),
+            ('operate-audit_grade_teacher', "operate-辅导员审批请假条权限"),
+            ('operate-audit_college_teacher', "operate-院领导审核假条权限"),
+            ('operate-audit_school_teacher', "operate-校长审核假条权限")
         ]
 
 
@@ -105,7 +105,7 @@ class AskType(models.Model):
         verbose_name = '请假类别'
         verbose_name_plural = '请假类别表'
         permissions = [
-            {'operate-ask_type_view', "operate-查看请假类别权限"}
+            ('operate-ask_type_view', "operate-查看请假类别权限")
         ]
 
     def __str__(self):

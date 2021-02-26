@@ -15,7 +15,7 @@ class Building(models.Model):
         verbose_name = '宿舍楼'
         verbose_name_plural = '宿舍楼'
         permissions = [
-            {'operate-building_view', "operate-查询宿舍楼权限"}
+            ('operate-building_view', "operate-查询宿舍楼权限")
         ]
 
     def __str__(self):
@@ -36,7 +36,7 @@ class Floor(models.Model):
         verbose_name = '楼层'
         verbose_name_plural = '楼层'
         permissions = [
-            {'operate-floor_view', "operate-查询宿舍楼层权限"}
+            ('operate-floor_view', "operate-查询宿舍楼层权限")
         ]
 
     def __str__(self):
@@ -58,7 +58,7 @@ class Room(models.Model):
         verbose_name = '房间'
         verbose_name_plural = '房间'
         permissions = [
-            {'operate-room_view', "operate-查询宿舍楼房间权限"}
+            ('operate-room_view', "operate-查询宿舍楼房间权限")
         ]
 
     def __str__(self):
@@ -83,7 +83,7 @@ class StuInRoom(models.Model):
         verbose_name = '寝室信息'
         verbose_name_plural = '寝室信息'
         permissions = [
-            {'operate-stu_in_room_view', "operate-查询学生位置权限"}
+            ('operate-stu_in_room_view', "operate-查询学生位置权限")
         ]
 
     def __str__(self):
@@ -106,7 +106,7 @@ class RoomHistory(models.Model):
         verbose_name = '寝室被查记录'
         verbose_name_plural = '寝室被查记录'
         permissions = [
-            {'operate-room_history_view', "operate-查询查寝记录权限"}
+            ('operate-room_history_view', "operate-查询查寝记录权限")
         ]
 
     def __str__(self):
@@ -145,8 +145,8 @@ class TaskRecord(models.Model):
         verbose_name = '查寝记录'
         verbose_name_plural = '查寝记录'
         permissions = [
-            {'operate-task_record_add', "operate-缺勤记录添加权限(查寝权限)"},
-            {'operate-task_record_cancel', "operate-销假权限"}
+            ('operate-task_record_add', "operate-缺勤记录添加权限(查寝权限)"),
+            ('operate-task_record_cancel', "operate-销假权限")
         ]
 
     def __str__(self):
@@ -166,9 +166,9 @@ class Manage(models.Model):
         verbose_name = '管理列表'
         verbose_name_plural = '管理列表'
         permissions = [
-            {'operate-verification_code_flash', "operate-刷新验证码权限"},
-            {'operate-verification_code_generate', "operate-生成验证码权限"},
-            {'operate-verification_code_view', "operate-查看验证码权限"}
+            ('operate-verification_code_flash', "operate-刷新验证码权限"),
+            ('operate-verification_code_generate', "operate-生成验证码权限"),
+            ('operate-verification_code_view', "operate-查看验证码权限")
         ]
 
     def __str__(self):
