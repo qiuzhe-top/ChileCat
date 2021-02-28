@@ -70,7 +70,8 @@ class Audit(models.Model):
     """
     审批记录
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户id")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="被审批对象")
     approve_teacher = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name="审批人id", related_name="audit_teacher"
     )

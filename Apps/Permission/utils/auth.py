@@ -25,7 +25,6 @@ class AuthPer(BaseAuthentication):
     """
         身份认证
     """
-
     def authenticate(self, request):
         token = UserModel.Token.objects.filter(
             token=request.META.get("HTTP_TOKEN")).first()

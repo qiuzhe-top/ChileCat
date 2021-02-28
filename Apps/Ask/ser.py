@@ -16,11 +16,15 @@ ASK_TYPE = {
 
 class AskTypeSerializer(serializers.ModelSerializer):
     """请假类型序列化"""
-    name = serializers.CharField(source="type_name")
+    label = serializers.CharField(source="type_name")
+    value = serializers.SerializerMethodField()
+
+    def get_value(self, obj):
+        return obj.id
 
     class Meta:
         model = models.AskType
-        fields = ("id", "name")
+        fields = ("value", "label")
 
 
 class AskSerializer(serializers.ModelSerializer):
@@ -122,10 +126,10 @@ class AskAntiSerializer(serializers.Serializer):
 
 class AuditSerializer(serializers.ModelSerializer):
     """审批记录序列化"""
-    name = serializers.CharField(source="ask_id.user.userinfo.name")
-    place = serializers.CharField(source="ask_id.place")
-    end_time = serializers.DateTimeField(source="ask_id.end_time")
-    start_time = serializers.DateTimeField(source="ask_id.start_time")
+    name = serializers.CharField(source="ask.user.userinfo.name")
+    place = serializers.CharField(source="ask.place")
+    end_time = serializers.DateTimeField(source="ask.end_time")
+    start_time = serializers.DateTimeField(source="ask.start_time")
     status = serializers.SerializerMethodField()
     min = serializers.SerializerMethodField()
 

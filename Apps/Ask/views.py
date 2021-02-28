@@ -1,22 +1,22 @@
 """
 必要模块引用
 """
+import time
 import datetime
 import logging
 from io import BytesIO
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from django.core.exceptions import ObjectDoesNotExist
 from Apps import Ask
-from Apps.User.models import Grade, User
+from Apps.User.models import User
 from django.contrib.auth.models import AnonymousUser
 from Apps.Ask.utils import ask, audit, exceptions
 from . import models, ser
-from django.db.models import Q
 from django.utils.encoding import escape_uri_path
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework import status
+from Apps.Permission.utils.auth import  AuthPer
 
 # Create your views here .
 
@@ -38,14 +38,11 @@ class LeaveType(APIView):
         获取请假类别
         /api/ask/leave_type
         """
-        ret = {'code': 0000, 'message': "提示信息", 'data': []}
-        ask_type = []
-        for i in Ask.models.AskType.objects.all():
-            ask_type.append(i.type_name)
-        ret['data'] = ask_type
-        ret['code'] = 2000
-        ret['message'] = "执行成功"
-
+        ret = {
+            'code': 2000,
+            'message': "获取成功",
+            'data': ser.AskTypeSerializer(instance=models.AskType.objects.all(), many=True).data
+        }
         return JsonResponse(ret)
 
 
@@ -58,18 +55,20 @@ class Draft(APIView):
         'method': {'GET', 'POST', 'PUT', 'DELETE'}
     }
     API_PERMISSIONS = ['请假条', 'post', 'delete']
+    authentication_classes = [AuthPer]
 
     def post(self, request):
         """
         提交假条
         """
         ret = {'code': 2000, 'message': "提示信息", }
-        req = self.request.data
-        req['user'] = self.request.user
-        se = ser.AskAntiSerializer(instance=Ask)
-        se.create(req)
-        ret['code'] = 2000
-        ret['message'] = "提交成功"
+        try:
+            ask.AskToStudent(self.request.user).submit(self.request.data)
+            ret['code'] = 2000
+            ret['message'] = "提交成功"
+        except Ask.models.AskType.DoesNotExist:
+            ret['code'] = 4000
+            ret['message'] = "参数错误"
         return JsonResponse(ret)
 
     def get(self, request):
@@ -80,7 +79,7 @@ class Draft(APIView):
         ID存在则使用单个匹配模式
         否则按照身份获取
         """
-        ret = {'code': 0000, 'message': "no message", 'data': {}}
+        ret = {'code': 4000, 'message': "no message", 'data': {}}
         req_list = self.request.query_params
         if self.request.user == AnonymousUser:
             ret['message'] = "没有用户"
@@ -160,7 +159,6 @@ class Audit(APIView):
             'code': 0000,
             'message': "default info."
         }
-        self.request.user = User.objects.get(username="19530226")
         ask_id = self.request.data.get('id', None)
         operate_sate = self.request.data.get('operate_sate')
         try:
@@ -177,7 +175,9 @@ class Audit(APIView):
         查看历史记录
         /Audit
         """
-        ret = {'code': 2000, 'message': "查询成功", 'list': audit.AuditOperate.views(user=self.request.user)}
+        ret = {'code': 2000, 'message': "查询成功", 'data': {
+               'list': audit.AuditOperate.views(self.request.user, self.request.query_params['classid'])}}
+        print(ret)
         return JsonResponse(ret)
 
 

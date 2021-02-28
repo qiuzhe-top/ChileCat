@@ -91,7 +91,6 @@ class Information(APIView):
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
         user = self.request.user
         data = {'permissions': []}
-        # self.request.user = User.objects.get(username="19530226")
         p = self.request.user.user_permissions.filter(
             content_type=ContentType.objects.get_for_model(OperatePermission)).values()
         for permission in p:
@@ -105,7 +104,6 @@ class Information(APIView):
             data['grade'] = StudentInfo.objects.get(user_id=self.request.user).grade.name
         except StudentInfo.DoesNotExist:
             data['grade'] = ''
-        ret['data'] = data
         return JsonResponse(ret)
 
 

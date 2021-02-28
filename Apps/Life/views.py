@@ -126,10 +126,9 @@ class RoomInfo(APIView):
             'data': {}
         }
         req_list = self.request.query_params
-        building_id = req_list.get('building_id', None)
         floor_id = req_list.get('floor_id', None)
         try:
-            ret['data'] = dormitory.Room.room_info(building_id, floor_id)
+            ret['data'] = dormitory.Room.room_info(floor_id)
             ret['code'] = 2000
             ret['message'] = "房间遍历成功"
         except RoomParamException as room_exception:
@@ -158,7 +157,7 @@ class StudentPositionInfo(APIView):
         }
         req_list = self.request.query_params
         try:
-            room_id = int(req_list.get('roomid', -1))
+            room_id = int(req_list.get('room_id', -1))
             ret['data'] = dormitory.Room.student_info(room_id)
             ret['code'] = 2000
             ret['message'] = "房间读取成功"
@@ -193,9 +192,13 @@ class StudentLeak(APIView):
             'code': 0000,
             'message': "default message",
         }
-        leak.Leak(self.request).submit()
-        ret['code'] = 2000
-        ret['message'] = "提交成功"
+        try:
+            leak.Leak(self.request).submit()
+            ret['code'] = 2000
+            ret['message'] = "提交成功"
+        except TimeActivityException as activity_error:
+            ret['code'] = 4000
+            ret['message'] = str(activity_error)
         return JsonResponse(ret)
 
     def put(self, request):

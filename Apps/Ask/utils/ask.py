@@ -111,10 +111,10 @@ class AskToStudent(AskOperate):
             self._ask_list = self._ask_list.filter(user_id=self._user, status__in=__status)
         return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
 
-    def submit(self, ask_id):
+    def submit(self, ask_info):
         """学生提交请假条"""
-        self._ask_list = Ask.objects.get(id=ask_id)
-        ser.AskAntiSerializer(Ask).update(self._ask_list, {'status': "first_audit"})
+        ask_info['user'] = self._user
+        ser.AskAntiSerializer(Ask).create(ask_info)
         return True
 
     def modify(self, ask_id, validated_data):

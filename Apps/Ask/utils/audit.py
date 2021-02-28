@@ -3,7 +3,7 @@ import datetime
 from Apps.Ask import ser
 from Apps.Ask.models import Audit, Ask
 from Apps.Ask.utils.exceptions import *
-from Apps.User.models import TeacherForCollege
+from Apps.User.models import TeacherForCollege, Grade
 
 
 class AuditOperate(object):
@@ -25,9 +25,10 @@ class AuditOperate(object):
             return False
 
     @staticmethod
-    def views(user):
+    def views(user, class_id):
         """查看关于用户/此用户进行的审批记录"""
-        return ser.AuditSerializer(instance=Audit.objects.filter(approve_teacher=user), many=True).data
+        return ser.AuditSerializer(instance=Audit.objects.filter(
+            approve_teacher=user, user__studentinfo__grade=int(class_id)), many=True).data
 
     def audit(self, decide=""):
         """审核"""

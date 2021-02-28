@@ -21,9 +21,9 @@ class Room(object):
         return buildings_info
 
     @staticmethod
-    def room_info(floor_id, room_id):
+    def room_info(floor_id):
         """获取房间信息"""
-        if floor_id and room_id:
+        if floor_id:
             rooms = models.Room.objects.filter(floor_id=floor_id)
             room_list = []
             for i in rooms:
