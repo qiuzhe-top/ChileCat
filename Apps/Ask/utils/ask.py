@@ -20,22 +20,22 @@ class AskOperate(object):
     def __init__(self, user):
         self._user = user
 
-    def view(self, ask_id=-1, view_type=None, monitor=None):
+    def view(self, ask_id=-1, view_type=None, identity=None):
         """查看请假条"""
         if ask_id != -1:
             self._ask_list = Ask.objects.get(id=ask_id)
             return ser.AskSerializer(instance=self._ask_list).data
         else:
-            # TODO 判断老师的条件
-            if self._user.groups.filter(name="teacher").exists():
-                ask_list = {'list': AskToTeacher(self._user).views()}
-            else:
-                if monitor:
+            ask_list = "身份异常-尝试查看请假条"
+            if identity:
+                if identity == "teacher":
+                    ask_list = {'list': AskToTeacher(self._user).views()}
+                elif identity == "monitor":
                     ask_list = {'list': MonitorAsk(self._user).views(view_type)}
-                else:
-                    ask_list = {'list': AskToStudent(self._user).views(view_type)}
-        if not self._ask_list:
-            self._ask_list = ask_list
+            else:
+                ask_list = {'list': AskToStudent(self._user).views(view_type)}
+            if not self._ask_list:
+                self._ask_list = ask_list
         return self._ask_list
 
     def delete(self, ask_id):
@@ -59,9 +59,9 @@ class AskOperate(object):
         doc = DocxTemplate(path+"\\Apps\\Ask\\utils\\学生请假离校审批表.docx")
         context = {'info': {
             'name': ask.user.userinfo.name,
-            'tel': ask.contact_info if ask.contact_info else "",
+            'tel': ask.contact_info or "",
             'no': ask.user.username,
-            'gender': "男",
+            'gender': ask.user.userinfo.gender,
             'college': ask.grade.college.name,
             'room': room,
             'reason': ask.reason,
@@ -86,8 +86,10 @@ class AskToTeacher(AskOperate):
 
     def views(self):
         print("老师查看请假条:")
-        self._ask_list = Ask.objects.filter(approve_user=self._user, status="first_audit")
-        return ser.AskSerializer(instance=self._ask_list, many=True).data
+        if self._user.get.has_perm("operate-ask_teacher_view"):
+            self._ask_list = Ask.objects.filter(approve_user=self._user, status="first_audit")
+            return ser.AskSerializer(instance=self._ask_list, many=True).data
+        raise AskViewException('没有权限:"以老师身份查看请假条!"')
 
 
 class AskToStudent(AskOperate):
@@ -134,7 +136,6 @@ class AskToStudent(AskOperate):
         if self._ask_list.status not in COMPLETED:
             raise AskAddTimeException("此请假条不能续假")
         print(self._ask_list.end_time, extra_end_time)
-        # TODO 续假时间不能比原来时间小
         if self._ask_list.extra_end_time >= datetime.datetime.strptime(extra_end_time, "%Y-%m-%d %H:%M"):
             raise AskAddTimeException("续假时间太短")
         self._ask_list.extra_end_time = extra_end_time
@@ -155,7 +156,7 @@ class MonitorAsk(AskOperate):
     def views(self, audit_type=None):
         print("班委查看请假条")
         # TODO 判断班委的条件
-        if self.__user.has_perm("Permission.OPERATE_MONITOR_VIEW"):
+        if self.__user.has_perm("operate-ask_monitor_view"):
             grade = StudentInfo.objects.get(user=self._user).grade
             today = datetime.datetime.today()
             fifteen_ago = today - datetime.timedelta(days=15)
@@ -164,4 +165,4 @@ class MonitorAsk(AskOperate):
                 __status = COMPLETED if audit_type == "1" else UNCOMPLETED
                 self._ask_list = self._ask_list.filter(grade=grade, status__in=__status)
             return ser.AskAbbrSerializer(instance=self._ask_list, many=True).data
-        raise AskViewException("没有权限!")
+        raise AskViewException('没有权限:以班委身份查看请假条!')

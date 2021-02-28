@@ -16,7 +16,7 @@ from django.utils.encoding import escape_uri_path
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework import status
-from Apps.Permission.utils.auth import  AuthPer
+from Apps.Permission.utils.auth import AuthPer
 
 # Create your views here .
 
@@ -24,9 +24,7 @@ logger = logging.getLogger(__name__)  # 日志
 
 
 class LeaveType(APIView):
-    """
-    请假类别
-    """
+    """请假类别"""
     auth = {
         'name': ("api-leave_type", "api-请假类别相关"),
         'method': {'GET'}
@@ -176,7 +174,7 @@ class Audit(APIView):
         /Audit
         """
         ret = {'code': 2000, 'message': "查询成功", 'data': {
-               'list': audit.AuditOperate.views(self.request.user, self.request.query_params['classid'])}}
+            'list': audit.AuditOperate.views(self.request.user, self.request.query_params['classid'])}}
         print(ret)
         return JsonResponse(ret)
 
@@ -212,6 +210,11 @@ class ExportWord(APIView):
 
 # 班级+学号 获取姓名
 class GetName(APIView):
+    auth = {
+        'name': ("api-get_name", "api-班级姓名"),
+        'method': {'GET'}
+    }
+
     def get(self, request):
         ret = {}
         class_name = self.request.data['classname']

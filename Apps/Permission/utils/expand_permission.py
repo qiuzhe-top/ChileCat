@@ -1,4 +1,4 @@
-'''权限初始化,自动添加api'''
+"""权限初始化,自动添加api"""
 # import Apps
 from collections import OrderedDict
 from django.utils.module_loading import import_string
@@ -13,9 +13,9 @@ from Apps.Permission.models import ApiPermission, OperatePermission
 # from django.shortcuts import get_object_or_404
 
 def custom_exception_handler(exc, context):
-    '''
+    """
     自定义认证错误时的返回格式
-    '''
+    """
     # Call REST framework's default exception handler first,
     # to get the standard error response.
     response = exception_handler(exc, context)
@@ -33,15 +33,17 @@ def custom_exception_handler(exc, context):
 
 
 def get_obj(app, object_name, name):
-    '''
+    """
     反射获取成员
     :param app: Django App 名称
     :param object_name: 视图CBV的类
     :param name: 视图类的变量
-    '''
+    """
     pack = __import__("Apps." + app + ".views", fromlist=True)
     class_obj = getattr(pack, object_name)
-    return getattr(class_obj, name, [])
+    # print(class_obj.auth)
+    # print("反射返回:", getattr(class_obj, name, class_obj.auth))
+    return getattr(class_obj, name, class_obj.auth)
 
 
 # API 权限管理
@@ -62,7 +64,9 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
             if not item.name:
                 url_ordered_dict[url] = []
                 continue
-            url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'API_PERMISSIONS')
+            # TODO mark
+            url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'auth')
+            # print("url字典", url_ordered_dict)
         elif isinstance(item, URLResolver):
             if pre_namespace:
                 if item.namespace:
@@ -111,7 +115,7 @@ def add_api_permission(codename, name, is_verify):
     ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify})
 
 
-def clean_api_permisson():
+def clean_api_permission():
     """去除接口"""
     Permission.objects.delete()
 
@@ -123,13 +127,15 @@ def init_api_permissions():
     method = {'get', 'post', 'put', 'delete'}
     method_no = method.union({'', None})
     url_dic = get_all_url_dict()
+    print(url_dic)
     for key, value in url_dic.items():
         method_public = method.intersection(set(value))
-        for item in method:
-            url = key + ':' + item.upper()
-            name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
-            flag = item in method_public
-            add_api_permission(url, name, flag)
+        # TODO 添加环节
+        # for item in method:
+        #     url = key + ':' + item.upper()
+        #     name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
+        #     flag = item in method_public
+            # add_api_permission(url, name, flag)
             # print(url,name,flag)
         # name = v[0]
         # if name in method or name in ['',None]:

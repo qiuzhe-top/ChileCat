@@ -44,6 +44,8 @@ class UserInfo(models.Model):
     """
     name = models.CharField(max_length=20, verbose_name="姓名")
     tel = models.CharField(max_length=20, verbose_name="电话", blank=True, null=True)
+    gender = models.CharField(max_length=20, verbose_name="性别", choices=(("male", "男"), ("female", "女")), null=True,
+                              blank=True)
     identity = models.CharField(max_length=20, choices=(
         ("student", "学生"),
         ("teacher", "老师"),

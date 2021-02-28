@@ -9,7 +9,9 @@ from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeG
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from django.template import loader
 from Apps.Permission.models import *
+from django.contrib.contenttypes.models import ContentType
 from docxtpl import DocxTemplate
+from .tests import *
 
 logger = logging.getLogger(__name__)
 
@@ -23,29 +25,10 @@ class Test(APIView):
         print("request data:", self.request.data)
         print("TOKEN:", self.request.META.get("HTTP_TOKEN"))
         print('测试接口')
-
-        doc = DocxTemplate("leaksfile//学生请假离校审批表.docx")
-        context = {'info': {
-            'name': "张三",
-            'tel': "0123456789",
-            'no': "10000000",
-            'gender': "男",
-            'college': "智慧交通学院",
-            'room': "3#101",
-            'reason': "感冒",
-            'place': "浙江医院三墩院区",
-            'start_time': "2020-01-01 16:00",
-            'end_time': "2020-01-01 18:00"
-        },
-            'date': {
-                'year': "2020",
-                'month': "01",
-                'day': "01",
-            }
-        }
-        doc.render(context)
-        doc.save("leaksfile//leakword//temp.docx")
-
+        pers = Permission.objects.all()
+        for per in pers:
+            if per.codename[0:4]=="/api":
+                per.delete()
         # 班级改小写
         # grades = Grade.objects.all()
         # for grade in grades:
@@ -140,13 +123,25 @@ class ApiPer(APIView):
     def get(self, request):
         """test"""
         ret = {'message': 'message', 'code': 2000}
-        expand_permission.init_api_permissions()
-        self.request.user = User.objects.get(username="19530226")
-        expand_permission.init_operate_permissions()
+        urls = expand_permission.get_all_url_dict()
+        # print(urls)
+        # for url, detail in urls.items():
+        #     print("url:", url, "备注:", detail)
+        #     if detail:
+        #         for method in detail['method']:
+        #             per = Permission.objects.get_or_create(
+        #                 codename=url + ":" + method, name=detail['name'][1],
+        #                 content_type_id=ContentType.objects.get_for_model(ApiPermission).id
+        #             )
+        #             print(per)
+        #             ApiPermission.objects.get_or_create(permission=per[0])
+        # expand_permission.init_api_permissions()
+        # self.request.user = User.objects.get(username="19530226")
+        # expand_permission.init_operate_permissions()
         # ret['data'] = data
-        p = self.request.user.get_all_permissions()
-        d2 = [x[11:] for x in p if x.find('OPERATE') != -1]
-        print(d2)
+        # p = self.request.user.get_all_permissions()
+        # d2 = [x[11:] for x in p if x.find('OPERATE') != -1]
+        # print(d2)
         return JsonResponse(ret)
 
 

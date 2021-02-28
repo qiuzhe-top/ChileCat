@@ -17,6 +17,10 @@ from .models import TypeParent
 
 
 class Info(APIView):
+    auth = {
+        'name': ("api-info", "api-获取新闻信息"),
+        'method': {'GET'}
+    }
     """
     信息
     http://127.0.0.1:8000/api/career/info
@@ -135,6 +139,10 @@ def news_details(carid):
 
 class NewsCat(APIView):
     """新闻"""
+    auth = {
+        'name': ("api-info", "api-获取新闻"),
+        'method': {'POST', 'GET'}
+    }
 
     def get(self, request):
         """获取新闻"""

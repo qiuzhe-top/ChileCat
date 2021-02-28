@@ -101,7 +101,9 @@ class Information(APIView):
         data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
         data['name'] = user.userinfo.name
         try:
-            data['grade'] = StudentInfo.objects.get(user_id=self.request.user).grade.name
+            data['grade'] = StudentInfo.objects.get(user=self.request.user).grade.name \
+                if StudentInfo.objects.filter(user=self.request.user).exists() \
+                else "该用户无班级"
         except StudentInfo.DoesNotExist:
             data['grade'] = ''
         return JsonResponse(ret)
