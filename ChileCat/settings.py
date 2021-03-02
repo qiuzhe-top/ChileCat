@@ -9,12 +9,15 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-import os,sys
+# import os
 from pathlib import Path
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-sys.path.insert(0,os.path.join(BASE_DIR,'Apps'))
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "static")
+# ]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -27,10 +30,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
+    'simpleui',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,9 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'Ask',
-    'User',
-    'Career',
+    'Apps.Ask',
+    'Apps.User',
+    'Apps.Career',
+    'Apps.Life',
+    'Apps.Permission',
     'Manage',
     'corsheaders',
 ]
@@ -55,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'Manage.utils.middleware.LoadUserObject',
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -70,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # 'Manage.utils.context_processors.get_permissions',
             ],
         },
     },
@@ -77,27 +84,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'chilecat_1',
+        'USER': 'root',
+        'PASSWORD': '314418',
+        'HOST': '47.111.1.18',
+        'PORT': '3306'
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'chilecat',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': '127.0.0.1',
-#         'PORT': '3306'
-#     }
-# }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -117,7 +118,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -131,19 +131,17 @@ USE_L10N = True
 
 USE_TZ = False
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
 
-
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-#CORS_ORIGIN_WHITELIST = ('*')#跨域增加忽略
+# CORS_ORIGIN_WHITELIST = ('*')#跨域增加忽略
 # 跨域允许的请求方式(可选)
-CORS_ALLOW_METHODS = ( 'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'VIEW', )
+CORS_ALLOW_METHODS = ('DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'VIEW',)
 # 跨域允许的头部参数(可选)
 CORS_ALLOW_HEADERS = (
     'XMLHttpRequest',
@@ -161,3 +159,17 @@ CORS_ALLOW_HEADERS = (
     'Access-Control-Allow-Origin',
     'token',
 )
+
+# JWT 密钥
+SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
+
+# 全局权限控制
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        "Apps.Permission.utils.auth.AuthPermission",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "Apps.Permission.utils.permission.ApiPublicPermission",
+    ],
+    'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
+}
