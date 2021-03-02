@@ -27,6 +27,7 @@ class AskOperate(object):
             return ser.AskSerializer(instance=self._ask_list).data
         else:
             ask_list = "身份异常-尝试查看请假条"
+
             if identity:
                 if identity == "teacher":
                     ask_list = {'list': AskToTeacher(self._user).views()}

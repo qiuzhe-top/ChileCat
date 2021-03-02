@@ -16,6 +16,7 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from .models import TaskRecord
+from django.contrib.auth.models import AnonymousUser, User
 
 
 class SwitchKnowing(APIView):
@@ -23,7 +24,7 @@ class SwitchKnowing(APIView):
     auth = {
         'name': ("api-control_life_activity", "api-活动控制"),
         'method': {'GET', 'POST', 'PUT'}
-        }
+    }
 
     activity = activities.ActivityControl()
 
@@ -34,14 +35,15 @@ class SwitchKnowing(APIView):
             'message': "default message",
             'data': ""
         }
-        flag = self.activity.get_verification_code()
+
+        flag = self.activity.get_status()
         ret['code'] = 2000
         ret['message'] = "状态获取成功"
         ret['data'] = flag
         return JsonResponse(ret)
 
     def post(self, request):
-        """开启活动"""
+        """切换活动状态(开/关)"""
         ret = {'code': 2000, 'message': "切换成功", 'data': self.activity.switch()}
         return JsonResponse(ret)
 
@@ -67,7 +69,14 @@ class VerificationCode(APIView):
 
     def get(self, request):
         """获取"""
-        ret = {'code': 2000, 'message': "获取验证码成功", 'data': self.activity.get_verification_code()}
+        ret = {'code': 0000, 'message': "default message", 'data': None}
+        try:
+            ret['data'] = self.activity.get_verification_code()
+            ret['code'] = 2000
+            ret['message'] = "获取成功"
+        except TimeVerificationCodeException as act_error:
+            ret['code'] = 4000
+            ret['message'] = str(act_error)
         return JsonResponse(ret)
 
     def put(self, request):
@@ -102,7 +111,7 @@ class BuildingInfo(APIView):
 
     @staticmethod
     def get(request):
-        """get"""
+        """获取楼号"""
         ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info()}
         return JsonResponse(ret)
 
@@ -119,7 +128,7 @@ class RoomInfo(APIView):
     }
 
     def get(self, request):
-        """get"""
+        """获取房间信息"""
         ret = {
             'code': 0000,
             'message': "default message",
@@ -192,6 +201,11 @@ class StudentLeak(APIView):
             'code': 0000,
             'message': "default message",
         }
+        print(self.request.user)
+        if self.request.user == AnonymousUser:
+            ret['code'] = 5500
+            ret['message'] = "用户异常"
+            return JsonResponse(ret)
         try:
             leak.Leak(self.request).submit()
             ret['code'] = 2000
@@ -199,6 +213,9 @@ class StudentLeak(APIView):
         except TimeActivityException as activity_error:
             ret['code'] = 4000
             ret['message'] = str(activity_error)
+        except VerificationCodeException as act_error:
+            ret['code'] = 4000
+            ret['message'] = str(act_error)
         return JsonResponse(ret)
 
     def put(self, request):
@@ -239,6 +256,7 @@ class ExportExcel(APIView):
 
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""
+        print("准备导出excel")
         response = HttpResponse(content_type='application/vnd.ms-excel')
         filename = datetime.date.today().strftime("%Y-%m-%d") + ' 学生缺勤表.xls'
         response['Content-Disposition'] = (
@@ -248,10 +266,10 @@ class ExportExcel(APIView):
         time = req_list.get('date', -1)
         if time == -1:
             time = date.today()
-        records = TaskRecord.objects.filter(Q(flag="否") & Q(created_time__date=time))
+        records = TaskRecord.objects.filter(Q(flag="0") & Q(created_time__date=time))
         if not records:
-            return HttpResponse(
-                json.dumps({"state": "1", "msg": "无数据,导出失败"}), content_type="application/json"
+            return JsonResponse(
+                {"state": "1", "msg": "无数据,导出失败"}
             )
         ser_records = ser.TaskRecordExcelSerializer(instance=records, many=True).data
         if ser_records:
@@ -278,4 +296,5 @@ class ExportExcel(APIView):
             ws.save(output)
             output.seek(0)
             response.write(output.getvalue())
+            print("导出excel")
         return response

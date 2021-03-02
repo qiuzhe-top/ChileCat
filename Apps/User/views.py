@@ -89,21 +89,24 @@ class Information(APIView):
         返回信息
         """
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
-        user = self.request.user
-        data = {'permissions': []}
-        p = self.request.user.user_permissions.filter(
-            content_type=ContentType.objects.get_for_model(OperatePermission)).values()
-        for permission in p:
-            if "operatepermission" not in permission['codename']:
-                data['permissions'].append(permission['codename'])
-        data['roles'] = get_groups(request)
-        data['introduction'] = 'I am a super administrator'
-        data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
-        data['name'] = user.userinfo.name
+
         try:
+            user = self.request.user
+            data = {'permissions': []}
+            p = self.request.user.user_permissions.filter(
+                content_type=ContentType.objects.get_for_model(OperatePermission)).values()
+            for permission in p:
+                if "operatepermission" not in permission['codename']:
+                    data['permissions'].append(permission['codename'])
+            data['roles'] = get_groups(request)
+            data['introduction'] = 'I am a super administrator'
+            data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
+            data['name'] = user.userinfo.name
+
             data['grade'] = StudentInfo.objects.get(user=self.request.user).grade.name \
                 if StudentInfo.objects.filter(user=self.request.user).exists() \
                 else "该用户无班级"
+            ret['data'] = data
         except StudentInfo.DoesNotExist:
             data['grade'] = ''
         return JsonResponse(ret)

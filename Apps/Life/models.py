@@ -77,7 +77,7 @@ class StuInRoom(models.Model):
     )
     bed_position = models.CharField(max_length=150, verbose_name="床铺位置", default="1")
     '''由于前端奇怪的要求,这里0是在寝室,1是不在寝室'''
-    status = models.CharField(max_length=50, verbose_name="是否在寝", default="0")
+    status = models.CharField(max_length=50, verbose_name="是否在寝", default="1")
 
     class Meta:
         verbose_name = '寝室信息'
@@ -124,7 +124,7 @@ class TaskRecord(models.Model):
         User, on_delete=models.CASCADE,
         verbose_name="被执行者", related_name="stu_approved"
     )
-    reason = models.CharField(max_length=50, verbose_name="原因")
+    reason = models.CharField(max_length=200, verbose_name="原因")
     flag = models.CharField(max_length=20, verbose_name="是否归寝")
     created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
     last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")

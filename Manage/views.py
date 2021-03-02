@@ -12,6 +12,8 @@ from Apps.Permission.models import *
 from django.contrib.contenttypes.models import ContentType
 from docxtpl import DocxTemplate
 from .tests import *
+from rest_framework.authtoken.models import Token
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +27,6 @@ class Test(APIView):
         print("request data:", self.request.data)
         print("TOKEN:", self.request.META.get("HTTP_TOKEN"))
         print('测试接口')
-        pers = Permission.objects.all()
-        for per in pers:
-            if per.codename[0:4]=="/api":
-                per.delete()
         # 班级改小写
         # grades = Grade.objects.all()
         # for grade in grades:

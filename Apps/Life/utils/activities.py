@@ -9,11 +9,9 @@ from .exceptions import *
 class ActivityControl(object):
     """活动控制"""
 
-    def __init__(self):
-        if Manage.objects.all().count() == 0:
-            manage = Manage(1, datetime.date.today(), "000000", "0")
-            manage.save()
-        self.__flag = Manage.objects.get(id=1)
+    if not Manage.objects.filter(id=1).exists():
+        Manage(1, datetime.date.today(), "000000", "0")
+    __flag = Manage.objects.get(id=1)
 
     def get_status(self):
         """获取活动状态"""
@@ -31,6 +29,7 @@ class ActivityControl(object):
         """生成验证码"""
         today = datetime.date.today()
         verification_code = str(math.floor(1e5 * random.random()))
+        print("random:", verification_code)
         if self.__flag.generate_time == today:
             self.__flag.verification_code = verification_code
         else:
@@ -43,19 +42,15 @@ class ActivityControl(object):
     def switch(self):
         """开启/关闭活动"""
         self.__flag.console_code = "1" if self.__flag.console_code == "0" else "0"
+        self.__flag.save()
         return self.__flag.console_code
 
     @staticmethod
     def initialization():
         """初始化活动"""
-        rooms = Room.objects.all()
-        for room in rooms:
-            room.status = "0"
-            room.save()
-        status = StuInRoom.objects.all()
-        for stu in status:
-            stu.status = "0"
-            stu.save()
+        Room.objects.all().update(status="0")
+        StuInRoom.objects.all().update(status="1")
+        Manage.objects.all().update(console_code="0")
         return True
 
     def verify(self, verification_code):

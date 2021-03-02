@@ -16,29 +16,36 @@ class Leak(object):
     @staticmethod
     def today_leaks(date=datetime.date.today()):
         """缺勤查询"""
-        print(date)
-        data = TaskRecord.objects.filter(flag="否", created_time__date=date)
+        if not date:
+            date = datetime.date.today()
+        data = TaskRecord.objects.filter(flag="0", created_time__date=date)
+
         return TaskRecordSerializer(instance=data, many=True).data
 
     def cancel(self):
         """销假"""
         record_id = self.__request.data['record_id']  # 同理,不使用get
         record = TaskRecord.objects.get(id=record_id)
-        record.flag = "是"
+        record.flag = "1"
+        record.manager = self.__request.user
         record.save()
 
     def submit(self):
         """缺勤提交"""
+        worker = self.__request.user  # 查寝人
         params = self.__request.data
+        if Manage.objects.get(id=1).console_code == "0":
+            raise TimeActivityException("活动未开启")
+        if params['code'] != Manage.objects.get(id=1).verification_code:
+            raise VerificationCodeException("验证码身份过期")
         print("缺勤提交函数data:", params)
         student_leaks = params['data']
-        worker = self.__request.user  # 查寝人
         room = Room.objects.get(id=int(params.get('roomid', 0)))  # 被查房间
         if student_leaks:  # 如果有缺勤
             for leak in student_leaks:
                 leak_params = {}
                 student = User.objects.get(id=leak['id'])  # 不使用get是因为这是必要数据,如果缺失直接抛出异常终止
-                status = leak.get('status', "")
+                status = leak['status']
                 stu = StuInRoom.objects.get(student=student)
                 # 把学生在寝室的状态置为不在
                 stu.status = status
@@ -49,10 +56,10 @@ class Leak(object):
                 leak_params['worker'] = worker
                 leak_params['student_approved'] = student
                 leak_params['reason'] = leak.get('reason', "")
-                leak_params['flag'] = "否"
+                leak_params['flag'] = leak['status']
                 leak_params['last_modify_time'] = datetime.datetime.now()
                 leak_params['room'] = room
-                TaskRecordAntiSerializer.create(leak_params)
+                TaskRecordAntiSerializer().create(leak_params)
         room.status = "1"  # 房间被查过
         room.save()
         RoomHistory.objects.create(room=room, manager=worker, created_time=datetime.datetime.now())  # 谁查了这个房间
