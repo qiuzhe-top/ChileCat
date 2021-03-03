@@ -121,7 +121,7 @@ class ApiPer(APIView):
     def get(self, request):
         """test"""
         ret = {'message': 'message', 'code': 2000}
-        urls = expand_permission.get_all_url_dict()
+        # urls = expand_permission.get_all_url_dict()
         # print(urls)
         # for url, detail in urls.items():
         #     print("url:", url, "备注:", detail)
@@ -133,7 +133,7 @@ class ApiPer(APIView):
         #             )
         #             print(per)
         #             ApiPermission.objects.get_or_create(permission=per[0])
-        # expand_permission.init_api_permissions()
+        expand_permission.init_api_permissions()
         # self.request.user = User.objects.get(username="19530226")
         # expand_permission.init_operate_permissions()
         # ret['data'] = data

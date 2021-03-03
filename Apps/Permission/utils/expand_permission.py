@@ -131,12 +131,12 @@ def init_api_permissions():
     for key, value in url_dic.items():
         method_public = method.intersection(set(value))
         # TODO 添加环节
-        # for item in method:
-        #     url = key + ':' + item.upper()
-        #     name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
-        #     flag = item in method_public
+        for item in method:
+            url = key + ':' + item.upper()
+            name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
+            flag = item in method_public
             # add_api_permission(url, name, flag)
-            # print(url,name,flag)
+            print(url,name,flag)
         # name = v[0]
         # if name in method or name in ['',None]:
         #     name = k
