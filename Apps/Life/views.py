@@ -291,7 +291,7 @@ class ExportExcel(APIView):
                 row += 1
             # 循环完成
             path = os.getcwd()
-            ws.save(path + "/leaksfile/{}".format(filename))
+            # ws.save(path + "/leaksfile/{}".format(filename))
             output = BytesIO()
             ws.save(output)
             output.seek(0)

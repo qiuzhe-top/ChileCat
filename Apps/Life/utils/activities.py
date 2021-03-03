@@ -13,6 +13,10 @@ class ActivityControl(object):
         Manage(1, datetime.date.today(), "000000", "0")
     __flag = Manage.objects.get(id=1)
 
+    def get_flag(self):
+        print('get_flag')
+        return Manage.objects.get(id=1)
+
     def get_status(self):
         """获取活动状态"""
         return Manage.objects.get(id=1).console_code
@@ -20,8 +24,8 @@ class ActivityControl(object):
     def get_verification_code(self):
         """获取验证码"""
         today = datetime.date.today()
-        if self.__flag.generate_time == today:
-            return self.__flag.verification_code
+        if self.get_flag().generate_time == today:
+            return self.get_flag().verification_code
         else:
             raise TimeVerificationCodeException("今日未发布验证码")
 
@@ -30,20 +34,20 @@ class ActivityControl(object):
         today = datetime.date.today()
         verification_code = str(math.floor(1e5 * random.random()))
         print("random:", verification_code)
-        if self.__flag.generate_time == today:
-            self.__flag.verification_code = verification_code
+        if self.get_flag().generate_time == today:
+            self.get_flag().verification_code = verification_code
         else:
-            self.__flag.generate_time = today
-            self.__flag.verification_code = verification_code
-            self.__flag.console_code = "0"
-        self.__flag.save()
-        return self.__flag.verification_code, self.__flag.generate_time, self.__flag.console_code
+            self.get_flag().generate_time = today
+            self.get_flag().verification_code = verification_code
+            self.get_flag().console_code = "0"
+        self.get_flag().save()
+        return self.get_flag().verification_code, self.get_flag().generate_time, self.get_flag().console_code
 
     def switch(self):
         """开启/关闭活动"""
-        self.__flag.console_code = "1" if self.__flag.console_code == "0" else "0"
-        self.__flag.save()
-        return self.__flag.console_code
+        self.get_flag().console_code = "1" if self.get_flag().console_code == "0" else "0"
+        self.get_flag().save()
+        return self.get_flag().console_code
 
     @staticmethod
     def initialization():
@@ -55,10 +59,10 @@ class ActivityControl(object):
 
     def verify(self, verification_code):
         """验证验证码"""
-        if self.__flag.generate_time != datetime.date.today():
+        if self.get_flag().generate_time != datetime.date.today():
             raise TimeVerificationCodeException("今日未发布验证码")
         else:
-            if self.__flag.verification_code == verification_code:
+            if self.get_flag().verification_code == verification_code:
                 return True
             else:
                 raise VerifyVerificationCodeException("验证不通过")
