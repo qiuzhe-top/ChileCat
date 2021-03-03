@@ -15,7 +15,7 @@ class ActivityControl(object):
 
     def get_status(self):
         """获取活动状态"""
-        return self.__flag.console_code
+        return Manage.objects.get(id=1).console_code
 
     def get_verification_code(self):
         """获取验证码"""
