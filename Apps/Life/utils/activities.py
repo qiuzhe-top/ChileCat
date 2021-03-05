@@ -11,10 +11,8 @@ class ActivityControl(object):
 
     if not Manage.objects.filter(id=1).exists():
         Manage(1, datetime.date.today(), "000000", "0")
-    __flag = Manage.objects.get(id=1)
 
     def get_flag(self):
-        print('get_flag')
         return Manage.objects.get(id=1)
 
     def get_status(self):
@@ -35,7 +33,6 @@ class ActivityControl(object):
         """生成验证码"""
         today = datetime.date.today()
         verification_code = str(math.floor(1e5 * random.random()))
-        print("random:", verification_code)
         flag = self.get_flag()
         if flag.generate_time == today:
             flag.verification_code = verification_code
@@ -49,7 +46,6 @@ class ActivityControl(object):
     def switch(self):
         """开启/关闭活动"""
         flag = self.get_flag()
-
         flag.console_code = "1" if self.get_flag().console_code == "0" else "0"
         flag.save()
         return flag.console_code
@@ -65,7 +61,6 @@ class ActivityControl(object):
     def verify(self, verification_code):
         """验证验证码"""
         flag = self.get_flag()
-
         if flag.generate_time != datetime.date.today():
             raise TimeVerificationCodeException("今日未发布验证码")
         else:
