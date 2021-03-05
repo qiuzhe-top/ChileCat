@@ -41,9 +41,11 @@ def get_obj(app, object_name, name):
     """
     pack = __import__("Apps." + app + ".views", fromlist=True)
     class_obj = getattr(pack, object_name)
-    # print(class_obj.auth)
-    # print("反射返回:", getattr(class_obj, name, class_obj.auth))
-    return getattr(class_obj, name, class_obj.auth)
+    # try:
+    return getattr(class_obj, name, [])
+    # except:
+        # return []
+        
 
 
 # API 权限管理
@@ -62,10 +64,10 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
         url = pre_url + str(item.pattern)
         if isinstance(item, URLPattern):  # 非路由分发
             if not item.name:
-                url_ordered_dict[url] = []
+                # url_ordered_dict[url] = []
                 continue
             # TODO mark
-            url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'auth')
+            url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'API_PERMISSIONS')
             # print("url字典", url_ordered_dict)
         elif isinstance(item, URLResolver):
             if pre_namespace:
@@ -106,13 +108,13 @@ def add_permission(content_type, codename, name):
     )
 
 
-def add_api_permission(codename, name, is_verify):
+def add_api_permission(codename, name, is_verify,is_auth):
     """
     添加接口权限
     """
     content_type = ContentType.objects.get_for_model(ApiPermission)
     permission, flag = add_permission(content_type, codename, name)
-    ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify})
+    ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify,'is_auth': is_auth})
 
 
 def clean_api_permission():
@@ -127,16 +129,15 @@ def init_api_permissions():
     method = {'get', 'post', 'put', 'delete'}
     method_no = method.union({'', None})
     url_dic = get_all_url_dict()
-    print(url_dic)
     for key, value in url_dic.items():
-        method_public = method.intersection(set(value))
         # TODO 添加环节
         for item in method:
             url = key + ':' + item.upper()
             name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
-            flag = item in method_public
-            # add_api_permission(url, name, flag)
-            print(url,name,flag)
+            is_auth = '*' + item in value
+            is_verify = True if is_auth else item in value
+            add_api_permission(url, name, is_verify,is_auth)
+            # print(url,name,is_verify,is_auth)
         # name = v[0]
         # if name in method or name in ['',None]:
         #     name = k
@@ -171,3 +172,4 @@ def init_operate_permissions():
     }
     for key, value in permissions_list.items():
         add_fun_permission(key, value)
+

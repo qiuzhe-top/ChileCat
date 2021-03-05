@@ -9,6 +9,7 @@ from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeG
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from django.template import loader
 from Apps.Permission.models import *
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from docxtpl import DocxTemplate
 from .tests import *
@@ -160,3 +161,10 @@ class Index(APIView):
             'id_code': id_code,
         }
         return HttpResponse(template.render(context, request))
+
+
+# 用户组初始化
+def group_init():
+    # Fruit.objects.create(name='Apple')
+    # knowing
+    return JsonResponse(1)

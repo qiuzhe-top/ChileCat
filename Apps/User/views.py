@@ -20,7 +20,7 @@ class Auth(APIView):
         'name': ("api-auth", "api-注册登录相关"),
         'method': {'POST', 'PUT', 'DELETE'}
     }
-    API_PERMISSIONS = ['用户', 'get', 'post', 'delete', 'put']
+    API_PERMISSIONS = ['用户', '*get', 'post', 'delete', 'put']
 
     def post(self, request):
         """
@@ -76,7 +76,7 @@ class Information(APIView):
         'method': {'GET'}
     }
     # authentication_classes = [AuthPer,]
-    API_PERMISSIONS = ['获取个人信息', 'get']
+    API_PERMISSIONS = ['获取个人信息', '*get']
     '''
     Information
     '''

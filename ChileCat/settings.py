@@ -18,6 +18,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, "static")
 # ]
+# 获取环境数值
+ENV_PROFILE = os.getenv("ENV")
+
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -87,12 +91,18 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+if ENV_PROFILE == "production":   
+    # 生产环境
+    db_url = "chilecat_1"
+else:
+    db_url = "chilecat_qiuzhe_test"
+
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chilecat_1',
+        'NAME': db_url,
         'USER': 'root',
         'PASSWORD': '314418',
         'HOST': '47.111.1.18',
@@ -169,7 +179,7 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        #"Apps.Permission.utils.permission.ApiPublicPermission",
+       # "Apps.Permission.utils.permission.ApiPublicPermission",
     ],
     'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
 }

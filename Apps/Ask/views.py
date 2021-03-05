@@ -53,7 +53,7 @@ class Draft(APIView):
         'method': {'GET', 'POST', 'PUT', 'DELETE'}
     }
     API_PERMISSIONS = ['请假条', 'post', 'delete']
-    authentication_classes = [AuthPer]
+    # authentication_classes = [AuthPer]
 
     def post(self, request):
         """

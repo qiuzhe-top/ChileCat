@@ -12,6 +12,11 @@ class ApiPermission(models.Model):
         (False, "权限接口"),
         (True, "公开接口"),
     ), default=False)
+    
+    is_auth = models.BooleanField(verbose_name="登录验证",choices=(
+        (False,"不验证"),
+        (True,"验证"),
+    ))
     permission = models.OneToOneField(
         Permission, on_delete=models.CASCADE,
         verbose_name="权限",

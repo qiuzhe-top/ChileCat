@@ -40,7 +40,7 @@ class ApiPermissionTeleAdmin(admin.ModelAdmin):
     def codename(self,obj):
         return obj.permission.codename
         
-    list_display = ("id","codename","permission",'is_verify')
+    list_display = ("id","codename","permission",'is_verify','is_auth')
 
 
 @admin.register(ElementPermission)
