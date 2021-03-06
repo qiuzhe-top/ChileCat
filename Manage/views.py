@@ -15,7 +15,6 @@ from docxtpl import DocxTemplate
 from .tests import *
 from rest_framework.authtoken.models import Token
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -168,3 +167,29 @@ def group_init():
     # Fruit.objects.create(name='Apple')
     # knowing
     return JsonResponse(1)
+
+# 寝室调换
+
+def dormitory_exchange(request):
+    ret = {'message': 'message', 'code': 2000} 
+    b = Building.objects.get(name='2')
+    f = Floor.objects.get(name='4',building=b)
+    r5 = Room.objects.get(name='05',floor=f)
+    r6 = Room.objects.get_or_create(name='06',floor=f)
+    stu = StuInRoom.objects.filter(room=r5)
+    L = ['206530407','206530408','206530409']
+    for i in stu:
+        if i.student.username in L:
+            print(i.room,i.student.username)
+            i.room = r6[0]
+            i.save()
+            print(i,i.student.username)
+    import_stu_data("list.xlsx")
+    return JsonResponse(ret)
+
+def add_user():
+    L = [
+        ['195401','19540140'],
+        ['195303','19530338'],
+        ['195303','19530345'],
+    ]

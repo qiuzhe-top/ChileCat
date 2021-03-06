@@ -14,6 +14,7 @@ class ApiPublicPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
+        return True
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
 
@@ -26,10 +27,11 @@ class ApiPublicPermission(BasePermission):
         # 白名单功能
         api_per = Permission.objects.filter(codename=url_permission, api_permission__is_verify=True)
         if api_per.exists():
+            print(api_per[0].api_permission.is_auth)
             if api_per[0].api_permission.is_auth:
                 if request.user == AnonymousUser:
                     self.message = auth_error
-                return False
+                    return False
             return True
 
         # 是否登录

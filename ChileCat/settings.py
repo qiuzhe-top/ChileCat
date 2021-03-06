@@ -96,6 +96,8 @@ if ENV_PROFILE == "production":
     db_url = "chilecat_1"
 else:
     db_url = "chilecat_qiuzhe_test"
+    # db_url = "chilecat_1"
+
 
 DATABASES = {
     'default': {
@@ -179,7 +181,7 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-       # "Apps.Permission.utils.permission.ApiPublicPermission",
+       "Apps.Permission.utils.permission.ApiPublicPermission",
     ],
     'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
 }

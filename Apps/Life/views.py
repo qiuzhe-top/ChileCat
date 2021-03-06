@@ -234,6 +234,8 @@ class StudentLeak(APIView):
 
 
 class RecordSearch(APIView):
+    API_PERMISSIONS = ['缺勤公告','get']
+    
     """记录查询返回所有缺勤记录"""
     auth = {
         'name': ("api-leaks_search", "api-缺勤查询"),

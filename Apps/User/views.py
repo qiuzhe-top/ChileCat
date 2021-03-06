@@ -20,7 +20,7 @@ class Auth(APIView):
         'name': ("api-auth", "api-注册登录相关"),
         'method': {'POST', 'PUT', 'DELETE'}
     }
-    API_PERMISSIONS = ['用户', '*get', 'post', 'delete', 'put']
+    API_PERMISSIONS = ['用户', 'post', 'delete', 'put']
 
     def post(self, request):
         """
@@ -63,8 +63,7 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
-    @staticmethod
-    def delete(request):
+    def delete(self,request):
         ret = {'code': 2000}
         return JsonResponse(ret)
 
