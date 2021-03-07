@@ -3,23 +3,17 @@
 from collections import OrderedDict
 from django.utils.module_loading import import_string
 from django.urls.resolvers import URLResolver, URLPattern
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission,Group
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from rest_framework.views import exception_handler
 from Apps.Permission.models import ApiPermission, OperatePermission
-
+from django.contrib.auth.models import User
 
 # from django.shortcuts import get_object_or_404
-
+# 自定义认证错误时的返回格式
 def custom_exception_handler(exc, context):
-    """
-    自定义认证错误时的返回格式
-    """
-    # Call REST framework's default exception handler first,
-    # to get the standard error response.
     response = exception_handler(exc, context)
-    # Now add the HTTP status code to the response.
     if response is not None:
         response.data['code'] = 5500 if (
                 response.data['detail'] == '用户认证失败'
@@ -49,6 +43,34 @@ def get_obj(app, object_name, name):
 
 
 # API 权限管理
+def init_api_permissions():
+    """
+    根据当前URL路由自动初始化API权限
+    """
+    method = {'get', 'post', 'put', 'delete'}
+    method_no = method.union({'', None})
+    url_dic = get_all_url_dict()
+    for key, value in url_dic.items():
+        # TODO 添加环节
+        for item in method:
+            url = key + ':' + item.upper()
+            name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
+            is_auth = '*' + item in value
+            is_verify = True if is_auth else item in value
+            add_api_permission(url, name, is_verify,is_auth)
+            # print(url,name,is_verify,is_auth)
+        # name = v[0]
+        # if name in method or name in ['',None]:
+        #     name = k
+        # if len(v)>0:
+        #     method_public = method.intersection(set(v))
+        #     for item in method:
+        #         flag = item in method_public
+        #         add_api_permission(k+':'+item.upper(),name,flag)
+        # else:
+        #     for item in method:
+        #         add_api_permission(k+':'+item.upper(),'',False)
+
 def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
     """
     递归获取URL
@@ -118,37 +140,9 @@ def add_api_permission(codename, name, is_verify,is_auth):
 
 
 def clean_api_permission():
-    """去除接口"""
-    Permission.objects.delete()
+    """清空接口"""
+    ApiPermission.objects.delete()
 
-
-def init_api_permissions():
-    """
-    根据当前URL路由自动初始化API权限
-    """
-    method = {'get', 'post', 'put', 'delete'}
-    method_no = method.union({'', None})
-    url_dic = get_all_url_dict()
-    for key, value in url_dic.items():
-        # TODO 添加环节
-        for item in method:
-            url = key + ':' + item.upper()
-            name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
-            is_auth = '*' + item in value
-            is_verify = True if is_auth else item in value
-            add_api_permission(url, name, is_verify,is_auth)
-            # print(url,name,is_verify,is_auth)
-        # name = v[0]
-        # if name in method or name in ['',None]:
-        #     name = k
-        # if len(v)>0:
-        #     method_public = method.intersection(set(v))
-        #     for item in method:
-        #         flag = item in method_public
-        #         add_api_permission(k+':'+item.upper(),name,flag)
-        # else:
-        #     for item in method:
-        #         add_api_permission(k+':'+item.upper(),'',False)
 
 
 # 功能权限管理
@@ -173,3 +167,22 @@ def init_operate_permissions():
     for key, value in permissions_list.items():
         add_fun_permission(key, value)
 
+# 用户组
+def group_init(groups):
+    '''添加用户组'''
+    v = []
+    for name in groups:
+        obj = Group(name=name)
+        v.append(obj)
+    Group.objects.bulk_create(v)
+
+def group_add_permission(group,permissions):
+    '''用户组添加一组权限'''
+    v = Permission.objects.filter(codename__in=permissions)
+    Group.objects.get(name=group).permissions.add(*list(v))
+
+
+def group_add_user(group,users):
+    '''用户组添加一组用户'''
+    v = User.objects.filter(username__in=users)
+    Group.objects.get(name=group).user_set.add(*list(v))

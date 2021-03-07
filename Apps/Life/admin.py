@@ -45,7 +45,6 @@ class RoomHistoryTeleAdmin(admin.ModelAdmin):
         "id", "room", "manager", "created_time"
     )
 
-
 @admin.register(TaskRecord)
 class TaskRecordTeleAdmin(admin.ModelAdmin):
     """任务记录(被查)"""
@@ -53,6 +52,7 @@ class TaskRecordTeleAdmin(admin.ModelAdmin):
         "id", "worker", "student_approved", "reason", "flag"
         , "created_time", "last_modify_time", "manager",
     )
+    list_filter = ('reason', 'flag', 'created_time') 
 
 
 @admin.register(Manage)

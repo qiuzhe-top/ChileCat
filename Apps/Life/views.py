@@ -21,11 +21,7 @@ from django.contrib.auth.models import AnonymousUser, User
 
 class SwitchKnowing(APIView):
     """全局开关,控制查寝活动能否进行"""
-    auth = {
-        'name': ("api-control_life_activity", "api-活动控制"),
-        'method': {'GET', 'POST', 'PUT'}
-    }
-
+    API_PERMISSIONS = ['查寝开关','get']
     activity = activities.ActivityControl()
 
     def get(self, request):
@@ -61,10 +57,8 @@ class SwitchKnowing(APIView):
 
 class VerificationCode(APIView):
     """获取验证码 url:/api/life/idcode"""
-    auth = {
-        'name': ("api-verification_code", "api-验证码相关"),
-        'method': {'GET', 'POST', 'PUT'}
-    }
+
+    API_PERMISSIONS = ['工作验证码','get','post']
     activity = activities.ActivityControl()
 
     def get(self, request):
@@ -104,13 +98,10 @@ class VerificationCode(APIView):
 
 class BuildingInfo(APIView):
     """获取楼号,包括层号"""
-    auth = {
-        'name': ("api-building_info", "api-获取楼层号"),
-        'method': {'GET'}
-    }
 
-    @staticmethod
-    def get(request):
+    API_PERMISSIONS = ['楼层号','get']
+
+    def get(self,request):
         """获取楼号"""
         ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info()}
         return JsonResponse(ret)
@@ -122,10 +113,9 @@ class RoomInfo(APIView):
     需要参数:
         id,层号
     """
-    auth = {
-        'name': ("api-room_info", "api-获取房间信息"),
-        'method': {'GET'}
-    }
+    
+    API_PERMISSIONS = ['房间信息','get']
+
 
     def get(self, request):
         """获取房间信息"""
@@ -152,11 +142,8 @@ class StudentPositionInfo(APIView):
     需要前端给门号
         id
     """
-    auth = {
-        'name': ("api-student_position", "api-获取学生位置"),
-        'method': {'GET'}
-    }
-
+  
+    API_PERMISSIONS = ['寝室学生信息','get']
     def get(self, request):
         """拉取房间每个人的位置"""
         ret = {
@@ -190,32 +177,17 @@ class StudentLeak(APIView):
     销假不在这里进行,故不设置
     para: id,why,roomid
     """
-    auth = {
-        'name': ("api-student_leak", "api-缺勤,销假相关"),
-        'method': {'POST', 'PUT'}
-    }
-
+   
+    API_PERMISSIONS = ['学生缺勤','*post']
     def post(self, request):
         """缺勤提交"""
         ret = {
             'code': 0000,
             'message': "default message",
         }
-        print(self.request.user)
-        if self.request.user == AnonymousUser:
-            ret['code'] = 5500
-            ret['message'] = "用户异常"
-            return JsonResponse(ret)
-        try:
-            leak.Leak(self.request).submit()
-            ret['code'] = 2000
-            ret['message'] = "提交成功"
-        except TimeActivityException as activity_error:
-            ret['code'] = 4000
-            ret['message'] = str(activity_error)
-        except VerificationCodeException as act_error:
-            ret['code'] = 4000
-            ret['message'] = str(act_error)
+        leak.Leak(self.request).submit()
+        ret['code'] = 2000
+        ret['message'] = "提交成功"
         return JsonResponse(ret)
 
     def put(self, request):
@@ -234,13 +206,10 @@ class StudentLeak(APIView):
 
 
 class RecordSearch(APIView):
-    API_PERMISSIONS = ['缺勤公告','get']
-    
     """记录查询返回所有缺勤记录"""
-    auth = {
-        'name': ("api-leaks_search", "api-缺勤查询"),
-        'method': {'POST'}
-    }
+    
+  
+    API_PERMISSIONS = ['缺勤公告','get']
 
     def get(self, request):
         """不给日期默认今天"""
@@ -251,10 +220,8 @@ class RecordSearch(APIView):
 
 class ExportExcel(APIView):
     """导出excel """
-    auth = {
-        'name': ("api-export_excel", "api-缺勤导出excel"),
-        'method': {'GET'}
-    }
+ 
+    API_PERMISSIONS = ['查寝Excel记录','get']
 
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""

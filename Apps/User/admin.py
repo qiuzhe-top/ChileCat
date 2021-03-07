@@ -5,10 +5,6 @@ from django.contrib import admin
 from . import models
 from django.utils.html import format_html
 
-
-# @admin.register(models.User)
-# class UserTeleAdmin(admin.ModelAdmin):
-#     list_display = ("id","user_name","pass_word","django_user")
 @admin.register(models.Token)
 class TokenTeleAdmin(admin.ModelAdmin):
     list_display = ("id", "token", "user")
@@ -30,11 +26,17 @@ class UserInfoTeleAdmin(admin.ModelAdmin):
     # filter_horizontal = ['user_role']
     empty_value_display = format_html('<span style="color:#8E8E8E;">(内容为空)</span>')
 
+    search_fields = ['id','name','identity','tel']
 
 @admin.register(models.StudentInfo)
 class StudentInfoTeleAdmin(admin.ModelAdmin):
+    """
+        学生信息
+    """
     list_display = ("id", "grade", "user")
-
+    search_fields = ['grade',]
+    autocomplete_fields = ['grade',]
+    raw_id_fields = ['user',]
 
 @admin.register(models.TeacherInfo)
 class TeacherInfoTeleAdmin(admin.ModelAdmin):
@@ -54,6 +56,7 @@ class TeacherForCollegeTeleAdmin(admin.ModelAdmin):
 @admin.register(models.Grade)
 class GradeTeleAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "college", "whole_grade")
+    search_fields = ['name','whole_grade']
 
 
 @admin.register(models.College)

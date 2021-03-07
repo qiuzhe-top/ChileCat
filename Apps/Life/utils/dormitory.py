@@ -4,7 +4,6 @@ from .exceptions import *
 
 
 class Room(object):
-    __room = models.Room.objects.none()
 
     @staticmethod
     def building_info():

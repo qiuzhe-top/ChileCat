@@ -30,7 +30,14 @@ ENV_PROFILE = os.getenv("ENV")
 SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+if ENV_PROFILE == "production":   
+    # 生产环境
+    DEBUG = False
+else:
+    DEBUG = True
+
+
 
 ALLOWED_HOSTS = ["*"]
 

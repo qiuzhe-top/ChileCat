@@ -9,7 +9,6 @@ from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeG
 from Apps.Life.models import Building, Floor, Room, StuInRoom
 from django.template import loader
 from Apps.Permission.models import *
-from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from docxtpl import DocxTemplate
 from .tests import *
@@ -116,30 +115,12 @@ def import_stu_data(file):
 
 
 class ApiPer(APIView):
-    """权限测试"""
+    """API权限生成"""
 
     def get(self, request):
         """test"""
         ret = {'message': 'message', 'code': 2000}
-        # urls = expand_permission.get_all_url_dict()
-        # print(urls)
-        # for url, detail in urls.items():
-        #     print("url:", url, "备注:", detail)
-        #     if detail:
-        #         for method in detail['method']:
-        #             per = Permission.objects.get_or_create(
-        #                 codename=url + ":" + method, name=detail['name'][1],
-        #                 content_type_id=ContentType.objects.get_for_model(ApiPermission).id
-        #             )
-        #             print(per)
-        #             ApiPermission.objects.get_or_create(permission=per[0])
         expand_permission.init_api_permissions()
-        # self.request.user = User.objects.get(username="19530226")
-        # expand_permission.init_operate_permissions()
-        # ret['data'] = data
-        # p = self.request.user.get_all_permissions()
-        # d2 = [x[11:] for x in p if x.find('OPERATE') != -1]
-        # print(d2)
         return JsonResponse(ret)
 
 
@@ -163,10 +144,32 @@ class Index(APIView):
 
 
 # 用户组初始化
-def group_init():
-    # Fruit.objects.create(name='Apple')
-    # knowing
-    return JsonResponse(1)
+def group_init(request):
+    group2 = ['life_ad22min2','life2_admin2']
+
+    # 待添加进用户组的权限
+    permissions = [
+        '/api/life/switchknowing:PUT',
+        '/api/life/switchknowing:POST',
+        '/api/life/idcode:PUT',
+        '/api/life/recordsearch:PUT',
+        '/api/life/studentleak:POST',
+    ]
+
+    # 用户组
+    name = 'life_admin'
+
+    # 用户
+    users = [
+        '19510146',
+        '19510145',
+        '19510144',
+    ]
+
+    # expand_permission.group_init(group2)
+    expand_permission.group_add_user(name,users)
+
+    return JsonResponse(2000,safe=False)
 
 # 寝室调换
 
