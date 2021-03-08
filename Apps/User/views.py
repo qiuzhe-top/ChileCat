@@ -94,7 +94,8 @@ class Information(APIView):
             data['introduction'] = 'I am a super administrator'
             data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
             data['name'] = user.userinfo.name
-
+            data['is_admin'] = request.user.is_staff
+            data['is_superuser'] = request.user.is_superuser
             data['grade'] = StudentInfo.objects.get(user=self.request.user).grade.name \
                 if StudentInfo.objects.filter(user=self.request.user).exists() \
                 else "该用户无班级"

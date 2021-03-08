@@ -145,7 +145,7 @@ class Index(APIView):
 
 # 用户组初始化
 def group_init(request):
-    group2 = ['life_ad22min2','life2_admin2']
+    # group2 = ['ask_admin','life_admin']
 
     # 待添加进用户组的权限
     permissions = [
@@ -153,7 +153,7 @@ def group_init(request):
         '/api/life/switchknowing:POST',
         '/api/life/idcode:PUT',
         '/api/life/recordsearch:PUT',
-        '/api/life/studentleak:POST',
+        '/api/life/studentleak:PUT',
     ]
 
     # 用户组
@@ -166,8 +166,9 @@ def group_init(request):
         '19510144',
     ]
 
-    # expand_permission.group_init(group2)
-    expand_permission.group_add_user(name,users)
+    # expand_permission.group_init(name)
+    # expand_permission.group_add_permission(name,permissions)
+    # expand_permission.group_add_user(name,users)
 
     return JsonResponse(2000,safe=False)
 

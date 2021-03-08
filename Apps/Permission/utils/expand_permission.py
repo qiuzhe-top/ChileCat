@@ -186,3 +186,4 @@ def group_add_user(group,users):
     '''用户组添加一组用户'''
     v = User.objects.filter(username__in=users)
     Group.objects.get(name=group).user_set.add(*list(v))
+    v.update(is_staff=True)

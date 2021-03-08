@@ -31,13 +31,13 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if ENV_PROFILE == "production":   
-    # 生产环境
-    DEBUG = False
-else:
+if ENV_PROFILE == "DEVELOP":   
+    # 开发环境
     DEBUG = True
+else:
+    DEBUG = False
 
-
+print(ENV_PROFILE)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -98,13 +98,13 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-if ENV_PROFILE == "production":   
-    # 生产环境
-    db_url = "chilecat_1"
-else:
-    db_url = "chilecat_qiuzhe_test"
-    # db_url = "chilecat_1"
-
+# print(ENV_PROFILE,DEBUG)
+# if DEBUG:   
+#     # 开发环境
+#     db_url = "chilecat"
+# else:
+#     db_url = "chilecat_1"
+db_url = "chilecat"
 
 DATABASES = {
     'default': {

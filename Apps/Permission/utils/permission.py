@@ -14,7 +14,7 @@ class ApiPublicPermission(BasePermission):
         """
         只有拥有当前api权限的用户通过
         """
-        return True
+        # return True
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
 
