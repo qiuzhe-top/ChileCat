@@ -36,8 +36,8 @@ if ENV_PROFILE == "DEVELOP":
     DEBUG = True
 else:
     DEBUG = False
-
-print(ENV_PROFILE)
+DEBUG = True
+# print('环境',ENV_PROFILE)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -98,13 +98,11 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-# print(ENV_PROFILE,DEBUG)
-# if DEBUG:   
-#     # 开发环境
-#     db_url = "chilecat"
-# else:
-#     db_url = "chilecat_1"
-db_url = "chilecat"
+if DEBUG:   
+    # 开发环境
+    db_url = "chilecat"
+else:
+    db_url = "chilecat_1"
 
 DATABASES = {
     'default': {

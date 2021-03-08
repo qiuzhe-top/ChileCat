@@ -46,30 +46,20 @@ def get_obj(app, object_name, name):
 def init_api_permissions():
     """
     根据当前URL路由自动初始化API权限
+    is_auth ： 公共接口是否需要登录
     """
     method = {'get', 'post', 'put', 'delete'}
     method_no = method.union({'', None})
     url_dic = get_all_url_dict()
+    api_lisst = []
     for key, value in url_dic.items():
-        # TODO 添加环节
         for item in method:
             url = key + ':' + item.upper()
             name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
             is_auth = '*' + item in value
-            is_verify = True if is_auth else item in value
-            add_api_permission(url, name, is_verify,is_auth)
-            # print(url,name,is_verify,is_auth)
-        # name = v[0]
-        # if name in method or name in ['',None]:
-        #     name = k
-        # if len(v)>0:
-        #     method_public = method.intersection(set(v))
-        #     for item in method:
-        #         flag = item in method_public
-        #         add_api_permission(k+':'+item.upper(),name,flag)
-        # else:
-        #     for item in method:
-        #         add_api_permission(k+':'+item.upper(),'',False)
+            n = 1 if is_auth else 2 if item in value and len(value)>0 else 3
+            api_lisst.append([url,name,n])
+    add_api_permission(api_lisst)
 
 def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
     """
@@ -130,13 +120,14 @@ def add_permission(content_type, codename, name):
     )
 
 
-def add_api_permission(codename, name, is_verify,is_auth):
+def add_api_permission(api_lisst):
     """
     添加接口权限
     """
     content_type = ContentType.objects.get_for_model(ApiPermission)
-    permission, flag = add_permission(content_type, codename, name)
-    ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': is_verify,'is_auth': is_auth})
+    for i in api_lisst:
+        permission = add_permission(content_type, i[0], i[1])[0]
+        ApiPermission.objects.update_or_create(permission=permission, defaults={'is_verify': i[2]})
 
 
 def clean_api_permission():

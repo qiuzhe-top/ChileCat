@@ -40,8 +40,8 @@ class ApiPermissionTeleAdmin(admin.ModelAdmin):
     def codename(self,obj):
         return obj.permission.codename
         
-    list_display = ("id","codename","permission",'is_verify','is_auth')
-    list_filter = ('is_verify', 'is_auth', ) 
+    list_display = ("id","codename","permission",'is_verify')
+    list_filter = ('is_verify', ) 
 
 @admin.register(ElementPermission)
 class ElementPermissionTeleAdmin(admin.ModelAdmin):

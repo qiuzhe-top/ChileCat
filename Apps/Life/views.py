@@ -185,7 +185,17 @@ class StudentLeak(APIView):
             'code': 0000,
             'message': "default message",
         }
-        leak.Leak(self.request).submit()
+        try:
+            leak.Leak(self.request).submit()
+        except TimeActivityException as e:
+            ret['code'] = 4000
+            ret['message'] = "活动未开启"
+            return JsonResponse(ret)
+        except VerificationCodeException as e:
+            ret['code'] = 4000
+            ret['message'] = "验证码身份过期"
+            return JsonResponse(ret)
+
         ret['code'] = 2000
         ret['message'] = "提交成功"
         return JsonResponse(ret)

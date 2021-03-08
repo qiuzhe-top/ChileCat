@@ -4,19 +4,14 @@ from django.contrib.auth.models import Permission
 
 
 # Create your models here.
-
 class ApiPermission(models.Model):
     """接口访问权限"""
-
-    is_verify = models.BooleanField(verbose_name="接口类型", choices=(
-        (False, "权限接口"),
-        (True, "公开接口"),
+    is_verify = models.IntegerField(verbose_name=u'接口类型', choices=(
+        (1, "公开须登录"),
+        (2, "公开"),
+        (3, "权限"),
     ), default=False)
     
-    is_auth = models.BooleanField(verbose_name="登录验证",choices=(
-        (False,"不验证"),
-        (True,"验证"),
-    ))
     permission = models.OneToOneField(
         Permission, on_delete=models.CASCADE,
         verbose_name="权限",

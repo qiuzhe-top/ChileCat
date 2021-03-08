@@ -25,10 +25,9 @@ class ApiPublicPermission(BasePermission):
         auth_error = '用户认证失败'
         
         # 白名单功能
-        api_per = Permission.objects.filter(codename=url_permission, api_permission__is_verify=True)
+        api_per = Permission.objects.filter(codename=url_permission, api_permission__is_verify__in=[1,2])
         if api_per.exists():
-            print(api_per[0].api_permission.is_auth)
-            if api_per[0].api_permission.is_auth:
+            if api_per[0].api_permission.is_verify==1:
                 if request.user == AnonymousUser:
                     self.message = auth_error
                     return False

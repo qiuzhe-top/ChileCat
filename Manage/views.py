@@ -161,9 +161,7 @@ def group_init(request):
 
     # 用户
     users = [
-        '19510146',
-        '19510145',
-        '19510144',
+        '19510140',
     ]
 
     # expand_permission.group_init(name)
