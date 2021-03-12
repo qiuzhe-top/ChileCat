@@ -3,12 +3,11 @@
 from collections import OrderedDict
 from django.utils.module_loading import import_string
 from django.urls.resolvers import URLResolver, URLPattern
-from django.contrib.auth.models import Permission,Group
+from django.contrib.auth.models import User, Permission,Group
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from rest_framework.views import exception_handler
 from Apps.Permission.models import ApiPermission, OperatePermission
-from django.contrib.auth.models import User
 
 # from django.shortcuts import get_object_or_404
 # 自定义认证错误时的返回格式
@@ -178,3 +177,8 @@ def group_add_user(group,users):
     v = User.objects.filter(username__in=users)
     Group.objects.get(name=group).user_set.add(*list(v))
     v.update(is_staff=True)
+
+def group_clean(group_name):
+    #用户组中所有用户退出组
+    group = Group.objects.get(name=group_name)
+    group.user_set.clear()

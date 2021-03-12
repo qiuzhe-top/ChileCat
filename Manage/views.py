@@ -120,7 +120,8 @@ class ApiPer(APIView):
     def get(self, request):
         """test"""
         ret = {'message': 'message', 'code': 2000}
-        expand_permission.init_api_permissions()
+        
+        expand_permission.group_clean('life_admin')
         return JsonResponse(ret)
 
 

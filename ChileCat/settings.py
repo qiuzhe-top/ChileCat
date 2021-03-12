@@ -33,6 +33,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 if ENV_PROFILE == "DEVELOP":   
     # 开发环境
+    print('开发环境启动')
     DEBUG = True
 else:
     DEBUG = False
