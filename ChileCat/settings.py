@@ -33,12 +33,9 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 if ENV_PROFILE == "DEVELOP":   
     # 开发环境
-    print('开发环境启动')
     DEBUG = True
 else:
     DEBUG = False
-DEBUG = True
-# print('环境',ENV_PROFILE)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -101,9 +98,9 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 if DEBUG:   
     # 开发环境
-    db_url = "chilecat"
+    db_url = "chilecat_test"
 else:
-    db_url = "chilecat_1"
+    db_url = "ChileCat"
 
 DATABASES = {
     'default': {
@@ -112,8 +109,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': db_url,
         'USER': 'root',
-        'PASSWORD': '314418',
-        'HOST': '47.111.1.18',
+        # 'PASSWORD': '314418',
+        # 'HOST': '47.111.1.18',
+        'PASSWORD': 'zhou24272592',
+        'HOST': '47.100.95.58',
         'PORT': '3306'
     }
 }

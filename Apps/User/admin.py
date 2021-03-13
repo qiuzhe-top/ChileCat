@@ -72,11 +72,15 @@ class TpostTeleAdmin(admin.ModelAdmin):
 @admin.register(models.WholeGrade)
 class WholeGradeTeleAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name')
+    
+@admin.register(models.Activity)
+class ActivityTeleAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title','types','phone','last_time')
 
 
 @admin.register(models.UserMood)
 class UserMoodTeleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mod_level', 'message', 'user', 'Grade', 'date')
+    list_display = ('id', 'mod_level', 'message', 'user', 'Grade','created_time')
     search_fields = ('user', 'Grade', 'mod_level')  # 添加快速查询栏
 
     def func(self, request, queryset):

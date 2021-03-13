@@ -7,6 +7,15 @@ class GradeSerializer(serializers.ModelSerializer):
         model = models.Grade
         fields = ('id', 'name')
 
+class ActiveitySerializer(serializers.ModelSerializer):
+    """
+    活动打卡
+    """
+    class Meta:
+        model = models.Activity
+        fields = "__all__"
+
+
 
 class TeacherForGradeSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='grade.id')

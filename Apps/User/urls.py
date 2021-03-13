@@ -8,6 +8,7 @@ urlpatterns = [
     path('class', views.ClassList.as_view(), name='ClassList'),
     path('bindwx', views.BindVx.as_view(), name='BindVx'),
     path('mymood', views.MoodManage.as_view(), name='MoodManage'),
+    path('activeity', views.Activeity.as_view(), name='Activeity'),
     # path('validationToken', views.ValidationToken.as_view()),
 ]
 

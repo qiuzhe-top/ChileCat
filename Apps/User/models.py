@@ -188,13 +188,43 @@ class UserMood(models.Model):
     Grade = models.ForeignKey("Grade", on_delete=models.CASCADE, verbose_name=u'班级')
     created_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
 
-    def date(self):
-        """日期"""
-        return '666'
+    # def date(self):
+    #     """日期"""
+    #     return '666'
 
     # 设置方法字段在admin中显示的标题
-    date.short_description = '发布日期'
+    # date.short_description = '发布日期'
 
     class Meta:
         verbose_name = "心情监测表"
         verbose_name_plural = "心情监测表"
+
+class Activity(models.Model):
+    """
+    活动打卡
+    """
+    GENDER_CHOICES = (
+        (u'1', u'课外技能'),
+        (u'2', u'思想培养'),
+        (u'3', u'技能竞技'),
+    )
+    GENDER_CHOICES2 = (
+        (u'1', u'报名中'),
+        (u'2', u'进行中'),
+        (u'3', u'活动结束'),
+    )
+    
+    title = models.CharField(max_length=128, verbose_name=u'活动名称')
+    types = models.CharField(max_length=10, choices=GENDER_CHOICES, verbose_name=u'活动类型')
+    state = models.CharField(max_length=10, choices=GENDER_CHOICES2, verbose_name=u'活动状态')
+    phone = models.CharField(max_length=124, verbose_name=u'电话')
+    email = models.CharField(max_length=30, verbose_name=u'邮箱')
+    address = models.CharField(max_length=50, verbose_name=u'活动地址')
+    people_number = models.IntegerField(default=0, verbose_name=u'报名人数')
+    apply_number = models.IntegerField(default=0, verbose_name=u'活动人数')
+    message = models.TextField(verbose_name=u'活动简介')
+    star_time = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    last_time = models.DateTimeField(auto_now=True,verbose_name=u'最后修改日期')
+    class Meta:
+        verbose_name = "活动打卡"
+        verbose_name_plural = "活动打卡"

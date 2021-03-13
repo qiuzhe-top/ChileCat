@@ -187,3 +187,14 @@ class MoodManage(APIView):
         ret['code'] = 2000
         print(ret)
         return JsonResponse(ret)
+
+class Activeity(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        id = request.data.get('id', None)
+        act_list = models.Activity.objects.all()
+        datas = ser.ActiveitySerializer(instance=act_list,many=True).data
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = datas
+        return JsonResponse(ret)
