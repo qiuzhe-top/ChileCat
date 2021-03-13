@@ -98,21 +98,20 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 if DEBUG:   
     # 开发环境
-    db_url = "chilecat_test"
+    db_url = "ChileCat_test"
+    HOST = '47.100.95.58'
 else:
     db_url = "ChileCat"
+    HOST = '127.0.0.1'
+
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': str(os.path.join(BASE_DIR, "db.sqlite3"))
         'ENGINE': 'django.db.backends.mysql',
         'NAME': db_url,
         'USER': 'root',
-        # 'PASSWORD': '314418',
-        # 'HOST': '47.111.1.18',
         'PASSWORD': 'zhou24272592',
-        'HOST': '47.100.95.58',
+        'HOST': HOST,
         'PORT': '3306'
     }
 }

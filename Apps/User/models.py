@@ -215,6 +215,7 @@ class Activity(models.Model):
     )
     
     title = models.CharField(max_length=128, verbose_name=u'活动名称')
+    url = models.CharField(max_length=1024, verbose_name=u'活动图片')
     types = models.CharField(max_length=10, choices=GENDER_CHOICES, verbose_name=u'活动类型')
     state = models.CharField(max_length=10, choices=GENDER_CHOICES2, verbose_name=u'活动状态')
     phone = models.CharField(max_length=124, verbose_name=u'电话')

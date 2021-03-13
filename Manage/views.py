@@ -121,7 +121,8 @@ class ApiPer(APIView):
         """test"""
         ret = {'message': 'message', 'code': 2000}
         
-        expand_permission.group_clean('life_admin')
+        # expand_permission.group_clean('life_admin')
+        expand_permission.init_api_permissions()
         return JsonResponse(ret)
 
 

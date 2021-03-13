@@ -11,6 +11,12 @@ class ActiveitySerializer(serializers.ModelSerializer):
     """
     活动打卡
     """
+    types = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+    def get_types(self, obj):
+        return obj.get_types_display()
+    def get_state(self, obj):
+        return obj.get_state_display()
     class Meta:
         model = models.Activity
         fields = "__all__"

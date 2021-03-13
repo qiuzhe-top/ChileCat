@@ -189,9 +189,19 @@ class MoodManage(APIView):
         return JsonResponse(ret)
 
 class Activeity(APIView):
+
+    API_PERMISSIONS = ['活动','get']
     def get(self, request, *args, **kwargs):
         ret = {}
-        id = request.data.get('id', None)
+        id = request.GET.get('id',None)
+
+        if id:
+            obj = models.Activity.objects.get(id = id)
+            data = ser.ActiveitySerializer(instance=obj,many=False).data
+            ret['code'] = 2000
+            ret['data'] = data
+            return JsonResponse(ret)
+
         act_list = models.Activity.objects.all()
         datas = ser.ActiveitySerializer(instance=act_list,many=True).data
         ret['message'] = 'message'
