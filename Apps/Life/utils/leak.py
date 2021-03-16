@@ -1,8 +1,9 @@
 """学生缺勤"""
-import datetime
+import datetime,time
 from Apps.Life.models import Manage, Room, StuInRoom, TaskRecord, User, RoomHistory
 from Apps.Life.utils.exceptions import *
 from Apps.Life.ser import TaskRecordAntiSerializer, TaskRecordSerializer
+import json
 
 
 class Leak(object):
@@ -18,9 +19,38 @@ class Leak(object):
         """缺勤查询"""
         if not date:
             date = datetime.date.today()
-        data = TaskRecord.objects.filter(flag="0", created_time__date=date)
-
-        return TaskRecordSerializer(instance=data, many=True).data
+        s = time.time()
+        data = TaskRecord.objects.filter(flag='0',created_time__date = date).extra(select={
+            "created_time": "DATE_FORMAT(created_time, '%%Y-%%m-%%d %%H:%%i:%%s')",
+            "last_modify_time": "DATE_FORMAT(last_modify_time, '%%Y-%%m-%%d %%H:%%i:%%s')",
+            }).values(
+            'id',
+            'student_approved__studentinfo__grade__name',
+            'room__name',
+            'student_approved__username',
+            'student_approved__userinfo__name',
+            'reason',
+            'worker__userinfo__name',
+            'created_time',
+            'flag',
+            'room__floor__building__name',
+            'room__floor__name',
+            )
+        
+        fields = []
+        for obj in data:
+            field = {}
+            field['id'] = obj['id']
+            field['classname'] = obj['student_approved__studentinfo__grade__name']
+            field['room_name'] = obj['room__floor__building__name'] + '#' +  obj['room__floor__name'] + obj['room__name']
+            field['student'] = obj['student_approved__username']
+            field['student_name'] = obj['student_approved__userinfo__name']
+            field['reason'] = obj['reason']
+            field['worker_name'] = obj['worker__userinfo__name']
+            field['created_time'] = obj['created_time']
+            field['flag'] = obj['flag']
+            fields.append(field)
+        return fields
 
     def cancel(self):
         """销假"""

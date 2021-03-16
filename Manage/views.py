@@ -122,7 +122,8 @@ class ApiPer(APIView):
         ret = {'message': 'message', 'code': 2000}
         
         # expand_permission.group_clean('life_admin')
-        expand_permission.init_api_permissions()
+        # expand_permission.user_admin_clean(['19510144','19510143'])
+        # expand_permission.init_api_permissions()
         return JsonResponse(ret)
 
 
@@ -168,7 +169,7 @@ def group_init(request):
 
     # expand_permission.group_init(name)
     # expand_permission.group_add_permission(name,permissions)
-    # expand_permission.group_add_user(name,users)
+    expand_permission.group_add_user(name,users)
 
     return JsonResponse(2000,safe=False)
 

@@ -182,3 +182,8 @@ def group_clean(group_name):
     #用户组中所有用户退出组
     group = Group.objects.get(name=group_name)
     group.user_set.clear()
+
+def user_admin_clean(user_list):
+    '''清空用户admin标识'''
+    for item in user_list:
+        User.objects.filter(username=item).update(is_staff=False)
