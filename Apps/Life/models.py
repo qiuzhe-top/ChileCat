@@ -113,6 +113,28 @@ class RoomHistory(models.Model):
         """Unicode representation of RoomHistory."""
         return self.room.floor.building.name + self.room.floor.name + self.room.name
 
+class PunishmentSort(models.Model):
+    name = models.CharField(max_length=20, verbose_name=u'名称')
+    message = models.CharField(max_length=20, verbose_name=u'描述')
+    
+    class Meta:
+        """Meta definition for TaskRecord."""
+
+        verbose_name = '扣分总类'
+        verbose_name_plural = '扣分总类'
+class PunishmentDetails(models.Model):
+    name = models.CharField(max_length=20, verbose_name=u'名称')
+    score = models.IntegerField(verbose_name=u'分值')
+    is_person = models.BooleanField(verbose_name=u'是否个人有效')
+    # child = models.ForeignKey(to='self',on_delete=models.CASCADE,null=True, blank=True,verbose_name=u'父规则')
+    sort = models.ForeignKey('PunishmentSort',on_delete=models.CASCADE,verbose_name=u'父类')
+    
+    
+    class Meta:
+        """Meta definition for TaskRecord."""
+
+        verbose_name = '扣分规则'
+        verbose_name_plural = '扣分规则'
 
 class TaskRecord(models.Model):
     """任务记录(指被查到不在寝室的)"""
@@ -124,7 +146,11 @@ class TaskRecord(models.Model):
         User, on_delete=models.CASCADE,
         verbose_name="被执行者", related_name="stu_approved"
     )
-    reason = models.CharField(max_length=200, verbose_name="原因")
+
+    # reason = models.CharField(max_length=200, verbose_name="原因")
+    
+    reason = models.ForeignKey("PunishmentDetails",on_delete=models.CASCADE,related_name="task",verbose_name="原因")
+
     flag = models.CharField(max_length=20, verbose_name="是否归寝")
     created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
     last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
