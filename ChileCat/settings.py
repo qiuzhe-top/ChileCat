@@ -98,8 +98,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 if DEBUG:   
     # 开发环境
-    db_url = "ChileCat_liuhai"
-    # db_url = "ChileCat"
+    db_url = "ChileCat_test"
     HOST = '47.100.95.58'
 else:
     db_url = "ChileCat"
