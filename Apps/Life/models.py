@@ -3,6 +3,7 @@ Life数据库模型
 """
 from django.db import models
 from django.contrib.auth.models import User
+from Apps.User.models import College, Grade
 
 
 # Create your models here.
@@ -114,28 +115,31 @@ class RoomHistory(models.Model):
         return self.room.floor.building.name + self.room.floor.name + self.room.name
 
 class PunishmentSort(models.Model):
-    name = models.CharField(max_length=20, verbose_name=u'名称')
-    message = models.CharField(max_length=20, verbose_name=u'描述')
+    name = models.CharField(max_length=30, verbose_name=u'名称')
+    message = models.CharField(max_length=100,null=True, blank=True,verbose_name=u'描述')
     
     class Meta:
         """Meta definition for TaskRecord."""
 
-        verbose_name = '扣分总类'
-        verbose_name_plural = '扣分总类'
+        verbose_name = '规则一级分类'
+        verbose_name_plural = '规则一级分类'
+    def __str__(self):
+        return self.name
 class PunishmentDetails(models.Model):
     name = models.CharField(max_length=20, verbose_name=u'名称')
-    score = models.IntegerField(verbose_name=u'分值')
+    score = models.IntegerField(verbose_name=u'分值',null=True, blank=True)
     is_person = models.BooleanField(verbose_name=u'是否个人有效')
-    # child = models.ForeignKey(to='self',on_delete=models.CASCADE,null=True, blank=True,verbose_name=u'父规则')
+    child = models.ForeignKey(to='self',on_delete=models.CASCADE,null=True, blank=True,verbose_name=u'自关联')
     sort = models.ForeignKey('PunishmentSort',on_delete=models.CASCADE,verbose_name=u'父类')
     
     
     class Meta:
         """Meta definition for TaskRecord."""
 
-        verbose_name = '扣分规则'
-        verbose_name_plural = '扣分规则'
-
+        verbose_name = '规则二级分类'
+        verbose_name_plural = '规则二级分类'
+    def __str__(self):
+        return self.name
 class TaskRecord(models.Model):
     """任务记录(指被查到不在寝室的)"""
     worker = models.ForeignKey(
@@ -146,17 +150,13 @@ class TaskRecord(models.Model):
         User, on_delete=models.CASCADE,
         verbose_name="被执行者", related_name="stu_approved"
     )
-
-    # reason = models.CharField(max_length=200, verbose_name="原因")
-    
-    reason = models.ForeignKey("PunishmentDetails",on_delete=models.CASCADE,related_name="task",verbose_name="原因")
-
-    flag = models.CharField(max_length=20, verbose_name="是否归寝")
-    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
-    last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE,
         related_name="task_room", verbose_name="寝室号"
+    )
+    grade = models.ForeignKey(
+        Grade, on_delete=models.CASCADE,
+        related_name="grade", verbose_name="班级"
     )
     manager = models.ForeignKey(
         User, on_delete=models.CASCADE,
@@ -164,6 +164,14 @@ class TaskRecord(models.Model):
         verbose_name="销假人",
         related_name="销假人"
     )
+
+    score = models.CharField(max_length=10, null=True, blank=True, verbose_name="分值")
+    
+    reason = models.ForeignKey("PunishmentDetails",on_delete=models.CASCADE,related_name="task",verbose_name="原因")
+
+    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
+    last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
+    
 
     class Meta:
         """Meta definition for TaskRecord."""
@@ -181,10 +189,18 @@ class TaskRecord(models.Model):
 
 
 class Manage(models.Model):
-    """Model definition for Manage."""
-    generate_time = models.DateField(auto_now=False, auto_now_add=False, verbose_name="验证码生成时间")
+    """考勤任务管理"""
+    GENDER_CHOICES = (
+        (u'dorm', u'查寝'),
+        (u'health', u'查卫生'),
+        (u'evening_study', u'晚自修'),
+    )
+    
+    types = models.CharField(max_length=20, choices=GENDER_CHOICES, verbose_name=u'任务类型')
+    console_code = models.CharField(max_length=2, verbose_name="是否开启")
+    college  = models.ForeignKey(College,on_delete=models.CASCADE,verbose_name=u'分院')
     verification_code = models.CharField(max_length=50, verbose_name="验证码")
-    console_code = models.CharField(max_length=50, verbose_name="类型")
+    generate_time = models.DateField(auto_now=False, auto_now_add=False, verbose_name="验证码生成时间")
 
     class Meta:
         """Meta definition for Manage."""

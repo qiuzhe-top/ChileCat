@@ -1,9 +1,5 @@
 from django.contrib import admin
-from .models import (
-    Room, Building, Floor, StuInRoom,
-    RoomHistory, TaskRecord, Manage
-)
-
+from .models import *
 
 # Register your models here.
 @admin.register(Room)
@@ -49,10 +45,10 @@ class RoomHistoryTeleAdmin(admin.ModelAdmin):
 class TaskRecordTeleAdmin(admin.ModelAdmin):
     """任务记录(被查)"""
     list_display = (
-        "id", "worker", "student_approved", "reason", "flag"
+        "id", "worker", "student_approved", "reason"
         , "created_time", "last_modify_time", "manager",
     )
-    list_filter = ('reason', 'flag', 'created_time') 
+    # list_filter = ('reason', 'flag', 'created_time') 
 
 
 @admin.register(Manage)
@@ -60,4 +56,16 @@ class ManageRecordTeleAdmin(admin.ModelAdmin):
     """任务记录(被查)"""
     list_display = (
         "id", "generate_time", "verification_code", "console_code"
+    )
+@admin.register(PunishmentDetails)
+class PunishmentDetailsTeleAdmin(admin.ModelAdmin):
+    """规则一级分类"""
+    list_display = (
+        "id","name"
+    )
+@admin.register(PunishmentSort)
+class PunishmentSortTeleAdmin(admin.ModelAdmin):
+    """规则二级分类"""
+    list_display = (
+        "id","name","message"
     )
