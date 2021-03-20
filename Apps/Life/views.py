@@ -8,22 +8,26 @@ import xlwt
 import time
 from io import BytesIO
 from datetime import date
-from Apps.Life import ser
-from Apps.Life.utils import dormitory, activities, leak
-from Apps.Life.utils.exceptions import *
+from ..Life import ser
+from ..Life.utils import dormitory, activities, leak
+from ..Life.utils.exceptions import *
 from rest_framework.views import APIView
 from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from .models import TaskRecord
+from ..Attendance.models import TaskRecord
+from ..Attendance.Entity import dormitory_evening_check
+from ..Attendance.Entity.entity_operate import AttendanceActivityControl
+from ..Attendance.Entity.exceptions import *
 from django.contrib.auth.models import AnonymousUser, User
 
 
 class SwitchKnowing(APIView):
     """全局开关,控制查寝活动能否进行"""
-    API_PERMISSIONS = ['查寝开关','get']
+    API_PERMISSIONS = ['查寝开关', 'get']
     activity = activities.ActivityControl()
+    activity_1 = AttendanceActivityControl(1)
 
     def get(self, request):
         """获取当前是否开启活动"""
@@ -34,6 +38,7 @@ class SwitchKnowing(APIView):
         }
 
         flag = self.activity.get_status()
+        flag = self.activity_1.get_status()
         ret['code'] = 2000
         ret['message'] = "状态获取成功"
         ret['data'] = flag
@@ -41,7 +46,7 @@ class SwitchKnowing(APIView):
 
     def post(self, request):
         """切换活动状态(开/关)"""
-        ret = {'code': 2000, 'message': "切换成功", 'data': self.activity.switch()}
+        ret = {'code': 2000, 'message': "切换成功", 'data': self.activity_1.switch()}
         return JsonResponse(ret)
 
     def put(self, request):
@@ -50,7 +55,8 @@ class SwitchKnowing(APIView):
             'code': 0000,
             'message': "default message"
         }
-        self.activity.initialization()
+        # self.activity.initialization()
+        DormitoryEveningCheck(1).initialization()
         ret['code'] = 2000
         ret['message'] = "状态重置成功"
         return JsonResponse(ret)
@@ -59,24 +65,18 @@ class SwitchKnowing(APIView):
 class VerificationCode(APIView):
     """获取验证码 url:/api/life/idcode"""
 
-    API_PERMISSIONS = ['工作验证码','get','post']
+    API_PERMISSIONS = ['工作验证码', 'get', 'post']
     activity = activities.ActivityControl()
+    activity_1 = AttendanceActivityControl(1)
 
     def get(self, request):
         """获取"""
-        ret = {'code': 0000, 'message': "default message", 'data': None}
-        try:
-            ret['data'] = self.activity.get_verification_code()
-            ret['code'] = 2000
-            ret['message'] = "获取成功"
-        except TimeVerificationCodeException as act_error:
-            ret['code'] = 4000
-            ret['message'] = str(act_error)
+        ret = {'code': 2000, 'message': "获取成功", 'data': self.activity_1.get_verification_code()}
         return JsonResponse(ret)
 
     def put(self, request):
         """生成验证码"""
-        ret = {'code': 2000, 'message': "生成验证码成功", 'data': self.activity.generate_verification_code()[0]}
+        ret = {'code': 2000, 'message': "生成验证码成功", 'data': self.activity_1.generate_verification_code()[0]}
         return JsonResponse(ret)
 
     def post(self, request):
@@ -87,22 +87,21 @@ class VerificationCode(APIView):
         }
         req_list = self.request.data
         req_id_code = req_list.get('idcode', -1)
-        try:
-            self.activity.verify(req_id_code)
+        if self.activity_1.verify(req_id_code):
             ret['code'] = 2000
             ret['message'] = "验证成功"
-        except VerificationCodeException as code_error:
+        else:
             ret['code'] = 4000
-            ret['message'] = str(code_error)
+            ret['message'] = "验证失败"
         return JsonResponse(ret)
 
 
 class BuildingInfo(APIView):
     """获取楼号,包括层号"""
 
-    API_PERMISSIONS = ['楼层号','get']
+    API_PERMISSIONS = ['楼层号', 'get']
 
-    def get(self,request):
+    def get(self, request):
         """获取楼号"""
         ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info()}
         return JsonResponse(ret)
@@ -114,9 +113,8 @@ class RoomInfo(APIView):
     需要参数:
         id,层号
     """
-    
-    API_PERMISSIONS = ['房间信息','get']
 
+    API_PERMISSIONS = ['房间信息', 'get']
 
     def get(self, request):
         """获取房间信息"""
@@ -143,8 +141,9 @@ class StudentPositionInfo(APIView):
     需要前端给门号
         id
     """
-  
-    API_PERMISSIONS = ['寝室学生信息','get']
+
+    API_PERMISSIONS = ['寝室学生信息', 'get']
+
     def get(self, request):
         """拉取房间每个人的位置"""
         ret = {
@@ -178,8 +177,9 @@ class StudentLeak(APIView):
     销假不在这里进行,故不设置
     para: id,why,roomid
     """
-   
-    API_PERMISSIONS = ['学生缺勤','*post']
+
+    API_PERMISSIONS = ['学生缺勤', '*post']
+
     def post(self, request):
         """缺勤提交"""
         ret = {
@@ -187,18 +187,15 @@ class StudentLeak(APIView):
             'message': "default message",
         }
         try:
-            leak.Leak(self.request).submit()
-        except TimeActivityException as e:
+            dormitory_evening_check.DormitoryEveningCheck(1).leak_submit(self.request.data)
+            ret['code'] = 2000
+            ret['message'] = "提交成功"
+        except ActivityException as e:
             ret['code'] = 4000
-            ret['message'] = "活动未开启"
-            return JsonResponse(ret)
-        except VerificationCodeException as e:
+            ret['message'] = str(e)
+        except ActivityInitialization as e:
             ret['code'] = 4000
-            ret['message'] = "验证码身份过期"
-            return JsonResponse(ret)
-
-        ret['code'] = 2000
-        ret['message'] = "提交成功"
+            ret['message'] = str(e)
         return JsonResponse(ret)
 
     def put(self, request):
@@ -218,21 +215,20 @@ class StudentLeak(APIView):
 
 class RecordSearch(APIView):
     """记录查询返回所有缺勤记录"""
-    
-  
-    API_PERMISSIONS = ['缺勤公告','get']
+
+    API_PERMISSIONS = ['缺勤公告', 'get']
 
     def get(self, request):
         """不给日期默认今天"""
         search_date = self.request.data.get('date')
-        ret = {'code': 2000, 'message': "查询成功", 'data': leak.Leak.today_leaks(search_date)}
+        ret = {'code': 2000, 'message': "查询成功", 'data': DormitoryEveningCheck.today_leaks(search_date)}
         return JsonResponse(ret)
 
 
 class ExportExcel(APIView):
     """导出excel """
- 
-    API_PERMISSIONS = ['查寝Excel记录','get']
+
+    API_PERMISSIONS = ['查寝Excel记录', 'get']
 
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""

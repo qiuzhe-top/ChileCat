@@ -1,9 +1,11 @@
 """学生缺勤"""
-import datetime,time
-from Apps.Life.models import Manage, Room, StuInRoom, TaskRecord, User, RoomHistory
+import datetime
+import time
+
+from Apps.Attendance.models import Manage, TaskRecord
+from Apps.Life.models import Room, StuInRoom, User, RoomHistory
+from Apps.Life.ser import TaskRecordAntiSerializer
 from Apps.Life.utils.exceptions import *
-from Apps.Life.ser import TaskRecordAntiSerializer, TaskRecordSerializer
-import json
 
 
 class Leak(object):
@@ -20,10 +22,10 @@ class Leak(object):
         if not date:
             date = datetime.date.today()
         s = time.time()
-        data = TaskRecord.objects.filter(flag='0',created_time__date = date).extra(select={
+        data = TaskRecord.objects.filter(flag='0', created_time__date=date).extra(select={
             "created_time": "DATE_FORMAT(created_time, '%%Y-%%m-%%d %%H:%%i:%%s')",
             "last_modify_time": "DATE_FORMAT(last_modify_time, '%%Y-%%m-%%d %%H:%%i:%%s')",
-            }).values(
+        }).values(
             'id',
             'student_approved__studentinfo__grade__name',
             'room__name',
@@ -35,20 +37,16 @@ class Leak(object):
             'flag',
             'room__floor__building__name',
             'room__floor__name',
-            )
-        
+        )
+
         fields = []
         for obj in data:
-            field = {}
-            field['id'] = obj['id']
-            field['classname'] = obj['student_approved__studentinfo__grade__name']
-            field['room_name'] = obj['room__floor__building__name'] + '#' +  obj['room__floor__name'] + obj['room__name']
-            field['student'] = obj['student_approved__username']
-            field['student_name'] = obj['student_approved__userinfo__name']
-            field['reason'] = obj['reason']
-            field['worker_name'] = obj['worker__userinfo__name']
-            field['created_time'] = obj['created_time']
-            field['flag'] = obj['flag']
+            field = {'id': obj['id'], 'classname': obj['student_approved__studentinfo__grade__name'],
+                     'room_name': obj['room__floor__building__name'] + '#' + obj['room__floor__name'] + obj[
+                         'room__name'], 'student': obj['student_approved__username'],
+                     'student_name': obj['student_approved__userinfo__name'], 'reason': obj['reason'],
+                     'worker_name': obj['worker__userinfo__name'], 'created_time': obj['created_time'],
+                     'flag': obj['flag']}
             fields.append(field)
         return fields
 

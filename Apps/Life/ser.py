@@ -1,24 +1,20 @@
 """序列化取出表内数据"""
 from rest_framework import serializers
-from .models import TaskRecord
+from Apps.Attendance.models import TaskRecord
 import datetime
 
 
 class TaskRecordSerializer(serializers.ModelSerializer):
     """查寝记录数据的序列化"""
     classname = serializers.CharField(source='student_approved.studentinfo.grade.name')
-    room_name = serializers.SerializerMethodField()
     student = serializers.CharField(source='student_approved.username')
     student_name = serializers.CharField(source='student_approved.userinfo.name')
     worker_name = serializers.CharField(source='worker.userinfo.name')
 
-    def get_room_name(self, obj):
-        """自定义寝室号格式"""
-        return obj.room.floor.building.name + "-" + obj.room.floor.name + obj.room.name
 
     class Meta:
         model = TaskRecord
-        fields = ('id', 'classname', 'room_name', 'student', 'student_name', 'reason', 'worker_name', 'created_time')
+        fields = ('id', 'classname', 'room_str', 'student', 'student_name', 'reason', 'worker_name', 'created_time')
 
 
 class TaskRecordAntiSerializer(serializers.ModelSerializer):

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'Apps.User',
     'Apps.Career',
     'Apps.Life',
+    'Apps.Attendance',
     'Apps.Permission',
     'Manage',
     'corsheaders',

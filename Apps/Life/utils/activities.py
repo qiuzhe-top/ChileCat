@@ -2,7 +2,8 @@
 import math
 import random
 import datetime
-from Apps.Life.models import Room, StuInRoom, Manage
+from Apps.Life.models import Room, StuInRoom
+from Apps.Attendance.models import Manage
 from .exceptions import *
 
 
@@ -23,7 +24,7 @@ class ActivityControl(object):
         """获取验证码"""
         today = datetime.date.today()
         flag = self.get_flag()
-        
+
         if flag.generate_time == today:
             return flag.verification_code
         else:
