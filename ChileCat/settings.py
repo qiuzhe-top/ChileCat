@@ -98,13 +98,13 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 if DEBUG:   
     # 开发环境
-    print('开发环境')
     db_url = "ChileCat_qiuzhe"
     HOST = '47.100.95.58'
 else:
     db_url = "ChileCat"
     HOST = '127.0.0.1'
 
+print('DEBUG:',DEBUG,'当前数据库名称:',db_url)
 
 DATABASES = {
     'default': {
