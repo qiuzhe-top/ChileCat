@@ -12,6 +12,7 @@ from Apps.Permission.models import *
 # from django.contrib.contenttypes.models import ContentType
 # from docxtpl import DocxTemplate
 from .tests import *
+
 # from rest_framework.authtoken.models import Token
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,38 @@ class Test(APIView):
         #     UserInfo.objects.get_or_create(user=teacher, name=grade_name+"班老师", identity="teacher")
         #     print(TeacherForGrade.objects.get_or_create(user=teacher, grade=grade))
         # import_stu_data("leaksfile//副本智慧交通学院学生寝室信息表（全).xlsx")
+        add_student("leaksfile//学生导入表.xlsx")
         return JsonResponse({"message": ""})
+
+
+def add_student(file):
+    """针对寝室导入表"""
+    work_book = load_workbook(file)
+    log = open(file + ".log", "w")
+    for sheet in work_book:
+        room_name = ""
+        for info in sheet.values:
+            print(info)
+            if info[0] == "寝室".strip():
+                continue
+            if info[0]:
+                room_name = str(info[0])[0:info[0].find("#") + 3 + 1]
+            name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[1]))).strip()
+            grade = str(info[2]).strip()
+            stu_id = str(info[3]).strip()
+            tel = str(info[4]).strip()
+            print(room_name, name, grade, stu_id, tel)
+            try:
+                user = User.objects.get_or_create(username=stu_id)
+                UserInfo.objects.get_or_create(user=user[0], name=name, tel=tel)
+                college = College.objects.get_or_create(name="智慧交通学院")
+                grade = Grade.objects.get_or_create(name=grade, college=college[0])
+                StudentInfo.objects.get_or_create(user=user[0], grade=grade[0])
+                put_stu_room(user[0], room_name, log)
+            except User.DoesNotExist:
+                print(name, grade, stu_id, tel)
+            except UserInfo.DoesNotExist:
+                print(name, grade, stu_id, tel)
 
 
 def put_stu_room(stu, room, log):
@@ -192,19 +224,25 @@ def group_init(request):
 
 def dormitory_exchange(request):
     ret = {'message': 'message', 'code': 2000}
-    b = Building.objects.get(name='2')
-    f = Floor.objects.get(name='4', building=b)
-    r5 = Room.objects.get(name='05', floor=f)
-    r6 = Room.objects.get_or_create(name='06', floor=f)
-    stu = StuInRoom.objects.filter(room=r5)
-    L = ['206530407', '206530408', '206530409']
-    for i in stu:
-        if i.student.username in L:
-            print(i.room, i.student.username)
-            i.room = r6[0]
-            i.save()
-            print(i, i.student.username)
-    import_stu_data("list.xlsx")
+    # 待调换的数据
+    data = {
+        '20653w213': ['3', '4', '22'],
+        '19530139': ['3', '3', '04'],
+        '19530116': ['3', '3', '03'],
+        '1853w115': ['3', '2', '14']
+    }
+    for item in data:
+        try:
+            user = User.objects.get(username=item)
+            # 新寝室
+            b = Building.objects.get(name=data[item][0])
+            f = Floor.objects.get(name=data[item][1], building=b)
+            r = Room.objects.get(name=data[item][2], floor=f)
+            print('学生：', user, '旧寝室：', user.stu_in_room.all()[0], '待换寝室：', r)
+            StuInRoom.objects.filter(student=user).update(room=r)
+        except:
+            print('调换失败', item)
+
     return JsonResponse(ret)
 
 

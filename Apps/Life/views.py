@@ -1,98 +1,12 @@
 """
 放置与寝室相关的活动
 """
-import datetime
-# import os
-# import xlwt
-# from io import BytesIO
-# from datetime import date
+
 from ..Life.utils import dormitory
 from ..Life.utils.exceptions import *
 from rest_framework.views import APIView
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-# from django.utils.encoding import escape_uri_path
-# from django.db.models import Q
-# from Apps.Activities.Attendance.models import TaskRecord
-# from Apps.Activities.Attendance.Entity import dormitory_evening_check, ser
-# from Apps.Activity.utils.activity_operate import AttendanceActivityControl
-# from Apps.Activity.utils.exceptions import *
-
-
-# 所有url必须传递现在进行的是什么活动
-# class SwitchKnowing(APIView):
-#     """全局开关,控制查寝活动能否进行"""
-#     API_PERMISSIONS = ['查寝开关', 'get']
-#
-#     def get(self, request):
-#         """获取当前是否开启活动"""
-#         ret = {
-#             'code': 0000,
-#             'message': "default message",
-#             'data': ""
-#         }
-#         flag = AttendanceActivityControl(self.request.query_params['act_id']).get_status()
-#         ret['code'] = 2000
-#         ret['message'] = "状态获取成功"
-#         ret['data'] = flag
-#         return JsonResponse(ret)
-#
-#     def post(self, request):
-#         """切换活动状态(开/关)"""
-#         ret = {
-#             'code': 2000, 'message': "切换成功",
-#             'data': AttendanceActivityControl(self.request.query_params['act_id']).switch()
-#         }
-#         return JsonResponse(ret)
-#
-#     def put(self, request):
-#         """初始化全部状态:房间状态,学生在寝室的状态"""
-#         ret = {
-#             'code': 0000,
-#             'message': "default message"
-#         }
-#         dormitory_evening_check.DormitoryEveningCheck(self.request.query_params['act_id']).initialization()
-#         ret['code'] = 2000
-#         ret['message'] = "状态重置成功"
-#         return JsonResponse(ret)
-#
-#
-# class VerificationCode(APIView):
-#     """获取验证码 url:/api/life/idcode"""
-#
-#     API_PERMISSIONS = ['工作验证码', 'get', 'post']
-#
-#     def get(self, request):
-#         """获取"""
-#         ret = {
-#             'code': 2000, 'message': "获取成功",
-#             'data': AttendanceActivityControl(self.request.query_params['act_id']).get_verification_code()
-#         }
-#         return JsonResponse(ret)
-#
-#     def put(self, request):
-#         """生成验证码"""
-#         ret = {
-#             'code': 2000, 'message': "生成验证码成功",
-#             'data': AttendanceActivityControl(self.request.query_params['act_id']).generate_verification_code()[0]
-#         }
-#         return JsonResponse(ret)
-#
-#     def post(self, request):
-#         """验证验证码"""
-#         ret = {
-#             'code': 0000,
-#             'message': "default message"
-#         }
-#         req_list = self.request.data
-#         req_id_code = req_list.get('idcode', -1)
-#         if AttendanceActivityControl(self.request.query_params['act_id']).verify(req_id_code):
-#             ret['code'] = 2000
-#             ret['message'] = "验证成功"
-#         else:
-#             ret['code'] = 4000
-#             ret['message'] = "验证失败"
-#         return JsonResponse(ret)
 
 
 class BuildingInfo(APIView):
