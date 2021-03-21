@@ -60,7 +60,7 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
-    def delete(self,request):
+    def delete(self, request):
         ret = {'code': 2000}
         return JsonResponse(ret)
 
@@ -81,7 +81,6 @@ class Information(APIView):
         返回信息
         """
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
-
         try:
             user = self.request.user
             data = {'permissions': []}
@@ -166,7 +165,8 @@ class BindVx(APIView):
 
 class MoodManage(APIView):
     """心情监测"""
-    API_PERMISSIONS = ['心情监测','*post']
+    API_PERMISSIONS = ['心情监测', '*post']
+
     def post(self, request):
         """心情监测"""
         ret = {}
@@ -188,22 +188,23 @@ class MoodManage(APIView):
         print(ret)
         return JsonResponse(ret)
 
-class Activeity(APIView):
 
-    API_PERMISSIONS = ['活动','get']
+class Activeity(APIView):
+    API_PERMISSIONS = ['活动', 'get']
+
     def get(self, request, *args, **kwargs):
         ret = {}
-        id = request.GET.get('id',None)
+        id = request.GET.get('id', None)
 
         if id:
-            obj = models.Activity.objects.get(id = id)
-            data = ser.ActiveitySerializer(instance=obj,many=False).data
+            obj = models.Activity.objects.get(id=id)
+            data = ser.ActiveitySerializer(instance=obj, many=False).data
             ret['code'] = 2000
             ret['data'] = data
             return JsonResponse(ret)
 
         act_list = models.Activity.objects.all()
-        datas = ser.ActiveitySerializer(instance=act_list,many=True).data
+        datas = ser.ActiveitySerializer(instance=act_list, many=True).data
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = datas

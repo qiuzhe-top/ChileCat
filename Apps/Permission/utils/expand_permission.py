@@ -3,11 +3,12 @@
 from collections import OrderedDict
 from django.utils.module_loading import import_string
 from django.urls.resolvers import URLResolver, URLPattern
-from django.contrib.auth.models import User, Permission,Group
+from django.contrib.auth.models import User, Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from rest_framework.views import exception_handler
 from Apps.Permission.models import ApiPermission, OperatePermission
+
 
 # from django.shortcuts import get_object_or_404
 # 自定义认证错误时的返回格式
@@ -37,8 +38,7 @@ def get_obj(app, object_name, name):
     # try:
     return getattr(class_obj, name, [])
     # except:
-        # return []
-        
+    # return []
 
 
 # API 权限管理
@@ -56,9 +56,10 @@ def init_api_permissions():
             url = key + ':' + item.upper()
             name = url if len(value) == 0 or value[0] in method_no else value[0] + ':' + item.upper()
             is_auth = '*' + item in value
-            n = 1 if is_auth else 2 if item in value and len(value)>0 else 3
-            api_lisst.append([url,name,n])
+            n = 1 if is_auth else 2 if item in value and len(value) > 0 else 3
+            api_lisst.append([url, name, n])
     add_api_permission(api_lisst)
+
 
 def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
     """
@@ -134,7 +135,6 @@ def clean_api_permission():
     ApiPermission.objects.delete()
 
 
-
 # 功能权限管理
 def add_fun_permission(codename, name):
     """功能权限管理"""
@@ -157,31 +157,35 @@ def init_operate_permissions():
     for key, value in permissions_list.items():
         add_fun_permission(key, value)
 
+
 # 用户组
 def group_init(groups):
-    '''添加用户组'''
+    """添加用户组"""
     v = []
     for name in groups:
         obj = Group(name=name)
         v.append(obj)
     Group.objects.bulk_create(v)
 
-def group_add_permission(group,permissions):
-    '''用户组添加一组权限'''
+
+def group_add_permission(group, permissions):
+    """用户组添加一组权限"""
     v = Permission.objects.filter(codename__in=permissions)
     Group.objects.get(name=group).permissions.add(*list(v))
 
 
-def group_add_user(group,users):
+def group_add_user(group, users):
     '''用户组添加一组用户'''
     v = User.objects.filter(username__in=users)
     Group.objects.get(name=group).user_set.add(*list(v))
     v.update(is_staff=True)
 
+
 def group_clean(group_name):
-    #用户组中所有用户退出组
+    # 用户组中所有用户退出组
     group = Group.objects.get(name=group_name)
     group.user_set.clear()
+
 
 def user_admin_clean(user_list):
     '''清空用户admin标识'''

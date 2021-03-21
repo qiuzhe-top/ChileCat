@@ -1,6 +1,6 @@
 ################################################################
 #           继承图：
-#                   考勤活动控制
+#                       活动控制
 #                        |
 #                        |----活动管理表的处理
 #                        |
@@ -11,14 +11,15 @@
 import math
 import random
 import datetime
-from ..models import Manage, User, TaskRecord
-from .exceptions import *
+from Apps.Activity.models import Manage, User, TaskRecord
+from Apps.Activity.utils.exceptions import *
 
 
 # 以后可以把继承关系改成更基础的活动
 class AttendanceActivityControl(object):
     """
         考勤活动控制
+        由于每次活动类只控制一个活动，禁止在view的类初始化，请在get等方法使用
     """
 
     def __init__(self, manage_id: int):
@@ -27,15 +28,16 @@ class AttendanceActivityControl(object):
 
     def get_total(self):
         """获取活动状态全部信息"""
-        return Manage.objects.get(id=self._activity)
+        return self._activity
 
     def get_status(self):
         """获取活动状态"""
-        return Manage.objects.get(id=self._activity).console_code
+        return self._activity.console_code
 
     def generate_verification_code(self):
         """生成验证码"""
         today = datetime.date.today()
+        Manage()
         verification_code = str(math.floor(1e5 * random.random()))
         flag = self._activity
         if flag.generate_time == today:
@@ -68,38 +70,38 @@ class AttendanceActivityControl(object):
             return True
         return False
 
+    @property
+    def activity(self):
+        return self._activity
 
-class AttendanceOperateAbstract(AttendanceActivityControl):
+
+class AttendanceOperateInterface(AttendanceActivityControl):
     """考勤活动操作的接口"""
 
-    def __init__(self, manage_id: int, task_record: TaskRecord):
-        super().__init__(manage_id)
-        self._activity = Manage.objects.get(id=manage_id)
-        self._task_record = task_record
-
-    @staticmethod
     def initialization(self):
         """初始化活动"""
-        pass
+        raise ActivityException('没有指定活动对象')
 
     def construction(self):
         """开始活动"""
-        pass
+        raise ActivityException('没有指定活动对象')
 
     def leak_submit(self, leak_data):
         """缺勤提交"""
-        pass
+        raise ActivityException('没有指定活动对象')
 
     def today_leaks(self, date=datetime.date.today()):
         """缺勤查询(默认今天)"""
-        pass
+        raise ActivityException('没有指定活动对象')
 
-    def cancel(self, manager: User):
+    @staticmethod
+    def cancel(task_record_id: int, manager: User):
         """销假"""
-        self._task_record.manager = manager
-        self._task_record.save()
-        print("晚查寝提交记录", self._task_record, "销假人添加:", manager)
+        task_record = TaskRecord.objects.get(id=task_record_id)
+        task_record.manager = manager
+        task_record.save()
+        print("晚查寝提交记录", task_record, "销假人添加:", manager)
 
     def destruction(self):
         """结束活动"""
-        pass
+        raise ActivityException('没有指定活动对象')

@@ -22,5 +22,5 @@ class ActivityInitialization(ActivityPublicException):
     """活动初始化异常"""
 
 
-class DormitoryEveningCheck(ActivityException):
+class DormitoryEveningCheckException(ActivityException):
     """晚查寝活动根异常"""

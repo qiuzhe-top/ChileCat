@@ -1,8 +1,10 @@
 from django.db import models
+from django.utils import timezone
 from Apps.User.models import *
 
 
 # Create your models here.
+
 class PunishmentSort(models.Model):
     name = models.CharField(max_length=30, verbose_name=u'名称', null=True, blank=True)
     codename = models.CharField(max_length=30, verbose_name=u'代码名称')
@@ -79,8 +81,9 @@ class TaskRecord(models.Model):
                                blank=True
                                )
     reason_str = models.CharField(max_length=150, verbose_name="原因", null=True, blank=True)
-    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
-    last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+    # 确保在save或者update的时候手动更新最后修改时间
+    last_modify_time = models.DateTimeField(verbose_name="最后修改时间", default=timezone.now)
     room_str = models.CharField(max_length=20, verbose_name="寝室", null=True, blank=True)
     grade_str = models.CharField(max_length=20, verbose_name="班级", null=True, blank=True)
 
@@ -93,7 +96,13 @@ class TaskRecord(models.Model):
         verbose_name_plural = '考勤记录'
         permissions = [
             ('operate-task_record_add', "operate-考勤记录添加权限"),
-            ('operate-task_record_cancel', "operate-销假权限")
+            ('operate-task_record_cancel', "operate-销假权限"),
+            ('attendance-zh_wcq', "智慧交通学院-晚查寝"),
+            ('attendance-zh_cws', "智慧交通学院-查卫生"),
+            ('attendance-zh_wzx', "智慧交通学院-晚自修"),
+            ('attendance-zh_wcq_admin', "智慧交通学院-创建晚查寝任务"),
+            ('attendance-zh_cws_admin', "智慧交通学院-创建查卫生任务"),
+            ('attendance-zh_wzx_admin', "智慧交通学院-创建晚自修任务")
         ]
 
     def __str__(self):
@@ -113,7 +122,8 @@ class Manage(models.Model):
     console_code = models.CharField(max_length=2, verbose_name="是否开启", default="0")
     college = models.ForeignKey(College, on_delete=models.CASCADE, verbose_name=u'分院')
     verification_code = models.CharField(max_length=50, verbose_name="验证码", default="00000000")
-    generate_time = models.DateField(auto_now=False, auto_now_add=False, verbose_name="验证码生成时间")
+    generate_time = models.DateField(verbose_name="验证码生成时间", default=timezone.datetime.today)
+    code_name = models.CharField(max_length=50, verbose_name="活动标识", null=True, blank=True)
 
     class Meta:
         """Meta definition for Manage."""

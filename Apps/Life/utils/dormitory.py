@@ -1,4 +1,4 @@
-"""查寝统一管理"""
+"""寝室信息管理"""
 from Apps.Life import models
 from .exceptions import *
 
