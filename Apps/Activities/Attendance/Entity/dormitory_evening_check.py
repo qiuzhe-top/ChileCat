@@ -22,21 +22,21 @@ class DormitoryCheckTaskRecord(object):
         return TaskRecordSerializer(instance=ret, many=True).data
 
     @staticmethod
-    def create(data):
-        """创建一张记录表,主要检查数据缺失"""
-        task_type = Manage.objects.get(id=data['task_type'])
-        room_str = str(Room.objects.get(id=data['room']))
+    def create(act_id: Manage, worker: User, student_approved: User, reason: PunishmentDetails, room_str) -> TaskRecord:
+        """创建可能不止一张记录表,主要检查数据缺失"""
+        if act_id.types != "dorm":
+            print("任务错误")
         task_record = TaskRecord.objects.create(
-            task_type=task_type,
-            worker=User.objects.get(id=data['worker']),
-            student_approved=User.objects.get(id=data['student_approved']),
-            reason=PunishmentDetails.objects.get(id=data['reason']),
+            task_type=act_id,
+            worker=worker,
+            student_approved=student_approved,
+            reason=reason,
+            reason_str=reason.name,
             room_str=room_str,
             last_modify_time=datetime.datetime.now(),
         )
-        task_record.reason_str = task_record.reason.name
-        task_record.save()
         print(task_record, "已创建")
+        return task_record
 
 
 class DormitoryEveningCheck(AttendanceOperateInterface):
@@ -57,10 +57,62 @@ class DormitoryEveningCheck(AttendanceOperateInterface):
         return True
 
     def leak_submit(self, leak_data):
+        """
+            data:{
+                "act_id":1,
+                "room_id":1,
+                "worker":User,(后台添加)
+                "leak_info_list":[
+                    {
+                        "student_id":1,
+                        "reason":1,(可以为空)
+                        "status":"0"
+                    },
+                    {...}
+                ]
+            }
+        """
         if self._activity.console_code == "0":
             raise ActivityInitialization("活动未开始")
-        DormitoryCheckTaskRecord.create(leak_data)
+        act_id = Manage.objects.get(id=leak_data['act_id'])
+        room = Room.objects.get(id=leak_data['room_id'])
+        worker = leak_data['worker']
+        worker = User.objects.get(username="19530226")
+        leak_info_list = leak_data['leak_info_list']
+        for leak_info in leak_info_list:
+            DormitoryCheckTaskRecord.create(
+                act_id,
+                worker,
+                User.objects.get(id=leak_info['student_id']),
+                leak_info['reason'],
+                str(room)
+            )
+        # TODO 未完工
+        for leak_info in leak_info_list:
+            print(leak_info)
+            student_approved = User.objects.get(id=leak_info['student_id'])
+            history_record = TaskRecord.objects.filter(
+                created_time__date=datetime.date.today(),
+                student_approved=student_approved
+            )
+            # 如果被查过了
+            leak_info['room'] = room
+            leak_info['worker'] = worker
+            if history_record.exists():
+                history_record.delete()
+                task_record = DormitoryCheckTaskRecord.create(
+
+                )
+                task_record.reason_str = "二次操作"
+                task_record.last_modify_time = datetime.datetime.now()
+                task_record.save()
+            else:
+                DormitoryCheckTaskRecord.create(
+
+                )
+                room.status = "1"
+                room.save()
+        RoomHistory.objects.create(room=room, manager=worker)
 
     def today_leaks(self, date=datetime.date.today()):
         return DormitoryCheckTaskRecord.leaks_view()
-

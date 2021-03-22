@@ -100,7 +100,7 @@ class RoomHistory(models.Model):
     manager = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name="查寝人", related_name="room_approved"
     )
-    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
     class Meta:
         """Meta definition for RoomHistory."""
