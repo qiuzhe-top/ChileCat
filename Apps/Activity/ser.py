@@ -27,6 +27,7 @@ class TaskRecordAntiSerializer(serializers.Serializer):
         instance.manager = validated_data.get('manager', instance.manager)
         instance.score = validated_data.get('score', instance.score)
         instance.reason = validated_data.get('reason', instance.reason)
+        instance.reason_str = validated_data.get('reason_str', instance.reason_str)
         instance.last_modify_time = validated_data.get('last_modify_time', instance.last_modify_time)
         instance.grade_str = validated_data.get('grade_str', instance.grade_str)
         instance.save()

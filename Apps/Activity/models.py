@@ -72,7 +72,7 @@ class TaskRecord(models.Model):
         verbose_name="销假人",
         related_name="销假人",
     )
-    score = models.CharField(max_length=10, null=True, blank=True, verbose_name="分值")
+    score = models.IntegerField(null=True, blank=True, verbose_name="分值")
     reason = models.ForeignKey("PunishmentDetails",
                                on_delete=models.CASCADE,
                                related_name="task",
