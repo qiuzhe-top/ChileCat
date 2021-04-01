@@ -199,6 +199,7 @@ class UserMood(models.Model):
         verbose_name = "心情监测表"
         verbose_name_plural = "心情监测表"
 
+
 class Activity(models.Model):
     """
     活动打卡
@@ -213,7 +214,7 @@ class Activity(models.Model):
         (u'2', u'进行中'),
         (u'3', u'活动结束'),
     )
-    
+
     title = models.CharField(max_length=128, verbose_name=u'活动名称')
     url = models.CharField(max_length=1024, verbose_name=u'活动图片')
     types = models.CharField(max_length=10, choices=GENDER_CHOICES, verbose_name=u'活动类型')
@@ -224,8 +225,9 @@ class Activity(models.Model):
     people_number = models.IntegerField(default=0, verbose_name=u'报名人数')
     apply_number = models.IntegerField(default=0, verbose_name=u'活动人数')
     message = models.TextField(verbose_name=u'活动简介')
-    star_time = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    last_time = models.DateTimeField(auto_now=True,verbose_name=u'最后修改日期')
+    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
+
     class Meta:
         verbose_name = "活动打卡"
         verbose_name_plural = "活动打卡"

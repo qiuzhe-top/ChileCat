@@ -100,7 +100,7 @@ class RoomHistory(models.Model):
     manager = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name="查寝人", related_name="room_approved"
     )
-    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
     class Meta:
         """Meta definition for RoomHistory."""
@@ -114,105 +114,3 @@ class RoomHistory(models.Model):
         """Unicode representation of RoomHistory."""
         return self.room.floor.building.name + self.room.floor.name + self.room.name
 
-class PunishmentSort(models.Model):
-    name = models.CharField(max_length=30, verbose_name=u'名称')
-    message = models.CharField(max_length=100,null=True, blank=True,verbose_name=u'描述')
-    
-    class Meta:
-        """Meta definition for TaskRecord."""
-
-        verbose_name = '规则一级分类'
-        verbose_name_plural = '规则一级分类'
-    def __str__(self):
-        return self.name
-class PunishmentDetails(models.Model):
-    name = models.CharField(max_length=20, verbose_name=u'名称')
-    score = models.IntegerField(verbose_name=u'分值',null=True, blank=True)
-    is_person = models.BooleanField(verbose_name=u'是否个人有效')
-    child = models.ForeignKey(to='self',on_delete=models.CASCADE,null=True, blank=True,verbose_name=u'自关联')
-    sort = models.ForeignKey('PunishmentSort',on_delete=models.CASCADE,verbose_name=u'父类')
-    
-    
-    class Meta:
-        """Meta definition for TaskRecord."""
-
-        verbose_name = '规则二级分类'
-        verbose_name_plural = '规则二级分类'
-    def __str__(self):
-        return self.name
-class TaskRecord(models.Model):
-    """任务记录(指被查到不在寝室的)"""
-    worker = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        verbose_name="执行者", related_name="task_worker"
-    )
-    student_approved = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        verbose_name="被执行者", related_name="stu_approved"
-    )
-    room = models.ForeignKey(
-        'Room', on_delete=models.CASCADE,
-        related_name="task_room", verbose_name="寝室号"
-    )
-    grade = models.ForeignKey(
-        Grade, on_delete=models.CASCADE,
-        related_name="grade", verbose_name="班级"
-    )
-    manager = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        blank=True, null=True, default="",
-        verbose_name="销假人",
-        related_name="销假人"
-    )
-
-    score = models.CharField(max_length=10, null=True, blank=True, verbose_name="分值")
-    
-    reason = models.ForeignKey("PunishmentDetails",on_delete=models.CASCADE,related_name="task",verbose_name="原因")
-
-    created_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="创建时间")
-    last_modify_time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="最后修改时间")
-    
-
-    class Meta:
-        """Meta definition for TaskRecord."""
-
-        verbose_name = '查寝记录'
-        verbose_name_plural = '查寝记录'
-        permissions = [
-            ('operate-task_record_add', "operate-缺勤记录添加权限(查寝权限)"),
-            ('operate-task_record_cancel', "operate-销假权限")
-        ]
-
-    def __str__(self):
-        """查寝记录: XXX"""
-        return "查寝记录: " + str(self.id)
-
-
-class Manage(models.Model):
-    """考勤任务管理"""
-    GENDER_CHOICES = (
-        (u'dorm', u'查寝'),
-        (u'health', u'查卫生'),
-        (u'evening_study', u'晚自修'),
-    )
-    
-    types = models.CharField(max_length=20, choices=GENDER_CHOICES, verbose_name=u'任务类型')
-    console_code = models.CharField(max_length=2, verbose_name="是否开启")
-    college  = models.ForeignKey(College,on_delete=models.CASCADE,verbose_name=u'分院')
-    verification_code = models.CharField(max_length=50, verbose_name="验证码")
-    generate_time = models.DateField(auto_now=False, auto_now_add=False, verbose_name="验证码生成时间")
-
-    class Meta:
-        """Meta definition for Manage."""
-
-        verbose_name = '管理列表'
-        verbose_name_plural = '管理列表'
-        permissions = [
-            ('operate-verification_code_flash', "operate-刷新验证码权限"),
-            ('operate-verification_code_generate', "operate-生成验证码权限"),
-            ('operate-verification_code_view', "operate-查看验证码权限")
-        ]
-
-    def __str__(self):
-        """Unicode representation of Manage."""
-        return "验证码: " + self.verification_code + " 时间: " + self.generate_time.strftime("%Y-%m-%d-%H")
