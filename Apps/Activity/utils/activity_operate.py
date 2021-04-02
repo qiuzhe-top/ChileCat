@@ -33,7 +33,9 @@ class AttendanceActivityControl(object):
     def get_status(self):
         """获取活动状态"""
         return self._activity.console_code
-
+    # def get_s(self):
+    #     """获取所管理的活动"""
+    #     return self._activity
     def generate_verification_code(self):
         """生成验证码"""
         today = datetime.date.today()
@@ -69,7 +71,6 @@ class AttendanceActivityControl(object):
         if self._activity.verification_code == verification_code:
             return True
         return False
-
     @property
     def activity(self):
         return self._activity

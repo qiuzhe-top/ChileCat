@@ -7,11 +7,12 @@ from rest_framework.views import APIView
 from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
 from Apps.Life.models import Building, Floor, Room, StuInRoom
+from Apps.Activity.models import Manage
 from django.template import loader
+from django.contrib.auth.models import Group, Permission
 from Apps.Permission.models import *
-# from django.contrib.contenttypes.models import ContentType
-# from docxtpl import DocxTemplate
 from .tests import *
+from django.contrib.contenttypes.models import ContentType
 
 # from rest_framework.authtoken.models import Token
 
@@ -252,3 +253,57 @@ def add_user():
         ['195303', '19530338'],
         ['195303', '19530345'],
     ]
+
+
+
+# 生成考勤相关权限
+def init_activity_permissions(request):
+    '''
+    初始化考勤权限管理模块
+    '''
+    ret = {'message': 'message', 'code': 2000}
+
+    colleges = College.objects.all()
+    # types =
+    l = ('dorm','health','evening_study')
+
+    for j in colleges:
+        for i in l:
+            # 初始化考勤任务管理表
+            Manage.objects.get_or_create(types=i,college=j, code_name=j.code_name + "_" +i)
+            p = Permission.objects.get_or_create(
+                codename="manage-" + j.code_name + "_" +i,
+                content_type=ContentType.objects.get_for_model(Manage),
+                name=j.name+"_"+i
+            )[0]
+
+            # 初始化考勤对应管理员权限组
+            g = Group.objects.get_or_create(name="manage_" + j.code_name + "_" +i)[0]
+            g.permissions.clear()
+            g.permissions.add(p)
+
+        # 初始化晚自习工作组
+        p = Permission.objects.get_or_create(
+            codename="evening-" + j.code_name,
+            content_type=ContentType.objects.get_for_model(Manage),
+            name=j.name+"_"+i
+        )[0]
+        g = Group.objects.get_or_create(name="evening_" + j.code_name)[0]
+        g.permissions.clear()
+        g.permissions.add(p)
+
+
+    # 楼层权限
+    buildings = Building.objects.all()
+    for i in l[:2]:
+        for j in buildings:
+            p = Permission.objects.get_or_create(
+                codename=  "floor-"+i+ "_" + j.name,
+                content_type=ContentType.objects.get_for_model(Building),
+                name=j.name+"号楼_"+i
+            )[0]
+            g = Group.objects.get_or_create(name= i+ "_" + j.name)[0]
+            g.permissions.clear()
+            g.permissions.add(p)
+
+    return JsonResponse(ret)

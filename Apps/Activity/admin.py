@@ -7,7 +7,7 @@ from .models import *
 class ManageRecordTeleAdmin(admin.ModelAdmin):
     """任务管理"""
     list_display = (
-        "id", "college", "generate_time", "verification_code", "console_code", "code_name"
+        "id", "college","types", "generate_time", "verification_code", "console_code", "code_name"
     )
 
 

@@ -168,6 +168,7 @@ class College(models.Model):
     分院
     """
     name = models.CharField(max_length=50, verbose_name="学院名称")
+    code_name = models.CharField(max_length=50, verbose_name="代码")
 
     class Meta:
         verbose_name = "分院"

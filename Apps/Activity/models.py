@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 from Apps.User.models import *
 
-
 # Create your models here.
 
 class PunishmentSort(models.Model):
@@ -86,7 +85,7 @@ class TaskRecord(models.Model):
     last_modify_time = models.DateTimeField(verbose_name="最后修改时间", default=timezone.now)
     room_str = models.CharField(max_length=20, verbose_name="寝室", null=True, blank=True)
     grade_str = models.CharField(max_length=20, verbose_name="班级", null=True, blank=True)
-
+    
     # 如果以后新建活动，请在此添加新的字段,注意一定要把null和blank为true
 
     class Meta:
@@ -122,8 +121,9 @@ class Manage(models.Model):
     console_code = models.CharField(max_length=2, verbose_name="是否开启", default="0")
     college = models.ForeignKey(College, on_delete=models.CASCADE, verbose_name=u'分院')
     verification_code = models.CharField(max_length=50, verbose_name="验证码", default="00000000")
-    generate_time = models.DateField(verbose_name="验证码生成时间", default=timezone.datetime.today)
+    roster  = models.TextField(verbose_name=u'班表',null=True, blank=True)
     code_name = models.CharField(max_length=50, verbose_name="活动标识", null=True, blank=True)
+    generate_time = models.DateField(verbose_name="验证码生成时间", default=timezone.datetime.today)
 
     class Meta:
         """Meta definition for Manage."""

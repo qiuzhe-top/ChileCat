@@ -32,6 +32,10 @@ class ActivityFactory(object):
         """获取活动状态"""
         return related[self._activity.types](self._activity.id).activity.console_code
 
+    def get_roster(self):
+        """获取班表"""
+        return related[self._activity.types](self._activity.id).roster.console_code
+
     def switch(self):
         related[self._activity.types](self._activity.id).switch()
 

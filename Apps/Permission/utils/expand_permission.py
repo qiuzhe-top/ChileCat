@@ -111,6 +111,7 @@ def get_all_url_dict():
 
 def add_permission(content_type, codename, name):
     """
+    根据模型
     添加权限
     """
     return Permission.objects.update_or_create(

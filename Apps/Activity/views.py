@@ -102,3 +102,18 @@ class VerificationCode(APIView):
             ret['code'] = 4000
             ret['message'] = "验证失败"
         return JsonResponse(ret)
+
+class MyActive(APIView):
+    """我的活动"""
+    API_PERMISSIONS = ['我的活动', '*get']
+
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        # user = request.user
+        user = User.objects.get(username="19510146")
+        p = user.get_all_permissions()
+        print(p)
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)

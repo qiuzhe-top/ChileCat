@@ -7,4 +7,5 @@ urlpatterns = [
     path('api_per', views.ApiPer.as_view()),
     path('group_init', views.group_init),
     path('dormitory_exchange', views.dormitory_exchange),
+    path('init_activity_permissions', views.init_activity_permissions),
 ]
