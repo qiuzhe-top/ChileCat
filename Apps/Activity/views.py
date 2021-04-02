@@ -111,8 +111,13 @@ class MyActive(APIView):
         ret = {}
         # user = request.user
         user = User.objects.get(username="19510146")
-        p = user.get_all_permissions()
-        print(p)
+        perms = user.get_all_permissions()
+        
+        manage_pers = []
+        for i in perms:
+            if i.find('manage') > 0:
+                manage_pers.append(i[i.find('-')+1:])
+
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
