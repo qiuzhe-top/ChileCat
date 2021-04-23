@@ -37,10 +37,15 @@ class ActivityFactory(object):
         return related[self._activity.types](self._activity.id).roster.console_code
 
     def switch(self):
-        related[self._activity.types](self._activity.id).switch()
+        '''任务开关'''
+        return related[self._activity.types](self._activity.id).switch()
 
     def generate_verification_code(self):
         return related[self._activity.types](self._activity.id).generate_verification_code()[0]
 
     def verify(self, code):
         return related[self._activity.types](self._activity.id).verify(code)
+
+    def save_roster(self, roster):
+        '''保存班表'''
+        return related[self._activity.types](self._activity.id).save_roster(roster)

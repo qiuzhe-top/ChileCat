@@ -8,7 +8,7 @@ from Apps.User.models import StudentInfo, TeacherForGrade
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
 from django.contrib.auth.models import Permission
-from Apps.Permission.models import OperatePermission
+from Apps.Permission.models import OperatePermission,ApiPermission
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -84,11 +84,13 @@ class Information(APIView):
         try:
             user = self.request.user
             data = {'permissions': []}
-            p = self.request.user.user_permissions.filter(
-                content_type=ContentType.objects.get_for_model(OperatePermission)).values()
+            p = self.request.user.user_permissions.filter().exclude(
+                content_type=ContentType.objects.get_for_model(ApiPermission)
+            ).values()
             for permission in p:
                 if "operatepermission" not in permission['codename']:
                     data['permissions'].append(permission['codename'])
+                    
             data['roles'] = get_groups(request)
             data['introduction'] = 'I am a super administrator'
             data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
@@ -209,3 +211,25 @@ class Activeity(APIView):
         ret['code'] = 2000
         ret['data'] = datas
         return JsonResponse(ret)
+
+
+# 用户搜索
+class SearchUser(APIView):
+    def get(self, request, *args, **kwargs):
+        ret = {}
+        try:
+            username = request.GET['username']
+            user = User.objects.get(username=username)
+            ret['data'] ={
+                "username":username,
+                "name":user.userinfo.name,
+                "tel":user.userinfo.tel,
+                "grade":user.studentinfo.grade.name
+            }
+            ret['message'] = '搜索成功'
+            ret['code'] = 2000
+            return JsonResponse(ret)
+        except:
+            ret['code'] = 4000
+            ret['message'] = '搜索不到'
+            return JsonResponse(ret)

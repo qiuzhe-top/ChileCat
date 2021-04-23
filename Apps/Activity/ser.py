@@ -1,17 +1,24 @@
 from rest_framework import serializers
 from .models import *
-
-
+import json
 class ManageSerializer(serializers.ModelSerializer):
     """查寝记录数据的序列化"""
     college = serializers.SerializerMethodField()
-
+    types = serializers.SerializerMethodField()
+    roster = serializers.SerializerMethodField()
     def get_college(self, value: Manage):
         return value.college.name
+    def get_types(self, value: Manage):
+        return value.get_types_display()
+    def get_roster(self, value: Manage):
+        if value.roster != None:
+            return json.loads(value.roster)
+        else:
+            return ''
 
     class Meta:
         model = Manage
-        fields = ('id', 'college', 'console_code', 'code_name')
+        fields = ('id', 'college', 'console_code', 'code_name','types','roster')
 
 
 class TaskRecordAntiSerializer(serializers.Serializer):

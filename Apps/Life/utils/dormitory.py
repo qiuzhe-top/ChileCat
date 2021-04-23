@@ -1,14 +1,22 @@
 """寝室信息管理"""
 from Apps.Life import models
 from .exceptions import *
-
+from django.db.models import Q
+from ..ser import *
 
 class Room(object):
 
     @staticmethod
-    def building_info():
+    def building_info(request):
         """获取全部楼号"""
-        buildings = models.Building.objects.all()
+        permissions = request.user.get_all_permissions()
+        floor_list = []
+        for permission in permissions:
+            # 查寝 查卫生 一次性获取
+            index = permission.find('floor')
+            if index > 0:
+                floor_list.append(permission[-1:])
+        buildings = models.Building.objects.filter(name__in=floor_list)
         buildings_info = []
         for building in buildings:
             info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
@@ -20,15 +28,16 @@ class Room(object):
         return buildings_info
 
     @staticmethod
-    def room_info(floor_id):
+    def room_info(floor_id,types):
         """获取房间信息"""
+        d = {"floor-health":"health_status","floor-dorm":"dorm_status"}
         if floor_id:
-            rooms = models.Room.objects.filter(floor_id=floor_id)
-            room_list = []
-            for i in rooms:
-                room_list.append({'id': i.id, 'name': i.name,
-                                  'status': i.status})
-            return room_list
+            rooms = models.Room.objects.filter(floor_id=floor_id).values('id','name','health_status','dorm_status')
+            for room in rooms:
+                room['status'] = room[d[types]]
+                del room['health_status']
+                del room['dorm_status']
+            return list(rooms)
         raise RoomParamException("缺少参数(层号+楼号)")
 
     @staticmethod

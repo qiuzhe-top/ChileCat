@@ -227,22 +227,31 @@ def dormitory_exchange(request):
     ret = {'message': 'message', 'code': 2000}
     # 待调换的数据
     data = {
-        '20653w213': ['3', '4', '22'],
-        '19530139': ['3', '3', '04'],
-        '19530116': ['3', '3', '03'],
-        '1853w115': ['3', '2', '14']
+        '19510110': ['3', '4', '22'],
+        # '19530139': ['3', '3', '04'],
+        # '19530116': ['3', '3', '03'],
+        # '1853w115': ['3', '2', '14']
     }
+    # file = "x.xlsx"
+    # work_book = load_workbook(file)
+    # log = open(file + ".log", "w")
+    # for sheet in work_book:
+    #     room_name = ""
+    #     for info in sheet.values:
+    #         data[info[0]]=1
+    # print(data)
+
     for item in data:
         try:
             user = User.objects.get(username=item)
             # 新寝室
-            b = Building.objects.get(name=data[item][0])
-            f = Floor.objects.get(name=data[item][1], building=b)
-            r = Room.objects.get(name=data[item][2], floor=f)
-            print('学生：', user, '旧寝室：', user.stu_in_room.all()[0], '待换寝室：', r)
-            StuInRoom.objects.filter(student=user).update(room=r)
+            # b = Building.objects.get(name=data[item][0])
+            # f = Floor.objects.get(name=data[item][1], building=b)
+            # r = Room.objects.get(name=data[item][2], floor=f)
+            # print('学生：', user, '旧寝室：', user.stu_in_room.all()[0], '待换寝室：', r)
+            StuInRoom.objects.filter(student=user).delete()
         except:
-            print('调换失败', item)
+            print('失败', item)
 
     return JsonResponse(ret)
 
@@ -269,26 +278,36 @@ def init_activity_permissions(request):
 
     for j in colleges:
         for i in l:
+
             # 初始化考勤任务管理表
             Manage.objects.get_or_create(types=i,college=j, code_name=j.code_name + "_" +i)
+
             p = Permission.objects.get_or_create(
                 codename="manage-" + j.code_name + "_" +i,
                 content_type=ContentType.objects.get_for_model(Manage),
                 name=j.name+"_"+i
             )[0]
-
-            # 初始化考勤对应管理员权限组
             g = Group.objects.get_or_create(name="manage_" + j.code_name + "_" +i)[0]
+            g.permissions.clear()
+            g.permissions.add(p)
+            
+            # 初始化考勤对应工作组
+            p = Permission.objects.get_or_create(
+                codename="work-" + j.code_name + "_" + i,
+                content_type=ContentType.objects.get_for_model(Manage),
+                name=j.name+"_"+i
+            )[0]
+            g = Group.objects.get_or_create(name="work_" + j.code_name + "_" +i)[0]
             g.permissions.clear()
             g.permissions.add(p)
 
         # 初始化晚自习工作组
         p = Permission.objects.get_or_create(
-            codename="evening-" + j.code_name,
+            codename=j.code_name+"_evening_study",
             content_type=ContentType.objects.get_for_model(Manage),
             name=j.name+"_"+i
         )[0]
-        g = Group.objects.get_or_create(name="evening_" + j.code_name)[0]
+        g = Group.objects.get_or_create(name= j.code_name+"_evening_study")[0]
         g.permissions.clear()
         g.permissions.add(p)
 
@@ -305,5 +324,8 @@ def init_activity_permissions(request):
             g = Group.objects.get_or_create(name= i+ "_" + j.name)[0]
             g.permissions.clear()
             g.permissions.add(p)
+
+    # 考勤管理员组
+    expand_permission.group_init(['attendance_admin'])
 
     return JsonResponse(ret)

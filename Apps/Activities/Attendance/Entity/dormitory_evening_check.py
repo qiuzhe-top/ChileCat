@@ -53,11 +53,15 @@ class DormitoryEveningCheck(AttendanceOperateInterface):
             raise DormitoryEveningCheckException("非晚查寝活动意外的调用了晚查寝活动")
 
     def initialization(self) -> bool:
-        Room.objects.all().update(status="0")
-        self._activity.console_code = "0"
-        self._activity.save()
-        print("Manage id 为", self._activity.id, "更新为0.\n活动初始化完成")
-        return True
+        '''还原寝室状态'''
+        roster = json.loads(self._activity.roster)
+        floor = []
+        try:
+            for item in roster:
+                floor.append(int(item['title'][:1]))
+            Room.objects.filter(floor__in=floor).update(status="0")
+        except:
+            print('初始化寝室失败 班表数据异常')
 
     def leak_submit(self, leak_data):
         """
@@ -75,7 +79,7 @@ class DormitoryEveningCheck(AttendanceOperateInterface):
                 ]
             }
         """
-        if self._activity.console_code == "0":
+        if not self._activity.console_code:
             raise ActivityInitialization("活动未开始")
         act_id = Manage.objects.get(id=leak_data['act_id'])
         room = Room.objects.get(id=leak_data['room_id'])
@@ -118,3 +122,47 @@ class DormitoryEveningCheck(AttendanceOperateInterface):
 
     def today_leaks(self, date=datetime.date.today()):
         return DormitoryCheckTaskRecord.leaks_view()
+    def switch(self):
+        '''活动开关'''
+        console_code = self._activity.console_code
+        console_code=not console_code
+        if console_code:
+            self.initialization()
+        self._activity.console_code = console_code
+        self._activity.save()
+        return console_code
+
+    def save_roster(self,roster):
+        '''保存班表'''
+
+        # 同类型的活动工作组
+        active_groups = []
+        for item in Manage.objects.filter(types=self._activity.types).values_list('code_name',flat=True):
+            active_groups.append('work_'+item)
+        user_all = []
+        for item in roster:
+            user_list = []
+            for layer in item['layer_list']:
+                for user in layer['user']:
+                    if len(item['title'][:1])!=0 and len(user['username'])!=0:
+                        # 当前工作用户
+                        u = User.objects.get(username=user['username'])
+                        g = u.groups.filter(name__in=active_groups)
+                        if g.exists():
+                            print(g)
+                            for group in g:
+                                # 用户退出已经有的同类型不同分院的工作组
+                                group.user_set.remove(u)
+                        user_list.append(user['username'])
+                        
+            group_clean('dorm_'+item['title'][:1])
+            group_add_user('dorm_'+item['title'][:1],user_list)
+            user_all+=user_list
+        print(user_all)
+        # 添加对应工作组
+        n = 'work_'+ self._activity.college.code_name + '_' + self._activity.types
+        group_clean(n)
+        group_add_user(n,user_all)
+        self._activity.roster=json.dumps(roster)
+        self._activity.save()
+        return self._activity

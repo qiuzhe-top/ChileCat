@@ -6,7 +6,7 @@ from .models import *
 class RoomTeleAdmin(admin.ModelAdmin):
     """房间"""
     list_display = (
-        "id", "name", "floor", "status"
+        "id", "name", "floor", "dorm_status","health_status"
     )
 
 

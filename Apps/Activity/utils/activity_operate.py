@@ -10,10 +10,12 @@
 ################################################################
 import math
 import random
+import json
 import datetime
 from Apps.Activity.models import Manage, User, TaskRecord
 from Apps.Activity.utils.exceptions import *
-
+from Apps.Permission.utils.expand_permission import group_add_user,group_clean
+from Apps.Activity.ser import ManageSerializer
 
 # 以后可以把继承关系改成更基础的活动
 class AttendanceActivityControl(object):
@@ -33,9 +35,7 @@ class AttendanceActivityControl(object):
     def get_status(self):
         """获取活动状态"""
         return self._activity.console_code
-    # def get_s(self):
-    #     """获取所管理的活动"""
-    #     return self._activity
+   
     def generate_verification_code(self):
         """生成验证码"""
         today = datetime.date.today()
@@ -74,7 +74,6 @@ class AttendanceActivityControl(object):
     @property
     def activity(self):
         return self._activity
-
 
 class AttendanceOperateInterface(AttendanceActivityControl):
     """考勤活动操作的接口"""

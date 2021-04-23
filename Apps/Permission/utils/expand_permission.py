@@ -166,7 +166,10 @@ def group_init(groups):
     for name in groups:
         obj = Group(name=name)
         v.append(obj)
-    Group.objects.bulk_create(v)
+    try:
+        Group.objects.bulk_create(v)
+    except:
+        print('组创建失败',groups)
 
 
 def group_add_permission(group, permissions):

@@ -96,12 +96,12 @@ class TaskRecord(models.Model):
         permissions = [
             ('operate-task_record_add', "operate-考勤记录添加权限"),
             ('operate-task_record_cancel', "operate-销假权限"),
-            ('attendance-zh_wcq', "智慧交通学院-晚查寝"),
-            ('attendance-zh_cws', "智慧交通学院-查卫生"),
-            ('attendance-zh_wzx', "智慧交通学院-晚自修"),
-            ('attendance-zh_wcq_admin', "智慧交通学院-创建晚查寝任务"),
-            ('attendance-zh_cws_admin', "智慧交通学院-创建查卫生任务"),
-            ('attendance-zh_wzx_admin', "智慧交通学院-创建晚自修任务")
+            # ('attendance-zh_wcq', "智慧交通学院-晚查寝"),
+            # ('attendance-zh_cws', "智慧交通学院-查卫生"),
+            # ('attendance-zh_wzx', "智慧交通学院-晚自修"),
+            # ('attendance-zh_wcq_admin', "智慧交通学院-创建晚查寝任务"),
+            # ('attendance-zh_cws_admin', "智慧交通学院-创建查卫生任务"),
+            # ('attendance-zh_wzx_admin', "智慧交通学院-创建晚自修任务")
         ]
 
     def __str__(self):
@@ -118,7 +118,8 @@ class Manage(models.Model):
     )
 
     types = models.CharField(max_length=20, choices=GENDER_CHOICES, verbose_name=u'任务类型')
-    console_code = models.CharField(max_length=2, verbose_name="是否开启", default="0")
+    # console_code = models.CharField(max_length=2, verbose_name="是否开启", default="0")
+    console_code = models.BooleanField(verbose_name="是否开启")
     college = models.ForeignKey(College, on_delete=models.CASCADE, verbose_name=u'分院')
     verification_code = models.CharField(max_length=50, verbose_name="验证码", default="00000000")
     roster  = models.TextField(verbose_name=u'班表',null=True, blank=True)

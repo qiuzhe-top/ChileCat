@@ -49,3 +49,4 @@ class TeacherForCollegeSerializer(serializers.ModelSerializer):
                 dicts[k] = v
             ret.append(dicts)
         return ret
+

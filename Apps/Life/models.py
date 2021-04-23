@@ -51,7 +51,8 @@ class Room(models.Model):
     floor = models.ForeignKey(
         'Floor', on_delete=models.CASCADE, verbose_name="层", related_name="room"
     )
-    status = models.CharField(max_length=20, verbose_name="状态", default="0")
+    health_status = models.BooleanField(verbose_name="卫生检查状态", default=False)
+    dorm_status = models.BooleanField(verbose_name="晚查寝状态", default=False)
 
     class Meta:
         """Meta definition for Room."""

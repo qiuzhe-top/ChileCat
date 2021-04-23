@@ -16,7 +16,7 @@ class BuildingInfo(APIView):
 
     def get(self, request):
         """获取楼号"""
-        ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info()}
+        ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info(request)}
         return JsonResponse(ret)
 
 
@@ -38,8 +38,9 @@ class RoomInfo(APIView):
         }
         req_list = self.request.query_params
         floor_id = req_list.get('floor_id', None)
+        types = req_list.get('type', None)
         try:
-            ret['data'] = dormitory.Room.room_info(floor_id)
+            ret['data'] = dormitory.Room.room_info(floor_id,types)
             ret['code'] = 2000
             ret['message'] = "房间遍历成功"
         except RoomParamException as room_exception:
@@ -67,7 +68,11 @@ class StudentPositionInfo(APIView):
         req_list = self.request.query_params
         try:
             room_id = int(req_list.get('room_id', -1))
-            ret['data'] = dormitory.Room.student_info(room_id)
+            types = req_list.get('type', None)
+            if types == "floor-dorm":
+                ret['data'] = dormitory.Room.student_info(room_id)
+            else:
+                ret['data'] = []
             ret['code'] = 2000
             ret['message'] = "房间读取成功"
         except ObjectDoesNotExist:
