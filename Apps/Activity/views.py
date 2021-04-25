@@ -1,3 +1,4 @@
+import re
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from Apps.Activity.utils.activity_factory import ActivityFactory
@@ -61,10 +62,12 @@ class VerificationCode(APIView):
         role = self.request.query_params['role']
         pers = self.request.user.get_all_permissions()
         perms = []
+        # print(self.request.user.has_perm("Activity.view_punishment"))
+        # 管理员能打开的活动列表
         if role == "activity_admin":
             for per in pers:
                 if "Activity.attendance-" in per and per[-5:] == "admin":
-                    perms.append(str(per).split('.')[1])
+                    perms.append(re.split(r"_admin", str(per).split('.')[1])[0])
             act_list = Manage.objects.filter(code_name__in=perms)
             ret['data'] = ManageSerializer(instance=act_list, many=True).data
             ret['code'] = 2000
@@ -77,6 +80,7 @@ class VerificationCode(APIView):
             ret['data'] = ManageSerializer(instance=act_list, many=True).data
             ret['code'] = 2000
             ret['message'] = "工作人员获取"
+        print("ret:", ret)
         return JsonResponse(ret)
 
     def put(self, request):

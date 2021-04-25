@@ -7,20 +7,23 @@ class GradeSerializer(serializers.ModelSerializer):
         model = models.Grade
         fields = ('id', 'name')
 
+
 class ActiveitySerializer(serializers.ModelSerializer):
     """
     活动打卡
     """
     types = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
+
     def get_types(self, obj):
         return obj.get_types_display()
+
     def get_state(self, obj):
         return obj.get_state_display()
+
     class Meta:
         model = models.Activity
         fields = "__all__"
-
 
 
 class TeacherForGradeSerializer(serializers.ModelSerializer):

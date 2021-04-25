@@ -1,17 +1,21 @@
 """管理视图"""
 import logging
-# import re
+import datetime
+import time
 from django.http import JsonResponse, HttpResponse
 from openpyxl import load_workbook
 from rest_framework.views import APIView
 from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
 from Apps.Life.models import Building, Floor, Room, StuInRoom
+from Apps.Activity.models import TaskRecord
 from django.template import loader
 from Apps.Permission.models import *
 # from django.contrib.contenttypes.models import ContentType
 # from docxtpl import DocxTemplate
 from .tests import *
+from django.core import serializers
+from Apps.Activities.Attendance.Entity.ser import TaskRecordSerializer
 
 # from rest_framework.authtoken.models import Token
 
@@ -27,20 +31,38 @@ class Test(APIView):
         print("request data:", self.request.data)
         print("TOKEN:", self.request.META.get("HTTP_TOKEN"))
         print('测试接口')
-        # users = User.objects.all()
-        # for user in users:
-        #     user.set_password("123456")
-        #     user.save()
-        #     if len(user.username) != 8 and user.username[0:3] == "195":
-        #         print(user.username)
 
-        # 用户名小写
+        # 当销假人为空的时候为未销假
+
+        # grades = Grade.objects.all()
+        # for grade in grades:
+        #     relate = TeacherForGrade.objects.get_or_create(user=User.objects.get(username="admin"), grade=grade)
+        #     print("admin->", relate)
+        # user = User.objects.get(username="206500000")
+        # WholeGrade.objects.create(name="20级",user=user)
+        # data = serializers.serialize("json", Grade.objects.all())
+        # print(data)
+
+        # grades = Grade.objects.all()
+        # for grade in grades:
+        #     if grade.name[0:3] == "195":
+        #         grade.whole_grade = WholeGrade.objects.get(id=1)
+        #         grade.save()
+        #     elif grade.name[0:3] == "206":
+        #         grade.whole_grade = WholeGrade.objects.get(id=2)
+        #         grade.save()
+
+        # 用户名小写,密码默认123456
         # users = User.objects.all()
         # for user in users:
         #     if user.username != user.username.lower():
         #         user.username = user.username.lower()
-        #         user.save()
+        #     # user.set_password("123456")
+        #     # user.save()
+        #     if len(user.username) == 8 and user.username[0:3] == "206":  # 205
+        #         print(user.username)
 
+        #
         # 班级改小写
         # grades = Grade.objects.all()
         # for grade in grades:
@@ -58,9 +80,10 @@ class Test(APIView):
         #     teacher.save()
         #     UserInfo.objects.get_or_create(user=teacher, name=grade_name+"班老师", identity="teacher")
         #     print(TeacherForGrade.objects.get_or_create(user=teacher, grade=grade))
+
         # import_stu_data("leaksfile//副本智慧交通学院学生寝室信息表（全).xlsx")
-        add_student("leaksfile//学生导入表.xlsx")
-        return JsonResponse({"message": ""})
+        # add_student("leaksfile//学生导入表.xlsx")
+        return JsonResponse({"message": "task"})
 
 
 def add_student(file):

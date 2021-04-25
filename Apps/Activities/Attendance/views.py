@@ -36,6 +36,7 @@ class StudentLeak(APIView):
             'code': 0000,
             'message': "default message",
         }
+        print(self.request.data)
         try:
             ActivityFactory(
                 self.request.query_params['act_id']).leak_submit(self.request.data)
@@ -72,7 +73,6 @@ class StudentLeak(APIView):
 
 class RecordSearch(APIView):
     """记录查询返回所有缺勤记录"""
-    # TODO 使用缓存来提高性能
     API_PERMISSIONS = ['缺勤公告', 'get']
 
     def get(self, request):
@@ -104,7 +104,7 @@ class ExportExcel(APIView):
         time_get = req_list.get('date', -1)
         if time_get == -1:
             time_get = date.today()
-        records = TaskRecord.objects.filter(Q(task_type="dorm") & Q(manager=None) & Q(created_time__date=time_get))
+        records = TaskRecord.objects.filter(Q(task_type__types="dorm") & Q(manager=None) & Q(created_time__date=time_get))
         if not records:
             return JsonResponse(
                 {"state": "1", "msg": "当日无缺勤"}

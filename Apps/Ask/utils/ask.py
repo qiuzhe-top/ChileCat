@@ -156,7 +156,7 @@ class MonitorAsk(AskOperate):
 
     def views(self, audit_type=None):
         print("班委查看请假条")
-        # TODO 判断班委的条件
+        # 判断班委的条件
         if self.__user.has_perm("operate-ask_monitor_view"):
             grade = StudentInfo.objects.get(user=self._user).grade
             today = datetime.datetime.today()

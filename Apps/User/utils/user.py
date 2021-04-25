@@ -136,6 +136,7 @@ class VxLogin(Login):
         self.__request = request
 
     def login(self):
+        print("微信登录")
         __js_code = self.__request.data['js_code']
         __open_id = get_openid(__js_code)
         if not __open_id:
@@ -155,6 +156,7 @@ class WebLogin(Login):
         self.__request = request
 
     def login(self):
+        print("web登录")
         __username = self.__request.data.get('username', None)
         __password = self.__request.data.get('password', None)
         if __username and __password:

@@ -9,6 +9,7 @@ related = {
 
 class ActivityFactory(object):
     def __init__(self, manage_id):
+        print("尝试加载id为", manage_id, "的活动!")
         self._activity = Manage.objects.get(id=manage_id)
 
     def initialization(self):
@@ -22,7 +23,7 @@ class ActivityFactory(object):
     @staticmethod
     def today_leaks(time=datetime.date.today()):
         """缺勤查询(默认今天)"""
-        return dormitory_evening_check.DormitoryCheckTaskRecord.leaks_view(time=time)
+        return dormitory_evening_check.DormitoryCheckTaskRecord.leaks_view(pram_time=time)
 
     def cancel(self, task_record_id, manager):
         """销假"""
@@ -33,7 +34,7 @@ class ActivityFactory(object):
         return related[self._activity.types](self._activity.id).activity.console_code
 
     def switch(self):
-        related[self._activity.types](self._activity.id).switch()
+        return related[self._activity.types](self._activity.id).switch()
 
     def generate_verification_code(self):
         return related[self._activity.types](self._activity.id).generate_verification_code()[0]

@@ -78,7 +78,6 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
             if not item.name:
                 # url_ordered_dict[url] = []
                 continue
-            # TODO mark
             url_ordered_dict[url] = get_obj(pre_namespace, item.name, 'API_PERMISSIONS')
             # print("url字典", url_ordered_dict)
         elif isinstance(item, URLResolver):

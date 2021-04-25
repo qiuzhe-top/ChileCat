@@ -61,7 +61,7 @@ class AttendanceActivityControl(object):
         """切换活动状态活动"""
         self._activity.console_code = "1" if self._activity.console_code == "0" else "0"
         self._activity.save()
-        print("活动:", self._activity, "状态切换成功,当前状态为:", self._activity.console_code)
+        print("活动:", self._activity.code_name, "状态切换成功,当前状态为:", "未开启" if self._activity.console_code == "0" else "开启")
         return self._activity.console_code
 
     def verify(self, verification_code: str):

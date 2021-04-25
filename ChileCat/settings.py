@@ -21,8 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 获取环境数值
 ENV_PROFILE = os.getenv("ENV")
 
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -31,7 +29,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if ENV_PROFILE == "DEVELOP":   
+if ENV_PROFILE == "DEVELOP":
     # 开发环境
     DEBUG = True
 else:
@@ -98,15 +96,14 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-if DEBUG:   
+if DEBUG:
     # 开发环境
     print('开发环境')
-    db_url = "ChileCat_qiuzhe"
+    db_url = "ChileCat_liuhai"
     HOST = '47.100.95.58'
 else:
     db_url = "ChileCat"
     HOST = '127.0.0.1'
-
 
 DATABASES = {
     'default': {
@@ -188,7 +185,20 @@ REST_FRAMEWORK = {
         "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-       "Apps.Permission.utils.permission.ApiPublicPermission",
+        "Apps.Permission.utils.permission.ApiPublicPermission",
     ],
     'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
+}
+# 缓存
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # 内存缓存
+
+        'LOCATION': 'unique-snowflake',  # 写在内存中的变量的唯一值
+        'TIMEOUT': 18000,  # 缓存超时时间: 5h
+        'OPTIONS': {
+            'MAX_ENTRIES': 300,  # 最大缓存记录的数量（默认300）
+            'CULL_FREQUENCY': 3,  # 缓存到达最大个数之后，剔除缓存个数的比例，即：1/CULL_FREQUENCY（默认3）
+        }
+    }
 }

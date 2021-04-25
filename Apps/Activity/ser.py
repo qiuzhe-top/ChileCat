@@ -11,7 +11,7 @@ class ManageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manage
-        fields = ('id', 'college', 'console_code', 'code_name')
+        fields = ('id', 'types', 'college', 'console_code', 'code_name')
 
 
 class TaskRecordAntiSerializer(serializers.Serializer):
