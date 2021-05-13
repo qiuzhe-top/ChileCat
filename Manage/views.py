@@ -6,8 +6,8 @@ from openpyxl import load_workbook
 from rest_framework.views import APIView
 from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
-from Apps.Life.models import Building, Floor, Room, StuInRoom
-from Apps.Activity.models import Manage
+# from Apps.Life.models import Building, Floor, Room, StuInRoom
+# from Apps.Activity.models import Manage
 from django.template import loader
 from django.contrib.auth.models import Group, Permission
 from Apps.Permission.models import *
@@ -83,9 +83,11 @@ def add_student(file):
             print(room_name, name, grade, stu_id, tel)
             try:
                 user = User.objects.get_or_create(username=stu_id)
-                UserInfo.objects.get_or_create(user=user[0], name=name, tel=tel)
+                UserInfo.objects.get_or_create(
+                    user=user[0], name=name, tel=tel)
                 college = College.objects.get_or_create(name="智慧交通学院")
-                grade = Grade.objects.get_or_create(name=grade, college=college[0])
+                grade = Grade.objects.get_or_create(
+                    name=grade, college=college[0])
                 StudentInfo.objects.get_or_create(user=user[0], grade=grade[0])
                 put_stu_room(user[0], room_name, log)
             except User.DoesNotExist:
@@ -102,8 +104,10 @@ def put_stu_room(stu, room, log):
         print("学生", student.userinfo.name, "->", history.first(), "已存在")
     else:
         room = search_room(room)
-        stu_in_room = StuInRoom.objects.get_or_create(room=room, student=student)
-        print("记录(", "学号:", student.username, "姓名:", student.userinfo.name, "->", stu_in_room[0], "寝室)已创建")
+        stu_in_room = StuInRoom.objects.get_or_create(
+            room=room, student=student)
+        print("记录(", "学号:", student.username, "姓名:",
+              student.userinfo.name, "->", stu_in_room[0], "寝室)已创建")
 
 
 def search_room(room_info):
@@ -150,9 +154,11 @@ def import_stu_data(file):
             tel = str(info[8]).strip()
             try:
                 user = User.objects.get_or_create(username=stu_id)
-                UserInfo.objects.get_or_create(user=user[0], name=name, tel=tel)
+                UserInfo.objects.get_or_create(
+                    user=user[0], name=name, tel=tel)
                 college = College.objects.get_or_create(name="智慧交通学院")
-                grade = Grade.objects.get_or_create(name=grade, college=college[0])
+                grade = Grade.objects.get_or_create(
+                    name=grade, college=college[0])
                 StudentInfo.objects.get_or_create(user=user[0], grade=grade[0])
                 put_stu_room(user[0], room_name, log)
             except User.DoesNotExist:
@@ -264,7 +270,6 @@ def add_user():
     ]
 
 
-
 # 生成考勤相关权限
 def init_activity_permissions(request):
     '''
@@ -274,30 +279,33 @@ def init_activity_permissions(request):
 
     colleges = College.objects.all()
     # types =
-    l = ('dorm','health','evening_study')
+    l = ('dorm', 'health', 'evening_study')
 
     for j in colleges:
         for i in l:
 
             # 初始化考勤任务管理表
-            Manage.objects.get_or_create(types=i,college=j, code_name=j.code_name + "_" +i)
+            Manage.objects.get_or_create(
+                types=i, college=j, code_name=j.code_name + "_" + i)
 
             p = Permission.objects.get_or_create(
-                codename="manage-" + j.code_name + "_" +i,
+                codename="manage-" + j.code_name + "_" + i,
                 content_type=ContentType.objects.get_for_model(Manage),
                 name=j.name+"_"+i
             )[0]
-            g = Group.objects.get_or_create(name="manage_" + j.code_name + "_" +i)[0]
+            g = Group.objects.get_or_create(
+                name="manage_" + j.code_name + "_" + i)[0]
             g.permissions.clear()
             g.permissions.add(p)
-            
+
             # 初始化考勤对应工作组
             p = Permission.objects.get_or_create(
                 codename="work-" + j.code_name + "_" + i,
                 content_type=ContentType.objects.get_for_model(Manage),
                 name=j.name+"_"+i
             )[0]
-            g = Group.objects.get_or_create(name="work_" + j.code_name + "_" +i)[0]
+            g = Group.objects.get_or_create(
+                name="work_" + j.code_name + "_" + i)[0]
             g.permissions.clear()
             g.permissions.add(p)
 
@@ -307,21 +315,20 @@ def init_activity_permissions(request):
             content_type=ContentType.objects.get_for_model(Manage),
             name=j.name+"_"+i
         )[0]
-        g = Group.objects.get_or_create(name= j.code_name+"_evening_study")[0]
+        g = Group.objects.get_or_create(name=j.code_name+"_evening_study")[0]
         g.permissions.clear()
         g.permissions.add(p)
-
 
     # 楼层权限
     buildings = Building.objects.all()
     for i in l[:2]:
         for j in buildings:
             p = Permission.objects.get_or_create(
-                codename=  "floor-"+i+ "_" + j.name,
+                codename="floor-"+i + "_" + j.name,
                 content_type=ContentType.objects.get_for_model(Building),
                 name=j.name+"号楼_"+i
             )[0]
-            g = Group.objects.get_or_create(name= i+ "_" + j.name)[0]
+            g = Group.objects.get_or_create(name=i + "_" + j.name)[0]
             g.permissions.clear()
             g.permissions.add(p)
 

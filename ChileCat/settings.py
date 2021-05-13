@@ -53,10 +53,9 @@ INSTALLED_APPS = [
     'Apps.Ask',
     'Apps.User',
     'Apps.Career',
-    'Apps.Life',
-    'Apps.Activities.Attendance',
     'Apps.Permission',
-    'Apps.Activity',
+    'Apps.SchoolInformation',
+    'Apps.SchoolAttendance',
     'Manage',
     'corsheaders',
 ]

@@ -1,12 +1,86 @@
-"""
-放置与寝室相关的活动
-"""
+from django.shortcuts import render
 
-from ..Life.utils import dormitory
-from ..Life.utils.exceptions import *
-from rest_framework.views import APIView
-from django.http import JsonResponse
-from django.core.exceptions import ObjectDoesNotExist
+# Create your views here.
+
+class StudentLeak(APIView):
+    """
+    学生缺勤
+    前端提供:学生id,原因,房间id.
+    查寝人由系统自动查询当前登录用户
+    (是否归寝由这里系统自动改成0),
+    创建时间,最后修改时间由服务器自动生成
+    销假不在这里进行,故不设置
+    para: id,why,roomid
+    """
+
+    API_PERMISSIONS = ['学生缺勤', '*post']
+
+    def post(self, request):
+        """缺勤提交"""
+        ret = {
+            'code': 0000,
+            'message': "default message",
+        }
+        try:
+            ActivityFactory(
+                self.request.query_params['act_id']).leak_submit(self.request.data)
+            ret['code'] = 2000
+            ret['message'] = "提交成功"
+        except ActivityException as e:
+            ret['code'] = 4000
+            ret['message'] = str(e)
+        except ActivityInitialization as e:
+            ret['code'] = 4000
+            ret['message'] = str(e)
+        return JsonResponse(ret)
+
+    def put(self, request):
+        """
+        销假
+        参数:请假条id,id
+        """
+        ret = {
+            'code': 0000,
+            'message': "default message",
+        }
+        try:
+            ActivityFactory(
+                manage_id=self.request.query_params['act_id']
+            ).cancel(self.request.data['task_id'], self.request.user)
+            ret['code'] = 2000
+            ret['message'] = "销假成功"
+        except DormitoryEveningCheckException as e:
+            ret['code'] = 4000
+            ret['message'] = str(e)
+        return JsonResponse(ret)
+
+
+class RecordSearch(APIView):
+    """记录查询返回所有缺勤记录"""
+    # TODO 使用缓存来提高性能
+    API_PERMISSIONS = ['缺勤公告', 'get']
+
+    def get(self, request):
+        """不给日期默认今天"""
+        search_date = self.request.data.get('date')
+        if not search_date:
+            search_date = datetime.date.today()
+        ret = {
+            'code': 2000, 'message': "查询成功",
+            'data': ActivityFactory.today_leaks(search_date)
+        }
+        return JsonResponse(ret)
+
+
+class ExportExcel(APIView):
+    """导出excel """
+
+    API_PERMISSIONS = ['查寝Excel记录', 'get']
+
+    def get(self, request):
+        """给日期,导出对应的记录的excel表,不给代表今天"""
+        
+        return response
 
 
 class BuildingInfo(APIView):

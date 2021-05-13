@@ -1,12 +1,73 @@
-"""
-Life数据库模型
-"""
 from django.db import models
 from django.contrib.auth.models import User
-from Apps.User.models import College, Grade
-
 
 # Create your models here.
+
+
+
+
+
+class TeacherForCollege(models.Model):
+    """
+    领导对应的分院
+    """
+    college = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="分院号")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="管理者账号")
+
+    class Meta:
+        verbose_name = "老师院级关系"
+        verbose_name_plural = "教师院级关系"
+
+
+class Grade(models.Model):
+    """
+    班级
+    """
+    name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
+    college = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="学院")
+    whole_grade = models.ForeignKey(
+        "WholeGrade", on_delete=models.CASCADE, related_name="grade", verbose_name="年级",
+        null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "班级"
+        verbose_name_plural = "班级"
+
+    def __str__(self):
+        return self.name
+
+
+class WholeGrade(models.Model):
+    """年级"""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+    )
+    name = models.CharField(max_length=20, verbose_name="年级")
+
+    class Meta:
+        verbose_name = "年级"
+        verbose_name_plural = "年级"
+
+    def __str__(self):
+        return self.name
+
+
+class College(models.Model):
+    """
+    分院
+    """
+    name = models.CharField(max_length=50, verbose_name="学院名称")
+    code_name = models.CharField(max_length=50, verbose_name="代码")
+
+    class Meta:
+        verbose_name = "分院"
+        verbose_name_plural = "分院"
+
+    def __str__(self):
+        return self.name
+
+
 class Building(models.Model):
     """楼"""
     name = models.CharField(max_length=50, verbose_name="楼号")
@@ -67,7 +128,6 @@ class Room(models.Model):
         """返回房间号"""
         return self.floor.building.name + self.floor.name + self.name
 
-
 class StuInRoom(models.Model):
     """房间里有哪些学生."""
     room = models.ForeignKey(
@@ -78,7 +138,7 @@ class StuInRoom(models.Model):
         on_delete=models.CASCADE, verbose_name="学生", related_name="stu_in_room"
     )
     bed_position = models.CharField(max_length=150, verbose_name="床铺位置", default="1")
-    '''由于前端奇怪的要求,这里0是在寝室,1是不在寝室'''
+        
     status = models.CharField(max_length=50, verbose_name="是否在寝", default="1")
 
     class Meta:
@@ -90,28 +150,5 @@ class StuInRoom(models.Model):
 
     def __str__(self):
         """返回房间号"""
-        return self.room.floor.building.name + self.room.floor.name + self.room.name
-
-
-class RoomHistory(models.Model):
-    """寝室被查记录"""
-    room = models.ForeignKey(
-        Room, on_delete=models.CASCADE, verbose_name="房间号", related_name="room_history"
-    )
-    manager = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="查寝人", related_name="room_approved"
-    )
-    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
-
-    class Meta:
-        """Meta definition for RoomHistory."""
-        verbose_name = '寝室被查记录'
-        verbose_name_plural = '寝室被查记录'
-        permissions = [
-            ('operate-room_history_view', "operate-查询查寝记录权限")
-        ]
-
-    def __str__(self):
-        """Unicode representation of RoomHistory."""
         return self.room.floor.building.name + self.room.floor.name + self.room.name
 

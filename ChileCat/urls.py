@@ -24,8 +24,10 @@ urlpatterns = [
     path('api/user/', include(('Apps.User.urls', 'Apps.User'), namespace='User')),
     path('api/career/', include(('Apps.Career.urls', 'Apps.Career'), namespace='Career')),
     path('api/ask/', include(('Apps.Ask.urls', 'Apps.Ask'), namespace='Ask')),
-    path('api/life/', include(('Apps.Life.urls', 'Apps.Life'), namespace='Life')),
-    path('api/attendance/', include(('Apps.Activities.Attendance.urls', 'Apps.Activities.Attendance'), namespace='Attendance')),
-    path('api/activity/', include(('Apps.Activity.urls', 'Apps.Activity'), namespace='Activity')),
+    # path('api/life/', include(('Apps.Life.urls', 'Apps.Life'), namespace='Life')),
+    # path('api/attendance/', include(('Apps.Activities.Attendance.urls',
+    #      'Apps.Activities.Attendance'), namespace='Attendance')),
+    # path('api/activity/', include(('Apps.Activity.urls',
+    #      'Apps.Activity'), namespace='Activity')),
     path('api/manage/', include(('Manage.urls', 'Manage'), namespace='Manage')),
 ]
