@@ -95,11 +95,7 @@ class Task(models.Model):
         (u'health', u'查卫生'),
         (u'late', u'晚自修'),
     )
-    GENDER_CHOICES2 = (
-        (u'0', u'智慧交通'),
-        (u'1', u'轨道交通'),
-        (u'2', u'路桥学院'),
-    )
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name=u'创建者')
     is_open = models.BooleanField(verbose_name="是否开启")
@@ -107,12 +103,7 @@ class Task(models.Model):
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
     roster = models.TextField(verbose_name=u'班表', null=True, blank=True)
     college = models.ForeignKey(
-        College, on_delete=models.CASCADE, choices=GENDER_CHOICES2, verbose_name=u'分院')
-
-    # console_code = models.CharField(max_length=2, verbose_name="是否开启", default="0")
-    # verification_code = models.CharField(max_length=50, verbose_name="验证码", default="00000000")
-    # code_name = models.CharField(max_length=50, verbose_name="活动标识", null=True, blank=True)
-    # generate_time = models.DateField(verbose_name="验证码生成时间", default=timezone.datetime.today)
+        College, on_delete=models.CASCADE, verbose_name=u'分院')
 
     class Meta:
         """Meta definition for Manage."""
@@ -122,19 +113,22 @@ class Task(models.Model):
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return self.types
+        return self.user.username + "-" + self.types
 
 
 class TaskPlayer(models.Model):
     '''任务-参与者
     '''
-    task = models.OneToOneField(
+    task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
-    user = models.ManyToManyField(User, verbose_name="用户")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     is_admin = models.BooleanField(verbose_name="是否管理员")
     is_finish = models.BooleanField(verbose_name="是否完成")
     created_time = models.DateTimeField(
         auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    class Meta:
+        verbose_name = '任务-参与者'
 
 
 class TaskFloor(models.Model):
@@ -147,7 +141,7 @@ class TaskFloor(models.Model):
         verbose_name = '任务关联楼'
 
 
-class TaskFloor(models.Model):
+class TaskClass(models.Model):
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
     grade = models.ForeignKey(
@@ -158,7 +152,8 @@ class TaskFloor(models.Model):
 
 
 class RoomHistory(models.Model):
-    """记录房间是否被检查的状态，记录这个房间是否被点名和查卫生执行过
+    """考勤-房间
+    记录房间是否被检查的状态，记录这个房间是否被点名和查卫生执行过
     """
     room = models.ForeignKey(
         Room, on_delete=models.CASCADE, verbose_name="房间号", related_name="room_history"
@@ -179,7 +174,8 @@ class RoomHistory(models.Model):
 
 
 class TaskFloorStudent(models.Model):
-    '''记录房间里面的学生检查状态 是   缺寝 还是 在寝
+    '''考勤-房间-学生
+    记录房间里面的学生检查状态 是   缺寝 还是 在寝
     '''
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
@@ -191,11 +187,12 @@ class TaskFloorStudent(models.Model):
         return self.user.username + is_in
 
     class Meta:
-        verbose_name_plural = '学生是否在寝'
+        verbose_name_plural = '学生在寝情况'
 
 
 class UserCall(models.Model):
-    '''当学生在点名的时候被记录就变动点名类型
+    '''点名-学生
+    当学生在点名的时候被记录就变动点名类型
     '''
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')

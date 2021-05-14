@@ -4,15 +4,14 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 
-
-
-
 class TeacherForCollege(models.Model):
     """
     领导对应的分院
     """
-    college = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="分院号")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="管理者账号")
+    college = models.ForeignKey(
+        "College", on_delete=models.CASCADE, verbose_name="分院号")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "老师院级关系"
@@ -24,7 +23,8 @@ class Grade(models.Model):
     班级
     """
     name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
-    college = models.ForeignKey("College", on_delete=models.CASCADE, verbose_name="学院")
+    college = models.ForeignKey(
+        "College", on_delete=models.CASCADE, verbose_name="学院")
     whole_grade = models.ForeignKey(
         "WholeGrade", on_delete=models.CASCADE, related_name="grade", verbose_name="年级",
         null=True, blank=True
@@ -128,6 +128,7 @@ class Room(models.Model):
         """返回房间号"""
         return self.floor.building.name + self.floor.name + self.name
 
+
 class StuInRoom(models.Model):
     """房间里有哪些学生."""
     room = models.ForeignKey(
@@ -137,8 +138,9 @@ class StuInRoom(models.Model):
         User,
         on_delete=models.CASCADE, verbose_name="学生", related_name="stu_in_room"
     )
-    bed_position = models.CharField(max_length=150, verbose_name="床铺位置", default="1")
-        
+    bed_position = models.CharField(
+        max_length=150, verbose_name="床铺位置", default="1")
+
     status = models.CharField(max_length=50, verbose_name="是否在寝", default="1")
 
     class Meta:
@@ -151,4 +153,3 @@ class StuInRoom(models.Model):
     def __str__(self):
         """返回房间号"""
         return self.room.floor.building.name + self.room.floor.name + self.room.name
-
