@@ -10,9 +10,10 @@ class Rule(models.Model):
         max_length=30, verbose_name=u'名称', null=True, blank=True)
     message = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=u'描述')
+    codename = models.CharField(max_length=8, verbose_name=u'规则代码')
+    is_person = models.BooleanField(verbose_name=u'是否个人有效')
 
     class Meta:
-        """Meta definition for TaskRecord."""
 
         verbose_name = '规则一级分类'
         verbose_name_plural = '规则一级分类'
@@ -24,15 +25,12 @@ class Rule(models.Model):
 class RuleDetails(models.Model):
     name = models.CharField(max_length=20, verbose_name=u'名称')
     score = models.IntegerField(verbose_name=u'分值', null=True, blank=True)
-    is_person = models.BooleanField(verbose_name=u'是否个人有效')
-    codename = models.CharField(max_length=30, verbose_name=u'代码名称')
     rule = models.ForeignKey(
         'Rule', on_delete=models.CASCADE, verbose_name=u'一级分类')
     parent_id = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, verbose_name=u'父类')
 
     class Meta:
-        """Meta definition for TaskRecord."""
 
         verbose_name = '扣分详情'
         verbose_name_plural = '扣分详情'
@@ -124,8 +122,8 @@ class TaskPlayer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     is_admin = models.BooleanField(verbose_name="是否管理员")
     is_finish = models.BooleanField(verbose_name="是否完成")
-    created_time = models.DateTimeField(
-        auto_now=False, auto_now_add=True, verbose_name="创建时间")
+    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
     class Meta:
         verbose_name = '任务-参与者'

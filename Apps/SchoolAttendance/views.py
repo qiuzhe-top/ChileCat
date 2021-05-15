@@ -9,7 +9,10 @@ class Task(APIView):
     def get(self, request, *args, **kwargs):
         '''获取任务
             request:
-                null
+                type: # 获取任务的类型
+                    0 # 晚查寝
+                    1 # 查卫生
+                    2 # 晚自修
             response:
                 [{
                     id:1 # 任务id
@@ -28,9 +31,13 @@ class Task(APIView):
         '''创建任务
             request:
                 {
-                    type:1 # 任务类型 参考models设计
+                    type: # 任务类型 参考models设计
+                        0 # 晚查寝
+                        1 # 查卫生
+                        2 # 晚自修
                     id:[1,5,2] # if type == 0/1 => 宿舍楼ID else 班级ID
                 }
+            创建任务需要判断有没有对应权限
         '''
         ret = {}
         ret['message'] = 'message'
@@ -46,8 +53,8 @@ class TaskAdmin(APIView):
                 id:1 # 任务id
             response:
                 [{
-                    user——id:2 #用户id
-                    name: 张三 # 姓名
+                    user_id:2 #用户id
+                    uese_name: 张三 # 姓名
                 }]
         '''
         ret = {}
@@ -107,7 +114,7 @@ class Scheduling(APIView):
             request:
                 id:1 # 任务id
             response:
-                对应班表
+                roster: 对应班表
         '''
         ret = {}
         ret['message'] = 'message'
@@ -118,7 +125,145 @@ class Scheduling(APIView):
     def post(self, request, *args, **kwargs):
         '''更改班表
             request：
-                对应班表
+                roster: 对应班表
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class Condition(APIView):
+    def get(self, request, *args, **kwargs):
+        '''查看当天考勤工作情况
+            request:
+                id:2 # 任务id
+            response:
+                [
+                    {
+                        id:2 # 用户ID
+                        name: 张三 
+                    }
+                ]
+        权限判断
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class UndoRecord(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        '''销假
+            request：
+               id:213 # 考勤记录id
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class OutData(APIView):
+    def get(self, request, *args, **kwargs):
+        '''导出今日记录情况
+            request:
+                id:任务ID
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class TaskExecutor(APIView):
+    def get(self, request, *args, **kwargs):
+        '''工作人员获取任务 
+            response:
+                [{
+                    id:2                    # 任务ID
+                    title:智慧彩云 晚查寝    # 名称
+                    builder_name:张三       # 创建者姓名
+                    is_finish:true          # 是否完成任务
+                },]
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class Rule(APIView):
+    def get(self, request, *args, **kwargs):
+        '''获取规则
+            request:
+                codename: 规则编号
+            response:
+                list:[{
+                    id:规则ID
+                    title:规则名称
+                    parent_id:父级ID
+                }]
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class Submit(APIView):
+    def post(self, request, *args, **kwargs):
+        '''考勤提交
+            request:
+                id: 2               # 任务ID
+                type: 0/1           # 提交类型 0=> 考勤提交 1=>执行人确认任务完成
+                rule_id:[1,2,3]     # 规则的ID列表
+                user_id:2           # 用户ID
+                room_id:20          # 寝室ID
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class TaskRoomInfo(APIView):
+    def get(self, request, *args, **kwargs):
+        '''宿舍 相关任务信息
+            request:
+                task_id: 1 # 任务ID
+                type: 
+                    0 # 获取楼层
+                    1 # 获取房间
+                    2 # 获取房间内学生状态
+        根据任务ID判断是查寝还是查卫生然后返回对应处理的数据
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class TaskRoomInfo(APIView):
+    API_PERMISSIONS = ['楼层号', 'get']
+
+    def get(self, request, *args, **kwargs):
+        '''晚自修 相关数据
+            request:
+                task_id:任务ID
+                type: 
+                    0 # 获取任务绑定的班级
+                    1 # 获取班级名单附带学生多次点名情况
         '''
         ret = {}
         ret['message'] = 'message'
@@ -128,230 +273,9 @@ class Scheduling(APIView):
 
 
 # ----------------------------------------------------------------
-class StudentLeak(APIView):
-    """
-    学生缺勤
-    前端提供:学生id,原因,房间id.
-    查寝人由系统自动查询当前登录用户
-    (是否归寝由这里系统自动改成0),
-    创建时间,最后修改时间由服务器自动生成
-    销假不在这里进行,故不设置
-    para: id,why,roomid
-    """
-
-    API_PERMISSIONS = ['学生缺勤', '*post']
-
-    def post(self, request):
-        """缺勤提交"""
-        ret = {
-            'code': 0000,
-            'message': "default message",
-        }
-        try:
-            ActivityFactory(
-                self.request.query_params['act_id']).leak_submit(self.request.data)
-            ret['code'] = 2000
-            ret['message'] = "提交成功"
-        except ActivityException as e:
-            ret['code'] = 4000
-            ret['message'] = str(e)
-        except ActivityInitialization as e:
-            ret['code'] = 4000
-            ret['message'] = str(e)
-        return JsonResponse(ret)
-
-    def put(self, request):
-        """
-        销假
-        参数:请假条id,id
-        """
-        ret = {
-            'code': 0000,
-            'message': "default message",
-        }
-        try:
-            ActivityFactory(
-                manage_id=self.request.query_params['act_id']
-            ).cancel(self.request.data['task_id'], self.request.user)
-            ret['code'] = 2000
-            ret['message'] = "销假成功"
-        except DormitoryEveningCheckException as e:
-            ret['code'] = 4000
-            ret['message'] = str(e)
-        return JsonResponse(ret)
-
-
-class RecordSearch(APIView):
-    """记录查询返回所有缺勤记录"""
-    # TODO 使用缓存来提高性能
-    API_PERMISSIONS = ['缺勤公告', 'get']
-
-    def get(self, request):
-        """不给日期默认今天"""
-        search_date = self.request.data.get('date')
-        if not search_date:
-            search_date = datetime.date.today()
-        ret = {
-            'code': 2000, 'message': "查询成功",
-            'data': ActivityFactory.today_leaks(search_date)
-        }
-        return JsonResponse(ret)
-
-
-class ExportExcel(APIView):
-    """导出excel """
-
-    API_PERMISSIONS = ['查寝Excel记录', 'get']
-
-    def get(self, request):
-        """给日期,导出对应的记录的excel表,不给代表今天"""
-
-        return response
-
-
-class BuildingInfo(APIView):
-    """获取楼号,包括层号"""
-
-    API_PERMISSIONS = ['楼层号', 'get']
-
-    def get(self, request):
-        """获取楼号"""
-        ret = {'code': 2000, 'message': "楼层遍历成功",
-               'data': dormitory.Room.building_info(request)}
-        return JsonResponse(ret)
-
-
-class RoomInfo(APIView):
-    """
-    获取房间信息
-    需要参数:
-        id,层号
-    """
-
-    API_PERMISSIONS = ['房间信息', 'get']
-
-    def get(self, request):
-        """获取房间信息"""
-        ret = {
-            'code': 0000,
-            'message': "default message",
-            'data': {}
-        }
-        req_list = self.request.query_params
-        floor_id = req_list.get('floor_id', None)
-        types = req_list.get('type', None)
-        try:
-            ret['data'] = dormitory.Room.room_info(floor_id, types)
-            ret['code'] = 2000
-            ret['message'] = "房间遍历成功"
-        except RoomParamException as room_exception:
-            ret['code'] = 4000
-            ret['message'] = str(room_exception)
-        return JsonResponse(ret)
-
-
-class StudentPositionInfo(APIView):
-    """
-    学生位置(学生信息)
-    需要前端给门号
-        id
-    """
-
-    API_PERMISSIONS = ['寝室学生信息', 'get']
-
-    def get(self, request):
-        """拉取房间每个人的位置"""
-        ret = {
-            'code': 0000,
-            'message': "default message",
-            'data': []
-        }
-        req_list = self.request.query_params
-        try:
-            room_id = int(req_list.get('room_id', -1))
-            types = req_list.get('type', None)
-            if types == "floor-dorm":
-                ret['data'] = dormitory.Room.student_info(room_id)
-            else:
-                ret['data'] = []
-            ret['code'] = 2000
-            ret['message'] = "房间读取成功"
-        except ObjectDoesNotExist:
-            ret['code'] = 4000
-            ret['message'] = "房间或者房间内数据有误"
-            ret['data'] = []
-        except ValueError:
-            ret['code'] = 4000
-            ret['message'] = "参数错误"
-        return JsonResponse(ret)
-
-
-# class StudentLeak(APIView):
-#     """
-#     学生缺勤
-#     前端提供:学生id,原因,房间id.
-#     查寝人由系统自动查询当前登录用户
-#     (是否归寝由这里系统自动改成0),
-#     创建时间,最后修改时间由服务器自动生成
-#     销假不在这里进行,故不设置
-#     para: id,why,roomid
-#     """
-#
-#     API_PERMISSIONS = ['学生缺勤', '*post']
-#
-#     def post(self, request):
-#         """缺勤提交"""
-#         ret = {
-#             'code': 0000,
-#             'message': "default message",
-#         }
-#         try:
-#             dormitory_evening_check.DormitoryEveningCheck(
-#                 self.request.query_params['act_id']).leak_submit(self.request.data)
-#             ret['code'] = 2000
-#             ret['message'] = "提交成功"
-#         except ActivityException as e:
-#             ret['code'] = 4000
-#             ret['message'] = str(e)
-#         except ActivityInitialization as e:
-#             ret['code'] = 4000
-#             ret['message'] = str(e)
-#         return JsonResponse(ret)
-#
-#     def put(self, request):
-#         """
-#         销假
-#         参数:请假条id,id
-#         """
-#         ret = {
-#             'code': 0000,
-#             'message': "default message",
-#         }
-#         dormitory_evening_check.DormitoryEveningCheck(self.request.query_params['act_id']).cancel()
-#         ret['code'] = 2000
-#         ret['message'] = "销假成功"
-#         return JsonResponse(ret)
-#
-#
-# class RecordSearch(APIView):
-#     """记录查询返回所有缺勤记录"""
-#     API_PERMISSIONS = ['缺勤公告', 'get']
-#
-#     def get(self, request):
-#         """不给日期默认今天"""
-#         search_date = self.request.data.get('date')
-#         ret = {
-#             'code': 2000, 'message': "查询成功",
-#             'data': dormitory_evening_check.DormitoryEveningCheck.today_leaks(search_date)
-#         }
-#         return JsonResponse(ret)
-#
-#
 # class ExportExcel(APIView):
 #     """导出excel """
-#
 #     API_PERMISSIONS = ['查寝Excel记录', 'get']
-#
 #     def get(self, request):
 #         """给日期,导出对应的记录的excel表,不给代表今天"""
 #         print("准备导出excel")
@@ -364,12 +288,14 @@ class StudentPositionInfo(APIView):
 #         time_get = req_list.get('date', -1)
 #         if time_get == -1:
 #             time_get = date.today()
-#         records = TaskRecord.objects.filter(Q(manager=None) & Q(created_time__date=time_get))
+#         records = TaskRecord.objects.filter(
+#             Q(manager=None) & Q(created_time__date=time_get))
 #         if not records:
 #             return JsonResponse(
 #                 {"state": "1", "msg": "当日无缺勤"}
 #             )
-#         ser_records = ser.TaskRecordExcelSerializer(instance=records, many=True).data
+#         ser_records = ser.TaskRecordExcelSerializer(
+#             instance=records, many=True).data
 #         if ser_records:
 #             ws = xlwt.Workbook(encoding='utf-8')
 #             w = ws.add_sheet('sheet1')
@@ -395,4 +321,4 @@ class StudentPositionInfo(APIView):
 #             output.seek(0)
 #             response.write(output.getvalue())
 #             print("导出excel")
-#         return response
+#             return response
