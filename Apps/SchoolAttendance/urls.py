@@ -6,10 +6,11 @@ from . import views
 
 urlpatterns = [
     # path('idcode', views.VerificationCode.as_view(), name='VerificationCode'),
-    
+
     path('buildinginfo', views.BuildingInfo.as_view(), name='BuildingInfo'),
     path('roominfo', views.RoomInfo.as_view(), name='RoomInfo'),
-    path('stupositioninfo', views.StudentPositionInfo.as_view(), name='StudentPositionInfo'),
+    path('stupositioninfo', views.StudentPositionInfo.as_view(),
+         name='StudentPositionInfo'),
     # path('studentleak', views.StudentLeak.as_view(), name='StudentLeak'),
     # path('recordsearch', views.RecordSearch.as_view(), name='RecordSearch'),
     # path('switchknowing', views.SwitchKnowing.as_view(), name='SwitchKnowing'),
@@ -21,36 +22,40 @@ urlpatterns = [
     # 导出excel
     path('exportexcel', views.ExportExcel.as_view(), name='ExportExcel'),
 
-    
+
     # 任务
     path('task', views.Task.as_view(), name='Task'),
-    # 添加管理员
-    path('add_admin', views.AddAdmin.as_view(), name='AddAdmin'),
-    # 任务开启
-    path('switch', views.Switch.as_view(), name='Switch'),
+    # 任务管理员
+    path('task_admin', views.TaskAdmin.as_view(), name='TaskAdmin'),
+    # 任务状态切换
+    path('task_switch', views.TaskSwitch.as_view(), name='TaskSwitch'),
     # 排班
     path('scheduling', views.Scheduling.as_view(), name='Scheduling'),
-    # 查看考勤工作情况
-    path('condition', views.Condition.as_view(), name='Condition'),
-    # 查看考勤进度
-    path('progress', views.Progress.as_view(), name='Progress'),
-    # 销假
-    path('undo_record', views.UndoRecord.as_view(), name='UndoRecord'),
-    # 数据导出
-    path('out_data', views.OutData.as_view(), name='OutData'),
-    # 执行人获取任务
-    path('task_executor', views.TaskExecutor.as_view(), name='TaskExecutor'),
-    # 获取规则
-    path('rule', views.Rule.as_view(), name='Rule'),
-    
-    # 获取学生信息
-    path('student_information', views.student_information.as_view(), name='student_information'),
-    # 考勤提交
-    path('submit', views.submit.as_view(), name='submit'),
-    # 执行人确认任务完成
-    path('executor_finish', views.executor_finish.as_view(), name='executor_finish'),
-    # 晚自修-管理的班级
-    path('get_class', views.student_information.as_view(), name='student_information'),
-    # 晚自修-班级内的学生
-    path('class_students', views.student_information.as_view(), name='student_information'),
+    #     # 查看考勤工作情况
+    #     path('condition', views.Condition.as_view(), name='Condition'),
+    #     # 查看考勤进度
+    #     path('progress', views.Progress.as_view(), name='Progress'),
+    #     # 销假
+    #     path('undo_record', views.UndoRecord.as_view(), name='UndoRecord'),
+    #     # 数据导出
+    #     path('out_data', views.OutData.as_view(), name='OutData'),
+
+    #     # 获取学生信息
+    #     path('student_information', views.StudentInformation.as_view(),
+    #          name='StudentInformation'),
+
+    #     # 执行人获取任务
+    #     path('task_executor', views.TaskExecutor.as_view(), name='TaskExecutor'),
+    #     # 获取规则
+    #     path('rule', views.Rule.as_view(), name='Rule'),
+    #     # 考勤提交  执行人确认任务完成
+    #     path('submit', views.Submit.as_view(), name='Submit'),
+    #     # 查寝相关任务信息 楼层 房间 学生状态
+    #     path('task_room_info', views.TaskRoomInfo.as_view(), name='TaskRoomInfo'),
+
+    #     # 晚自修-管理的班级  班级内的学生
+    #     path('late_class', views.LateClass.as_view(),
+    #          name='LateClass'),
+
+    # 考勤记录查询接口 支持多条件查询
 ]

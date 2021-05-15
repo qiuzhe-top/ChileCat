@@ -1,7 +1,133 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework.views import APIView
 
+
+class Task(APIView):
+    def get(self, request, *args, **kwargs):
+        '''获取任务
+            request:
+                null
+            response:
+                [{
+                    id:1 # 任务id
+                    name: 智慧学院 晚查寝 # 任务名称后台自动生成
+                    is_open:true # 任务开启状态
+                    is_builder:true #是否是本任务创建者
+                }]
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        '''创建任务
+            request:
+                {
+                    type:1 # 任务类型 参考models设计
+                    id:[1,5,2] # if type == 0/1 => 宿舍楼ID else 班级ID
+                }
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class TaskAdmin(APIView):
+    def get(self, request, *args, **kwargs):
+        '''获取任务管理员
+            request:
+                id:1 # 任务id
+            response:
+                [{
+                    user——id:2 #用户id
+                    name: 张三 # 姓名
+                }]
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        '''添加管理员
+            request:
+                {
+                    id:2 #任务ID
+                    user_id: [1,2,3] # 用户id
+                }
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+    def delete(self, request, *args, **kwargs):
+        '''删除管理员
+            request:
+                {
+                    id:2 # 任务ID
+                    user_id:3 # 用户ID
+                }
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class TaskSwitch(APIView):
+
+    def put(self, request, *args, **kwargs):
+        '''修改任务状态
+            request:
+                id：任务ID
+            response:
+                true / false 修改后任务状态
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+class Scheduling(APIView):
+    def get(self, request, *args, **kwargs):
+        '''获取班表
+            request:
+                id:1 # 任务id
+            response:
+                对应班表
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        '''更改班表
+            request：
+                对应班表
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
+
+# ----------------------------------------------------------------
 class StudentLeak(APIView):
     """
     学生缺勤
@@ -79,7 +205,7 @@ class ExportExcel(APIView):
 
     def get(self, request):
         """给日期,导出对应的记录的excel表,不给代表今天"""
-        
+
         return response
 
 
@@ -90,7 +216,8 @@ class BuildingInfo(APIView):
 
     def get(self, request):
         """获取楼号"""
-        ret = {'code': 2000, 'message': "楼层遍历成功", 'data': dormitory.Room.building_info(request)}
+        ret = {'code': 2000, 'message': "楼层遍历成功",
+               'data': dormitory.Room.building_info(request)}
         return JsonResponse(ret)
 
 
@@ -114,7 +241,7 @@ class RoomInfo(APIView):
         floor_id = req_list.get('floor_id', None)
         types = req_list.get('type', None)
         try:
-            ret['data'] = dormitory.Room.room_info(floor_id,types)
+            ret['data'] = dormitory.Room.room_info(floor_id, types)
             ret['code'] = 2000
             ret['message'] = "房间遍历成功"
         except RoomParamException as room_exception:

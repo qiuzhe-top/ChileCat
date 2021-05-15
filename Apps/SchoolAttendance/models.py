@@ -91,14 +91,14 @@ class Record(models.Model):
 class Task(models.Model):
     """考勤任务管理"""
     GENDER_CHOICES1 = (
-        (u'knowing', u'查寝'),
-        (u'health', u'查卫生'),
-        (u'late', u'晚自修'),
+        (u'0', u'查寝'),
+        (u'1', u'查卫生'),
+        (u'2', u'晚自修')
     )
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name=u'创建者')
-    is_open = models.BooleanField(verbose_name="是否开启")
+    is_open = models.BooleanField(verbose_name='是否开启')
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
     roster = models.TextField(verbose_name=u'班表', null=True, blank=True)
