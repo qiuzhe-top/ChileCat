@@ -107,6 +107,17 @@ class TaskSwitch(APIView):
         ret['data'] = 'data'
         return JsonResponse(ret)
 
+    def delete(self, request, *args, **kwargs):
+        '''清除任务状态
+            request:
+                id:1 # 任务ID
+        '''
+        ret = {}
+        ret['message'] = 'message'
+        ret['code'] = 2000
+        ret['data'] = 'data'
+        return JsonResponse(ret)
+
 
 class Scheduling(APIView):
     def get(self, request, *args, **kwargs):
@@ -229,10 +240,7 @@ class Submit(APIView):
                 user_id:2           # 用户ID
                 room_id:20          # 寝室ID
         '''
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
+        ret = {'message': 'message', 'code': 2000, 'data': 'data'}
         return JsonResponse(ret)
 
 
@@ -247,14 +255,11 @@ class TaskRoomInfo(APIView):
                     2 # 获取房间内学生状态
         根据任务ID判断是查寝还是查卫生然后返回对应处理的数据
         '''
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
+        ret = {'message': 'message', 'code': 2000, 'data': 'data'}
         return JsonResponse(ret)
 
 
-class TaskRoomInfo(APIView):
+class LateClass(APIView):
     API_PERMISSIONS = ['楼层号', 'get']
 
     def get(self, request, *args, **kwargs):

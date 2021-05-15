@@ -93,7 +93,6 @@ class Task(models.Model):
         (u'1', u'查卫生'),
         (u'2', u'晚自修')
     )
-
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name=u'创建者')
     is_open = models.BooleanField(verbose_name='是否开启')
@@ -182,7 +181,7 @@ class TaskFloorStudent(models.Model):
     flg = models.BooleanField(verbose_name='是否在寝室')
 
     def __str__(self):
-        return self.user.username + is_in
+        return self.user.username
 
     class Meta:
         verbose_name_plural = '学生在寝情况'
