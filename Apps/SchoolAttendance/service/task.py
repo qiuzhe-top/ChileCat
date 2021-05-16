@@ -1,21 +1,14 @@
 
-from .knowing import knowing
-from .health import health
-from .late import late
+from .. import models
+
 # from Apps.SchoolAttendance.service.late import late
 
 '''
 任务公共类
 '''
 
-task_factory = {
-    '0': knowing,
-    '1': health,
-    '2': late
-}
 
-
-class task(object):
+class Task(object):
 
     def add_admin(self):
         '''添加管理员

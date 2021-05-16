@@ -1,40 +1,12 @@
 from . import task
 from .. import models
+from .knowing import Knowing
 '''
 寝室卫生
 '''
 
 
-class health(object):
-
-    def __init__(self, id):
-        if id > 0:
-            self.obj = models.Task.objects.get(id=id)
-            self.user = self.obj.user
-
-    def task_create(self, user, types, ids):
-        '''创建任务
-        '''
-
-        dic = {
-            'user': user,
-            'is_open': True,
-            'types': types,
-            'college': user.studentinfo.grade.college,
-        }
-        task = models.Task.objects.create(**dic)
-        task.buildings.set(ids)
-        return True
-
-    def add_admin(self):
-        '''添加管理员
-        '''
-        pass
-
-    def switch(self):
-        '''任务开启
-        '''
-        pass
+class Health(Knowing):
 
     def scheduling(self):
         '''排班

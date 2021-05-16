@@ -4,9 +4,15 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.views import APIView
 # from .service.knowing import knowing
-from .service.health import health
-from .service.task import task_factory
 from django.contrib.auth.models import User
+from . import models, serializers
+from .service import knowing, health, late
+
+task_factory = {
+    '0': knowing.Knowing,
+    '1': health.Health,
+    '2': late.Late
+}
 
 
 class Task(APIView):
@@ -20,15 +26,26 @@ class Task(APIView):
             response:
                 [{
                     id:1 # 任务id
-                    name: 智慧学院 晚查寝 # 任务名称后台自动生成
+                    name: 智慧学院 晚查寝 
                     is_open:true # 任务开启状态
                     is_builder:true #是否是本任务创建者
                 }]
         '''
         ret = {}
+
+        is_type = request.data['type']
+        user = request.user
+        task = models.Task.objects.filter(
+            types=is_type, user=user)
+        task_admin = models.TaskPlayer.objects.filter(
+            user=user, is_admin=True)
+        ser = serializers.Task(instance=task_admin, many=True).data
+
+        for task in task_admin:
+            print(task)
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = ser
         return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):
@@ -46,9 +63,9 @@ class Task(APIView):
         ret = {}
         # user = request.user
         user = User.objects.get(id=1)
-        is_type = request.data['type']
+        is_type = str(request.data['type'])
         ids = request.data['ids']
-        task_factory[is_type](-1).task_create(user, 0, [1, 2, 333])
+        task_factory[is_type](-1).task_create(user, is_type, ids)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
