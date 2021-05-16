@@ -3,6 +3,10 @@ from django.shortcuts import render
 
 # Create your views here.
 from rest_framework.views import APIView
+# from .service.knowing import knowing
+from .service.health import health
+from .service.task import task_factory
+from django.contrib.auth.models import User
 
 
 class Task(APIView):
@@ -35,11 +39,16 @@ class Task(APIView):
                         0 # 晚查寝
                         1 # 查卫生
                         2 # 晚自修
-                    id:[1,5,2] # if type == 0/1 => 宿舍楼ID else 班级ID
+                    ids:[1,5,2] # if type == 0/1 => 宿舍楼ID else 班级ID
                 }
             创建任务需要判断有没有对应权限
         '''
         ret = {}
+        # user = request.user
+        user = User.objects.get(id=1)
+        is_type = request.data['type']
+        ids = request.data['ids']
+        task_factory[is_type](-1).task_create(user, 0, [1, 2, 333])
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'

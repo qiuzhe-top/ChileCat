@@ -1,10 +1,31 @@
-class health(health_interface):
+from . import task
+from .. import models
+'''
+寝室卫生
+'''
 
-    def task_all(self):
+
+class health(object):
+
+    def __init__(self, id):
+        if id > 0:
+            self.obj = models.Task.objects.get(id=id)
+            self.user = self.obj.user
+
+    def task_create(self, user, types, ids):
         '''创建任务
         '''
-        pass
-    
+
+        dic = {
+            'user': user,
+            'is_open': True,
+            'types': types,
+            'college': user.studentinfo.grade.college,
+        }
+        task = models.Task.objects.create(**dic)
+        task.buildings.set(ids)
+        return True
+
     def add_admin(self):
         '''添加管理员
         '''
@@ -14,7 +35,7 @@ class health(health_interface):
         '''任务开启
         '''
         pass
-    
+
     def scheduling(self):
         '''排班
         '''
@@ -30,27 +51,21 @@ class health(health_interface):
         '''
         pass
 
-
-    
     def undo_record(self):
         '''销假
         '''
         pass
 
-
     def out_data(self):
         '''数据导出
         '''
         pass
-    
 
-    
     def get_task(self):
         '''执行人获取任务
         执行人获取今日的任务 包括 查寝、查卫生、晚自修
         '''
         pass
-    
 
     def rule(self):
         '''获取规则

@@ -1,39 +1,32 @@
-class knowing(knowing_interface):
+from . import task
+'''
+晚查寝
+'''
 
-    def task_all(self):
+
+class knowing(object):
+
+    def __init__(self, id):
+        pass
+
+    def task_create(self):
         '''创建任务
         '''
         pass
-    
-    def add_admin(self):
-        '''添加管理员
-        '''
-        pass
 
-    def switch(self):
-        '''任务开启
-        '''
-        console_code = self._activity.console_code
-        console_code=not console_code
-        if console_code:
-            self.initialization()
-        self._activity.console_code = console_code
-        self._activity.save()
-        return console_code
-    
     def scheduling(self):
         '''排班
         '''
         # 同类型的活动工作组
         active_groups = []
-        for item in Manage.objects.filter(types=self._activity.types).values_list('code_name',flat=True):
+        for item in Manage.objects.filter(types=self._activity.types).values_list('code_name', flat=True):
             active_groups.append('work_'+item)
         user_all = []
         for item in roster:
             user_list = []
             for layer in item['layer_list']:
                 for user in layer['user']:
-                    if len(item['title'][:1])!=0 and len(user['username'])!=0:
+                    if len(item['title'][:1]) != 0 and len(user['username']) != 0:
                         # 当前工作用户
                         u = User.objects.get(username=user['username'])
                         g = u.groups.filter(name__in=active_groups)
@@ -43,16 +36,16 @@ class knowing(knowing_interface):
                                 # 用户退出已经有的同类型不同分院的工作组
                                 group.user_set.remove(u)
                         user_list.append(user['username'])
-                        
+
             group_clean('dorm_'+item['title'][:1])
-            group_add_user('dorm_'+item['title'][:1],user_list)
-            user_all+=user_list
+            group_add_user('dorm_'+item['title'][:1], user_list)
+            user_all += user_list
         print(user_all)
         # 添加对应工作组
-        n = 'work_'+ self._activity.college.code_name + '_' + self._activity.types
+        n = 'work_' + self._activity.college.code_name + '_' + self._activity.types
         group_clean(n)
-        group_add_user(n,user_all)
-        self._activity.roster=json.dumps(roster)
+        group_add_user(n, user_all)
+        self._activity.roster = json.dumps(roster)
         self._activity.save()
         return self._activity
 
@@ -65,7 +58,7 @@ class knowing(knowing_interface):
         '''查看考勤进度
         '''
         pass
-    
+
     def undo_record(self):
         '''销假
         '''
@@ -73,7 +66,6 @@ class knowing(knowing_interface):
         task_record.manager = manager
         task_record.save()
         print("晚查寝提交记录", task_record, "销假人添加:", manager)
-
 
     def out_data(self):
         '''数据导出
@@ -88,12 +80,14 @@ class knowing(knowing_interface):
         time_get = req_list.get('date', -1)
         if time_get == -1:
             time_get = date.today()
-        records = TaskRecord.objects.filter(Q(task_type="dorm") & Q(manager=None) & Q(created_time__date=time_get))
+        records = TaskRecord.objects.filter(Q(task_type="dorm") & Q(
+            manager=None) & Q(created_time__date=time_get))
         if not records:
             return JsonResponse(
                 {"state": "1", "msg": "当日无缺勤"}
             )
-        ser_records = ser.TaskRecordExcelSerializer(instance=records, many=True).data
+        ser_records = ser.TaskRecordExcelSerializer(
+            instance=records, many=True).data
         if ser_records:
             ws = xlwt.Workbook(encoding='utf-8')
             w = ws.add_sheet('sheet1')
@@ -119,12 +113,11 @@ class knowing(knowing_interface):
             output.seek(0)
             response.write(output.getvalue())
             print("导出excel")
-    
+
     def get_task(self):
         '''执行人获取任务
         '''
         pass
-    
 
     def rule(self):
         '''获取规则
@@ -164,7 +157,8 @@ class knowing(knowing_interface):
                     # status = 0,表示还是不在寝室，注意是“还是”，此时需要把manager去掉，辣鸡zy，把flag砍了4，只能从manager去判断销假
                     print("记录继续更新为缺勤")
                     leak_info['manager'] = None
-                    leak_info['reason'] = PunishmentDetails.objects.get(id=leak_info['reason'])
+                    leak_info['reason'] = PunishmentDetails.objects.get(
+                        id=leak_info['reason'])
                 TaskRecordAntiSerializer().update(history_record.first(), leak_info)
             else:
                 print("正常创建")
@@ -197,7 +191,8 @@ class knowing(knowing_interface):
         buildings = models.Building.objects.filter(name__in=floor_list)
         buildings_info = []
         for building in buildings:
-            info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
+            info = {"list": [], 'id': building.id,
+                    'name': building.name + "号楼"}
             floors = building.floor.all()
             for floor in floors:
                 floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
@@ -208,9 +203,10 @@ class knowing(knowing_interface):
     def room(self):
         '''晚查寝-层工作数据
         '''
-        d = {"floor-health":"health_status","floor-dorm":"dorm_status"}
+        d = {"floor-health": "health_status", "floor-dorm": "dorm_status"}
         if floor_id:
-            rooms = models.Room.objects.filter(floor_id=floor_id).values('id','name','health_status','dorm_status')
+            rooms = models.Room.objects.filter(floor_id=floor_id).values(
+                'id', 'name', 'health_status', 'dorm_status')
             for room in rooms:
                 room['status'] = room[d[types]]
                 del room['health_status']
@@ -229,15 +225,17 @@ class knowing(knowing_interface):
                     'name': i.student.userinfo.name, 'status': i.status, 'position': i.bed_position}
             room_info.append(unit)
         return room_info
-    
+
     @staticmethod
     def search_room(room_info):
         """xx#xxx解析"""
         building_name = room_info.strip().split("#")[0].strip()
         floor = room_info.strip().split("#")[1].strip()[0].strip()
         room = room_info.strip().split("#")[1].strip()[1:3].strip()
-        building, flag = models.Building.objects.get_or_create(name=building_name)
-        floor, flag = models.Floor.objects.get_or_create(building=building, name=floor)
+        building, flag = models.Building.objects.get_or_create(
+            name=building_name)
+        floor, flag = models.Floor.objects.get_or_create(
+            building=building, name=floor)
         room, flag = models.Room.objects.get_or_create(name=room, floor=floor)
         return room
 
@@ -258,7 +256,8 @@ class knowing(knowing_interface):
                 b = models.Building.objects.get(name=data[item][0])
                 f = models.Floor.objects.get(name=data[item][1], building=b)
                 r = models.Room.objects.get(name=data[item][2], floor=f)
-                print('学生：', user, '旧寝室：', user.stu_in_room.all()[0], '待换寝室：', r)
+                print('学生：', user, '旧寝室：',
+                      user.stu_in_room.all()[0], '待换寝室：', r)
                 models.StuInRoom.objects.filter(student=user).update(room=r)
             except:
                 print('调换失败', item)

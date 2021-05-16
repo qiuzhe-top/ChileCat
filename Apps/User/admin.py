@@ -1,42 +1,46 @@
 # '''
 # admin.py
 # '''
-# from django.contrib import admin
-# from . import models
-# from django.utils.html import format_html
-
-# @admin.register(models.Token)
-# class TokenTeleAdmin(admin.ModelAdmin):
-#     list_display = ("id", "token", "user")
+from django.contrib import admin
+from .models import *
+from django.utils.html import format_html
 
 
-# @admin.register(models.UserInfo)
-# class UserInfoTeleAdmin(admin.ModelAdmin):
-#     # def user_to_role(self,obj):
-#     #     roles_count = obj.user_role.count()
-#     #     if roles_count > 0:
-#     #         return "该用户有"+str(roles_count)+"个角色"
-#     #     return format_html('<span style="color:#8E8E8E;">(该用户无角色)</span>')
-#     # def show_tel(self,obj):
-#     #     if obj.tel:
-#     #         return obj.tel
-#     #     return format_html('<span style="color:#8E8E8E;">(无电话信息)</span>')
-#     list_display = ("id", "user", "name", "tel", "identity",  "photo")  # ,"user_to_role"
-#     # user_to_role.short_description = "用户角色"
-#     # filter_horizontal = ['user_role']
-#     empty_value_display = format_html('<span style="color:#8E8E8E;">(内容为空)</span>')
+@admin.register(Token)
+class TokenTeleAdmin(admin.ModelAdmin):
+    list_display = ("id", "token", "user")
 
-#     search_fields = ['id','name','identity','tel']
 
-# @admin.register(models.StudentInfo)
-# class StudentInfoTeleAdmin(admin.ModelAdmin):
-#     """
-#         学生信息
-#     """
-#     list_display = ("id", "grade", "user")
-#     search_fields = ['grade',]
-#     autocomplete_fields = ['grade',]
-#     raw_id_fields = ['user',]
+@admin.register(UserInfo)
+class UserInfoTeleAdmin(admin.ModelAdmin):
+    # def user_to_role(self,obj):
+    #     roles_count = obj.user_role.count()
+    #     if roles_count > 0:
+    #         return "该用户有"+str(roles_count)+"个角色"
+    #     return format_html('<span style="color:#8E8E8E;">(该用户无角色)</span>')
+    # def show_tel(self,obj):
+    #     if obj.tel:
+    #         return obj.tel
+    #     return format_html('<span style="color:#8E8E8E;">(无电话信息)</span>')
+    list_display = ("id", "user", "name", "tel",
+                    "identity",  "photo")  # ,"user_to_role"
+    # user_to_role.short_description = "用户角色"
+    # filter_horizontal = ['user_role']
+    empty_value_display = format_html(
+        '<span style="color:#8E8E8E;">(内容为空)</span>')
+
+    # search_fields = ['id', 'name', 'identity', 'tel']
+
+
+@admin.register(StudentInfo)
+class StudentInfo(admin.ModelAdmin):
+    """
+        学生信息
+    """
+    list_display = ("id", "grade", "user")
+    # search_fields = ['grade', ]
+    # autocomplete_fields = ['grade', ]
+    # raw_id_fields = ['user', ]
 
 # @admin.register(models.TeacherInfo)
 # class TeacherInfoTeleAdmin(admin.ModelAdmin):

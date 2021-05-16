@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import *
+
+
 @admin.register(UserCall)
 class UserCall(admin.ModelAdmin):
     """楼层"""
@@ -24,18 +26,18 @@ class RoomHistoryTeleAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(TaskClass)
-class TaskClass(admin.ModelAdmin):
-    list_display = (
-        "id", "task", "grade"
-    )
+# @admin.register(TaskClass)
+# class TaskClass(admin.ModelAdmin):
+#     list_display = (
+#         "id", "task", "grade"
+#     )
 
 
-@admin.register(TaskFloor)
-class TaskFloor(admin.ModelAdmin):
-    list_display = (
-        "id", "task", "building"
-    )
+# @admin.register(TaskFloor)
+# class TaskFloor(admin.ModelAdmin):
+#     list_display = (
+#         "id", "task", "building"
+#     )
 
 
 @admin.register(TaskPlayer)

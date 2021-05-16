@@ -98,9 +98,14 @@ class Task(models.Model):
     is_open = models.BooleanField(verbose_name='是否开启')
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
-    roster = models.TextField(verbose_name=u'班表', null=True, blank=True)
+    roster = models.TextField(
+        verbose_name=u'班表', null=True, blank=True, default='')
     college = models.ForeignKey(
         College, on_delete=models.CASCADE, verbose_name=u'分院')
+    buildings = models.ManyToManyField(
+        Building, null=True, blank=True, verbose_name=u'关联楼')
+    grades = models.ManyToManyField(
+        Grade, null=True, blank=True, verbose_name=u'关联班级')
 
     class Meta:
         """Meta definition for Manage."""
@@ -128,24 +133,24 @@ class TaskPlayer(models.Model):
         verbose_name = '任务-参与者'
 
 
-class TaskFloor(models.Model):
-    task = models.ForeignKey(
-        Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
-    building = models.ForeignKey(
-        Building, on_delete=models.CASCADE, verbose_name=u'楼')
+# class TaskFloor(models.Model):
+#     task = models.ForeignKey(
+#         Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
+#     building = models.ForeignKey(
+#         Building, on_delete=models.CASCADE, verbose_name=u'楼')
 
-    class Meta:
-        verbose_name = '任务关联楼'
+#     class Meta:
+#         verbose_name = '任务关联楼'
 
 
-class TaskClass(models.Model):
-    task = models.ForeignKey(
-        Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
-    grade = models.ForeignKey(
-        Grade, on_delete=models.CASCADE, verbose_name=u'班级')
+# class TaskClass(models.Model):
+#     task = models.ForeignKey(
+#         Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
+#     grade = models.ForeignKey(
+#         Grade, on_delete=models.CASCADE, verbose_name=u'班级')
 
-    class Meta:
-        verbose_name = '任务关班级'
+#     class Meta:
+#         verbose_name = '任务关班级'
 
 
 class RoomHistory(models.Model):
