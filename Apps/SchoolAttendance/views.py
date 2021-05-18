@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from . import models, serializers
 from .service import knowing, health, late
+from itertools import chain
+import json
 
 task_factory = {
     '0': knowing.Knowing,
@@ -34,18 +36,24 @@ class Task(APIView):
         ret = {}
 
         is_type = request.data['type']
+
         user = request.user
+
         task = models.Task.objects.filter(
             types=is_type, user=user)
+
+        ser1 = serializers.TaskBuilder(instance=task, many=True).data
+
         task_admin = models.TaskPlayer.objects.filter(
             user=user, is_admin=True)
-        ser = serializers.Task(instance=task_admin, many=True).data
 
-        for task in task_admin:
-            print(task)
+        ser2 = serializers.TaskAdmin(instance=task_admin, many=True).data
+
+        # FIXME(zouyang): 会产生重复任务数据 因为 创建者会把自己设置为管理员
+        datas = list(chain(ser1, ser2))
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = ser
+        ret['data'] = datas
         return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):
@@ -61,8 +69,7 @@ class Task(APIView):
             创建任务需要判断有没有对应权限
         '''
         ret = {}
-        # user = request.user
-        user = User.objects.get(id=1)
+        user = request.user
         is_type = str(request.data['type'])
         ids = request.data['ids']
         task_factory[is_type](-1).task_create(user, is_type, ids)
@@ -83,6 +90,11 @@ class TaskAdmin(APIView):
                     uese_name: 张三 # 姓名
                 }]
         '''
+
+        id = int(request.GET['id'])
+        task_player = models.TaskPlayer.objects.filter(
+            task=id, is_admin=True)
+
         ret = {}
         ret['message'] = 'message'
         ret['code'] = 2000
