@@ -6,25 +6,17 @@ from .. import models
 '''
 
 
-class Knowing(task.Task):
+class Knowing(object):
 
-    def __init__(self, id):
-        if id > 0:
-            self.obj = models.Task.objects.get(id=id)
+    def __init__(self, task_obj):
+        if task_obj:
+            self.obj = task_obj
             self.user = self.obj.user
 
-    def task_create(self, user, types, ids):
+    def task_create(self,ids):
         '''创建任务
         '''
-
-        dic = {
-            'user': user,
-            'is_open': True,
-            'types': types,
-            'college': user.studentinfo.grade.college,
-        }
-        task = models.Task.objects.create(**dic)
-        task.buildings.set(ids)
+        self.obj.buildings.set(ids)
         return True
 
     def add_admin(self):

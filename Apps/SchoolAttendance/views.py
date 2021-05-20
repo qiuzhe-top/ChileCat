@@ -1,3 +1,4 @@
+from Apps.SchoolAttendance.service.task import TaskManage
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -9,13 +10,6 @@ from . import models, serializers
 from .service import knowing, health, late
 from itertools import chain
 import json
-
-task_factory = {
-    '0': knowing.Knowing,
-    '1': health.Health,
-    '2': late.Late
-}
-
 
 class Task(APIView):
     def get(self, request, *args, **kwargs):
@@ -70,9 +64,33 @@ class Task(APIView):
         '''
         ret = {}
         user = request.user
-        is_type = str(request.data['type'])
-        ids = request.data['ids']
-        task_factory[is_type](-1).task_create(user, is_type, ids)
+
+        try:
+            is_type = str(request.data['type'])
+            ids = request.data['ids']
+        except:
+            ret['message'] = '请求参数异常'
+            ret['code'] = 5000
+            return JsonResponse(ret)
+
+        try:
+            college = user.studentinfo.grade.college
+        except:
+            ret['message'] = '用户没有班级'
+            ret['code'] = 5000
+            return JsonResponse(ret)
+
+        dic = {
+            'user': user,
+            'is_open': True,
+            'types': is_type,
+            'college': college,
+        }
+
+        task = models.Task.objects.create(**dic)
+
+        TaskManage().create_task(ids)
+
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -94,11 +112,11 @@ class TaskAdmin(APIView):
         id = int(request.GET['id'])
         task_player = models.TaskPlayer.objects.filter(
             task=id, is_admin=True)
-
+        ser = serializers.TaskPlayerGetAdmin(instance=task_player,many=True).data
         ret = {}
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = ser
         return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):
@@ -106,10 +124,16 @@ class TaskAdmin(APIView):
             request:
                 {
                     id:2 #任务ID
-                    user_id: [1,2,3] # 用户id
+                    user_id_list: [1,2,3] # 用户id
                 }
         '''
         ret = {}
+        id = int(request.data['id'])
+        user_id_list = request.data['user_id_list']
+        task = models.Task.objects.get(id=id)
+        for user_id in user_id_list:
+            user = User.objects.get(id=user_id)
+            models.TaskPlayer.objects.create(task=task,user=user,is_admin = True)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -140,9 +164,11 @@ class TaskSwitch(APIView):
                 true / false 修改后任务状态
         '''
         ret = {}
+        id = request.data['id']
+        flg = TaskManage().switch(id)
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = flg
         return JsonResponse(ret)
 
     def delete(self, request, *args, **kwargs):

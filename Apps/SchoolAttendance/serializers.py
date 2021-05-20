@@ -36,3 +36,11 @@ class TaskBuilder(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         fields = ('id', 'is_open', 'name', 'is_builder')  # 包含
+class TaskPlayerGetAdmin(serializers.ModelSerializer):
+    """获取任务关联管理员"""
+    user_id = serializers.IntegerField(source="user.id")
+    uese_name = serializers.CharField(source="user.username")
+
+    class Meta:
+        model = models.TaskPlayer
+        fields = ('user_id', 'uese_name')  # 包含
