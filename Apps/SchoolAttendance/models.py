@@ -5,6 +5,7 @@ from Apps.SchoolInformation.models import *
 # Create your models here.
 
 
+
 class Rule(models.Model):
     name = models.CharField(
         max_length=30, verbose_name=u'名称', null=True, blank=True)
@@ -12,7 +13,6 @@ class Rule(models.Model):
         max_length=100, null=True, blank=True, verbose_name=u'描述')
     codename = models.CharField(max_length=8, verbose_name=u'规则代码')
     is_person = models.BooleanField(verbose_name=u'是否个人有效')
-
     class Meta:
 
         verbose_name = '规则一级分类'
@@ -152,7 +152,7 @@ class TaskPlayer(models.Model):
 #     class Meta:
 #         verbose_name = '任务关班级'
 
-
+# TODO 后面3张表 考虑采用内存作为载体
 class RoomHistory(models.Model):
     """考勤-房间
     记录房间是否被检查的状态，记录这个房间是否被点名和查卫生执行过
@@ -162,7 +162,7 @@ class RoomHistory(models.Model):
     )
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
-    is_knowing = models.BooleanField(verbose_name='是否点名')
+    is_knowing = models.BooleanField(verbose_name='是否查寝')
     is_health = models.BooleanField(verbose_name='是否查卫生')
 
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")

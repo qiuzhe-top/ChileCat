@@ -107,7 +107,6 @@ else:
     HOST = '127.0.0.1'
 
 print('DEBUG:',DEBUG,'当前数据库名称:',HOST+db_url)
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

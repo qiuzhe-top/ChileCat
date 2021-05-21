@@ -11,6 +11,10 @@ from .service import knowing, health, late
 from itertools import chain
 import json
 
+'''
+SchoolAttendance
+
+'''
 class Task(APIView):
     def get(self, request, *args, **kwargs):
         '''获取任务
@@ -124,16 +128,29 @@ class TaskAdmin(APIView):
             request:
                 {
                     id:2 #任务ID
-                    user_id_list: [1,2,3] # 用户id
+                    user_id_list: [1,2,3] # 用户id 前端通过用户查询接口获取
                 }
         '''
         ret = {}
-        id = int(request.data['id'])
-        user_id_list = request.data['user_id_list']
-        task = models.Task.objects.get(id=id)
+
+        try:
+            id = int(request.data.get('id'))
+            user_id_list = request.data['user_id_list']
+        except:
+            print('参数获取错误')
+            return JsonResponse(ret)
+
+        try:
+            task = models.Task.objects.get(id=id)
+        except:
+            print('未找到对应活动')
+            return JsonResponse(ret)
+
         for user_id in user_id_list:
             user = User.objects.get(id=user_id)
+            #TODO 已经存在的情况就不添加
             models.TaskPlayer.objects.create(task=task,user=user,is_admin = True)
+
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -148,6 +165,23 @@ class TaskAdmin(APIView):
                 }
         '''
         ret = {}
+
+        try:
+            id = int(request.data.get('id'))
+            user_id = request.data['user_id']
+        except:
+            print('参数获取错误')
+            return JsonResponse(ret)
+
+        try:
+            task = models.Task.objects.get(id = id)
+        except:
+            print('未找到对应活动')
+            return JsonResponse(ret)
+
+        user = User.objects.get(id=user_id)        
+        models.TaskPlayer.objects.filter(task=task,user=user).delete()
+
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -163,9 +197,13 @@ class TaskSwitch(APIView):
             response:
                 true / false 修改后任务状态
         '''
+        #TODO 权限判断
         ret = {}
         id = request.data['id']
-        flg = TaskManage().switch(id)
+        task = models.Task.objects.get(id=id)
+        task.is_open = not task.is_open
+        flg = task.is_open
+        task.save()
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = flg
@@ -177,6 +215,14 @@ class TaskSwitch(APIView):
                 id:1 # 任务ID
         '''
         ret = {}
+        try:
+            id = int(request.data.get('id'))
+        except:
+            print('参数获取错误')
+            return JsonResponse(ret)
+
+        TaskManage().clear_task(id)
+
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -192,9 +238,16 @@ class Scheduling(APIView):
                 roster: 对应班表
         '''
         ret = {}
+        try:
+            id = int(request.data.get('id'))
+        except:
+            print('参数获取错误')
+            return JsonResponse(ret)
+        roster = models.Task.objects.get(id=id).vaules('roster')
+        
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = roster
         return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):

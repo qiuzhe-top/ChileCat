@@ -33,4 +33,9 @@ class TaskManage(object):
         task.save()
         return flg
 
+    def clear_task(self,id):
+        '''清除任务状态
+        '''
+        task = models.Task.objects.get(id=id)
+        task_factory[task.types](task).clear_task()
     # def task_create(self):

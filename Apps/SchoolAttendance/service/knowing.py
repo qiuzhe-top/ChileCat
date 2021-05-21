@@ -13,11 +13,20 @@ class Knowing(object):
             self.obj = task_obj
             self.user = self.obj.user
 
+
     def task_create(self,ids):
         '''创建任务
         '''
         self.obj.buildings.set(ids)
         return True
+
+    def clear_task(self):
+        '''清除任务状态
+        清空房间记录信息
+        清空学生记录信息
+        '''
+        models.RoomHistory.objects.filter(task=self.obj).update(is_knowing = False)
+        models.TaskFloorStudent.objects.filter(task=self.obj).update(flg = True)
 
     def add_admin(self):
         '''添加管理员

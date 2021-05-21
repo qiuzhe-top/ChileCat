@@ -19,7 +19,7 @@ from Manage.views import Index
 
 
 urlpatterns = [
-    path('', Index.as_view()),
+    # path('', Index.as_view()),
     path('admin/', admin.site.urls),
     path('api/user/', include(('Apps.User.urls', 'Apps.User'), namespace='User')),
     path('api/career/', include(('Apps.Career.urls', 'Apps.Career'), namespace='Career')),

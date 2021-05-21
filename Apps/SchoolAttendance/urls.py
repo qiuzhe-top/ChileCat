@@ -4,13 +4,14 @@
 from django.urls import path
 from . import views
 
+# school_attendance
 urlpatterns = [
 
     # 任务
     path('task', views.Task.as_view(), name='Task'),
     # 任务管理员
     path('task_admin', views.TaskAdmin.as_view(), name='TaskAdmin'),
-    # 任务状态切换
+    # 任务状态
     path('task_switch', views.TaskSwitch.as_view(), name='TaskSwitch'),
     # 排班
     path('scheduling', views.Scheduling.as_view(), name='Scheduling'),

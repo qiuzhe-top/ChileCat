@@ -5,8 +5,19 @@
 
 class Late(object):
 
+    
+    def __init__(self, task_obj):
+        if task_obj:
+            self.obj = task_obj
+            self.user = self.obj.user
+            
     def task_create(self):
         '''创建任务
+        '''
+        pass
+    
+    def clear_task(self):
+        '''清除任务状态
         '''
         pass
 
