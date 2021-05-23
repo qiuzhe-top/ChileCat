@@ -1,3 +1,5 @@
+import json
+from django.contrib.auth.models import User
 from . import task
 from .. import models
 
@@ -40,40 +42,32 @@ class Knowing(object):
 
         pass
 
-    # def scheduling(self):
-    #     '''排班
-    #     '''
-    #     # 同类型的活动工作组
-    #     active_groups = []
-    #     for item in Manage.objects.filter(types=self._activity.types).values_list('code_name', flat=True):
-    #         active_groups.append('work_'+item)
-    #     user_all = []
-    #     for item in roster:
-    #         user_list = []
-    #         for layer in item['layer_list']:
-    #             for user in layer['user']:
-    #                 if len(item['title'][:1]) != 0 and len(user['username']) != 0:
-    #                     # 当前工作用户
-    #                     u = User.objects.get(username=user['username'])
-    #                     g = u.groups.filter(name__in=active_groups)
-    #                     if g.exists():
-    #                         print(g)
-    #                         for group in g:
-    #                             # 用户退出已经有的同类型不同分院的工作组
-    #                             group.user_set.remove(u)
-    #                     user_list.append(user['username'])
+    def scheduling(self,roster):
+        '''排班
+        '''
+        # 同类型的活动工作组
+        active_groups = []
+        user_all = []
+        for item in roster:
+            user_list = []
+            for layer in item['layer_list']:
+                for user in layer['user']:
+                    if len(item['title'][:1]) != 0 and len(user['username']) != 0:
+                        # 当前工作用户
+                        u = User.objects.get(username=user['username'])
+                        user_list.append(u)
+        
+            # user_all += user_list
 
-    #         group_clean('dorm_'+item['title'][:1])
-    #         group_add_user('dorm_'+item['title'][:1], user_list)
-    #         user_all += user_list
-    #     print(user_all)
-    #     # 添加对应工作组
-    #     n = 'work_' + self._activity.college.code_name + '_' + self._activity.types
-    #     group_clean(n)
-    #     group_add_user(n, user_all)
-    #     self._activity.roster = json.dumps(roster)
-    #     self._activity.save()
-    #     return self._activity
+        # 任务清空
+        models.TaskPlayer.objects.filter(task=self.obj,is_admin=False).delete()
+
+        # 任务绑定
+        for u in user_list:
+            models.TaskPlayer.objects.create(task=self.obj,user=u)
+
+        self.obj.roster = json.dumps(roster)
+        self.obj.save()
 
     # def condition(self):
     #     '''查看考勤工作情况
@@ -204,27 +198,21 @@ class Knowing(object):
     #     '''执行人确认任务完成'''
     #     pass
 
-    # def storey(self):
-    #     '''晚查寝-楼工作数据
-    #     '''
-    #     permissions = request.user.get_all_permissions()
-    #     floor_list = []
-    #     for permission in permissions:
-    #         # 查寝 查卫生 一次性获取
-    #         index = permission.find('floor')
-    #         if index > 0:
-    #             floor_list.append(permission[-1:])
-    #     buildings = models.Building.objects.filter(name__in=floor_list)
-    #     buildings_info = []
-    #     for building in buildings:
-    #         info = {"list": [], 'id': building.id,
-    #                 'name': building.name + "号楼"}
-    #         floors = building.floor.all()
-    #         for floor in floors:
-    #             floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
-    #             info['list'].append(floor)
-    #         buildings_info.append(info)
-    #     return buildings_info
+    def storey(self):
+        '''晚查寝-楼工作数据
+        '''
+
+        buildings = self.obj.buildings.all()
+        buildings_info = []
+        for building in buildings:
+            info = {"list": [], 'id': building.id,
+                    'name': building.name + "号楼"}
+            floors = building.floor.all()
+            for floor in floors:
+                floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
+                info['list'].append(floor)
+            buildings_info.append(info)
+        return buildings_info
 
     # def room(self):
     #     '''晚查寝-层工作数据

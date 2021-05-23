@@ -231,7 +231,8 @@ class TaskSwitch(APIView):
 
 class Scheduling(APIView):
     def get(self, request, *args, **kwargs):
-        '''获取班表
+        '''
+            获取班表
             request:
                 id:1 # 任务id
             response:
@@ -239,26 +240,30 @@ class Scheduling(APIView):
         '''
         ret = {}
         try:
-            id = int(request.data.get('id'))
+            id = request.GET['id']
         except:
             print('参数获取错误')
             return JsonResponse(ret)
-        roster = models.Task.objects.get(id=id).vaules('roster')
+        roster = models.Task.objects.get(id=int(id)).roster
         
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = roster
+        ret['data'] = json.loads(roster)
         return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):
         '''更改班表
             request：
+                id: 任务id
                 roster: 对应班表
         '''
         ret = {}
+        roster = request.data['roster']
+        id = request.data['id']
+        TaskManage().scheduling(id,roster)
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = roster
         return JsonResponse(ret)
 
 
@@ -319,12 +324,15 @@ class TaskExecutor(APIView):
                     title:智慧彩云 晚查寝    # 名称
                     builder_name:张三       # 创建者姓名
                     is_finish:true          # 是否完成任务
+                    type:'0'                # 任务类型
                 },]
         '''
         ret = {}
+        tasks = models.TaskPlayer.objects.filter(user=request.user,is_admin=False)
+        ser = serializers.TaskExecutor(instance=tasks,many=True).data
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = ser
         return JsonResponse(ret)
 
 
@@ -373,8 +381,12 @@ class TaskRoomInfo(APIView):
         根据任务ID判断是查寝还是查卫生然后返回对应处理的数据
         '''
         ret = {'message': 'message', 'code': 2000, 'data': 'data'}
-        return JsonResponse(ret)
+        id = request.GET['id']
+        types = request.GET['type']
 
+        data = TaskManage().task_roomInfo(id,int(types),request.user)
+        ret['data'] = data
+        return JsonResponse(ret)
 
 class LateClass(APIView):
     API_PERMISSIONS = ['楼层号', 'get']

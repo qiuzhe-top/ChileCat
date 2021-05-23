@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from . import models
 
 
@@ -36,6 +37,7 @@ class TaskBuilder(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         fields = ('id', 'is_open', 'name', 'is_builder')  # 包含
+
 class TaskPlayerGetAdmin(serializers.ModelSerializer):
     """获取任务关联管理员"""
     user_id = serializers.IntegerField(source="user.id")
@@ -44,3 +46,20 @@ class TaskPlayerGetAdmin(serializers.ModelSerializer):
     class Meta:
         model = models.TaskPlayer
         fields = ('user_id', 'uese_name')  # 包含
+
+class TaskExecutor(serializers.ModelSerializer):
+    """执行人获取任务"""
+    builder_name = serializers.CharField(source="task.user.userinfo.name")
+    id = serializers.CharField(source="task.id")
+    title = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+
+    def get_title(self, obj):
+        return obj.task.get_types_display() + "-" + obj.task.college.name
+
+    def get_type(self, obj):
+        return obj.task.types
+
+    class Meta:
+        model = models.TaskPlayer
+        fields = ('id', 'title','builder_name','is_finish','type')  # 包含

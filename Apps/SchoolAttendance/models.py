@@ -124,7 +124,7 @@ class TaskPlayer(models.Model):
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    is_admin = models.BooleanField(verbose_name="是否管理员")
+    is_admin = models.BooleanField(verbose_name="是否管理员", default=False)
     is_finish = models.BooleanField(verbose_name="是否完成", default=False)
     star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
@@ -132,25 +132,6 @@ class TaskPlayer(models.Model):
     class Meta:
         verbose_name = '任务-参与者'
 
-
-# class TaskFloor(models.Model):
-#     task = models.ForeignKey(
-#         Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
-#     building = models.ForeignKey(
-#         Building, on_delete=models.CASCADE, verbose_name=u'楼')
-
-#     class Meta:
-#         verbose_name = '任务关联楼'
-
-
-# class TaskClass(models.Model):
-#     task = models.ForeignKey(
-#         Task, on_delete=models.CASCADE, verbose_name=u'考勤任务')
-#     grade = models.ForeignKey(
-#         Grade, on_delete=models.CASCADE, verbose_name=u'班级')
-
-#     class Meta:
-#         verbose_name = '任务关班级'
 
 # TODO 后面3张表 考虑采用内存作为载体
 class RoomHistory(models.Model):

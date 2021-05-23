@@ -245,5 +245,5 @@ class SearchUser(APIView):
             return JsonResponse(ret)
         except:
             ret['code'] = 4000
-            ret['message'] = '搜索不到'
+            ret['message'] = '没有用户或用户信息不完整'
             return JsonResponse(ret)
