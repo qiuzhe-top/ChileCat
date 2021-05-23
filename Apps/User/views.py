@@ -81,22 +81,29 @@ class Information(APIView):
         返回信息
         """
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
+        user = self.request.user
+        data = {'permissions': []}
+        p = self.request.user.user_permissions.filter().exclude(
+            content_type=ContentType.objects.get_for_model(ApiPermission)
+        ).values()
+        for permission in p:
+            if "operatepermission" not in permission['codename']:
+                data['permissions'].append(permission['codename'])
+                
+        data['roles'] = get_groups(request)
+        data['introduction'] = 'I am a super administrator'
+        data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
+
         try:
-            user = self.request.user
-            data = {'permissions': []}
-            p = self.request.user.user_permissions.filter().exclude(
-                content_type=ContentType.objects.get_for_model(ApiPermission)
-            ).values()
-            for permission in p:
-                if "operatepermission" not in permission['codename']:
-                    data['permissions'].append(permission['codename'])
-                    
-            data['roles'] = get_groups(request)
-            data['introduction'] = 'I am a super administrator'
-            data['avatar'] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
             data['name'] = user.userinfo.name
-            data['is_admin'] = request.user.is_staff
-            data['is_superuser'] = request.user.is_superuser
+        except:
+            ret['code'] = 5000
+            ret['message'] = '用户信息不完整'
+            return JsonResponse(ret)
+
+        data['is_admin'] = request.user.is_staff
+        data['is_superuser'] = request.user.is_superuser
+        try:
             data['grade'] = StudentInfo.objects.get(user=self.request.user).grade.name \
                 if StudentInfo.objects.filter(user=self.request.user).exists() \
                 else "该用户无班级"
@@ -115,7 +122,14 @@ class ClassList(APIView):
         """关联班级"""
         ret = {}
         user = self.request.user
-        info = user.userinfo
+        
+        try:
+            info = user.userinfo
+        except:
+            ret['code'] = 5000
+            ret['message'] = '用户信息不完整'
+            return JsonResponse(ret)
+
         ser_list = ''
         if info.identity == "student":
             grade = user.studentinfo.grade

@@ -33,7 +33,7 @@ class Task(APIView):
         '''
         ret = {}
 
-        is_type = request.data['type']
+        is_type = request.GET['type']
 
         user = request.user
 
