@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth.models import User
 from . import task
-from .. import models
+from .. import models,serializers
 from Apps.SchoolInformation import models as SchoolInformationModels
 
 '''
@@ -89,11 +89,12 @@ class Knowing(object):
         self.task.roster = json.dumps(roster)
         self.task.save()
 
-    # def condition(self):
-    #     '''查看考勤工作情况
-    #     '''
-    #     pass
-
+    def condition(self):
+        '''查看考勤工作情况
+        '''
+        records = models.Record.objects.filter(task=self.task)
+        data = serializers.ConditionRecord(instance=records,many=True).data
+        return data
     # def progress(self):
     #     '''查看考勤进度
     #     '''
@@ -184,18 +185,26 @@ class Knowing(object):
         obj.save()
 
         for d in data:
-
             # 获取用户
-            user = User.objects.get(id = d.user_id)
+            user = User.objects.get(id = d['user_id'])
 
-            # 状态判断
-            if d.status == '1':
-                obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user=user)
-                obj.flg = True
-                obj.save()
-            elif d.status == '0':              
+            task_floor_student,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user=user)
+            # 状态判断 1:撤销记录
+            if d['status'] == '1':
+                task_floor_student.flg = True
+                task_floor_student.save()
+                obj = {
+                    'task':self.task,
+                    'rule_str':'撤销查寝记录',
+                    'room_str':room.name,
+                    'grade_str':user.studentinfo.grade.name,
+                    'student_approved':user,
+                    'worker':worker_user,
+                }
+                models.Record.objects.create(**obj)
+            elif d['status'] == '0':              
                 
-                reason = d.reason
+                reason = d['reason']
                 rule_str = ''
                 rule = None
 
@@ -208,7 +217,7 @@ class Knowing(object):
                     # 记录字符串函数
                     rule_str = reason
 
-                d = {
+                obj = {
                     'task':self.task,
                     'rule_str':rule_str,
                     'room_str':room.name,
@@ -218,12 +227,13 @@ class Knowing(object):
                 }
 
                 if rule:
-                    d['rule'] = rule,
-                    d['score'] = rule.score,
-
-                flg = models.Record.objects.create(**d)
+                    obj['rule'] = rule
+                    obj['score'] = rule.score
+                models.Record.objects.create(**obj)
+                task_floor_student.flg = False
+                task_floor_student.save()
                 # 写入历史记录
-        return 0
+        return '执行成功'
         # act_id = Manage.objects.get(id=leak_data['act_id'])
         # room = Room.objects.get(id=leak_data['room_id'])
         # worker = leak_data['worker']
@@ -305,7 +315,9 @@ class Knowing(object):
         room_data = room.stu_in_room.all()
         for i in room_data:
             unit = {'id': i.student.id,
-                    'name': i.student.userinfo.name, 'status': i.status, 'position': i.bed_position}
+                    'name': i.student.userinfo.name, 'position': i.bed_position}
+            obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user = i.student)
+            unit['status'] = obj.flg
             room_info.append(unit)
         return room_info
 

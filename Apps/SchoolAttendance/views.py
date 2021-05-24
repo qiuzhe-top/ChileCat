@@ -272,20 +272,22 @@ class Condition(APIView):
     def get(self, request, *args, **kwargs):
         '''查看当天考勤工作情况
             request:
-                id:2 # 任务id
+                task_id:2 # 任务id
             response:
                 [
                     {
-                        id:2 # 用户ID
+                        user_id:2 # 用户ID
                         name: 张三 
                     }
                 ]
         权限判断
         '''
         ret = {}
+        task_id = request.GET['task_id']
+        data = TaskManage(task_id).condition()
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = data
         return JsonResponse(ret)
 
 
@@ -376,7 +378,7 @@ class Submit(APIView):
         room_id = request.data['room_id']
         type_ = request.data['type']
         if type_ == 0:
-            TaskManage(task_id).submit(data,room_id,request.user)
+            ret['message'] =  TaskManage(task_id).submit(data,room_id,request.user)
         elif type_ == 1:
             pass
         return JsonResponse(ret)

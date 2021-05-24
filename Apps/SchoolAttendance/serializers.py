@@ -63,3 +63,12 @@ class TaskExecutor(serializers.ModelSerializer):
     class Meta:
         model = models.TaskPlayer
         fields = ('id', 'title','builder_name','is_finish','type')  # 包含
+
+class ConditionRecord(serializers.ModelSerializer):
+    '''获取考勤执行记录 晚查寝'''
+    student_approved = serializers.CharField(source='student_approved.userinfo.name')
+    student_approved_number = serializers.CharField(source='student_approved.username')
+    worker = serializers.CharField(source='worker.userinfo.name')
+    class Meta:
+        model = models.Record
+        fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','star_time')  # 包含

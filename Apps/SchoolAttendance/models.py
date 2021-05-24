@@ -143,8 +143,8 @@ class RoomHistory(models.Model):
     )
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
-    is_knowing = models.BooleanField(verbose_name='是否查寝')
-    is_health = models.BooleanField(verbose_name='是否查卫生')
+    is_knowing = models.BooleanField(verbose_name='是否查寝',null=True,blank=True)
+    is_health = models.BooleanField(verbose_name='是否查卫生',null=True,blank=True)
 
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
@@ -164,7 +164,7 @@ class TaskFloorStudent(models.Model):
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name=u'用户')
-    flg = models.BooleanField(verbose_name='是否在寝室')
+    flg = models.BooleanField(verbose_name='是否在寝室',default=True)
 
     def __str__(self):
         return self.user.username
