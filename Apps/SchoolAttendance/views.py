@@ -1,3 +1,4 @@
+from typing import List
 from Apps.SchoolAttendance.service.task import TaskManage
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -93,7 +94,7 @@ class Task(APIView):
 
         task = models.Task.objects.create(**dic)
 
-        TaskManage().create_task(ids)
+        TaskManage().create_task(task,ids)
 
         ret['message'] = 'message'
         ret['code'] = 2000
@@ -221,7 +222,7 @@ class TaskSwitch(APIView):
             print('参数获取错误')
             return JsonResponse(ret)
 
-        TaskManage().clear_task(id)
+        TaskManage(id).clear_task()
 
         ret['message'] = 'message'
         ret['code'] = 2000
@@ -260,7 +261,7 @@ class Scheduling(APIView):
         ret = {}
         roster = request.data['roster']
         id = request.data['id']
-        TaskManage().scheduling(id,roster)
+        TaskManage(id).scheduling(roster)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = roster
@@ -344,14 +345,17 @@ class Rule(APIView):
             response:
                 list:[{
                     id:规则ID
-                    title:规则名称
+                    name:规则名称
                     parent_id:父级ID
                 }]
         '''
         ret = {}
+        codename = request.GET['codename']
+        rule = models.Rule.objects.get(codename=codename)
+        data = rule.ruledetails_set.all().values('id','name','parent_id')
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = list(data)
         return JsonResponse(ret)
 
 
@@ -359,13 +363,22 @@ class Submit(APIView):
     def post(self, request, *args, **kwargs):
         '''考勤提交
             request:
-                id: 2               # 任务ID
+                task_id: 2               # 任务ID
                 type: 0/1           # 提交类型 0=> 考勤提交 1=>执行人确认任务完成
-                rule_id:[1,2,3]     # 规则的ID列表
-                user_id:2           # 用户ID
+                data:
+                    rule_id:[1,2,3]     # 规则的ID列表
+                    user_id:2           # 用户ID
                 room_id:20          # 寝室ID
         '''
         ret = {'message': 'message', 'code': 2000, 'data': 'data'}
+        task_id = request.data['task_id']
+        data = request.data['data']
+        room_id = request.data['room_id']
+        type_ = request.data['type']
+        if type_ == 0:
+            TaskManage(task_id).submit(data,room_id,request.user)
+        elif type_ == 1:
+            pass
         return JsonResponse(ret)
 
 
@@ -374,6 +387,8 @@ class TaskRoomInfo(APIView):
         '''宿舍 相关任务信息
             request:
                 task_id: 1 # 任务ID
+                floor_id：1 # 楼层ID
+                room_id:1 # 房间ID
                 type: 
                     0 # 获取楼层
                     1 # 获取房间
@@ -381,10 +396,12 @@ class TaskRoomInfo(APIView):
         根据任务ID判断是查寝还是查卫生然后返回对应处理的数据
         '''
         ret = {'message': 'message', 'code': 2000, 'data': 'data'}
-        id = request.GET['id']
+        task_id = request.GET['task_id']
         types = request.GET['type']
+        floor_id = request.GET.get('floor_id',-1)
+        room_id = request.GET.get('room_id',-1)
 
-        data = TaskManage().task_roomInfo(id,int(types),request.user)
+        data = TaskManage(task_id).task_roomInfo(int(types),request.user,floor_id,room_id)
         ret['data'] = data
         return JsonResponse(ret)
 

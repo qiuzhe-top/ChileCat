@@ -11,6 +11,7 @@ from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeG
 from django.template import loader
 from django.contrib.auth.models import Group, Permission
 from Apps.Permission.models import *
+from Apps.SchoolAttendance import models as SchoolAttendanceModels
 from .tests import *
 from django.contrib.contenttypes.models import ContentType
 
@@ -336,3 +337,35 @@ def init_activity_permissions(request):
     expand_permission.group_init(['attendance_admin'])
 
     return JsonResponse(ret)
+
+
+
+
+# 创建测试规则
+def uinitialization_rules(request):
+    d = {
+        'name':'缺寝原因',
+        'codename':'0#001',
+        'is_person':True,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+
+    d = {
+        'name':'请假',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'当兵',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'未到校',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    return JsonResponse({})

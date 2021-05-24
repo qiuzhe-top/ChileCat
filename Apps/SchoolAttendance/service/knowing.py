@@ -2,24 +2,44 @@ import json
 from django.contrib.auth.models import User
 from . import task
 from .. import models
+from Apps.SchoolInformation import models as SchoolInformationModels
 
 '''
 晚查寝
 '''
 
 
+def is_number(s):
+    '''判断字符串是否为数字
+    '''
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+ 
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+ 
+    return False
+
+
 class Knowing(object):
 
     def __init__(self, task_obj):
         if task_obj:
-            self.obj = task_obj
-            self.user = self.obj.user
+            self.task = task_obj
+            self.user = self.task.user
 
 
     def task_create(self,ids):
         '''创建任务
         '''
-        self.obj.buildings.set(ids)
+        self.task.buildings.set(ids)
         return True
 
     def clear_task(self):
@@ -27,8 +47,8 @@ class Knowing(object):
         清空房间记录信息
         清空学生记录信息
         '''
-        models.RoomHistory.objects.filter(task=self.obj).update(is_knowing = False)
-        models.TaskFloorStudent.objects.filter(task=self.obj).update(flg = True)
+        models.RoomHistory.objects.filter(task=self.task).update(is_knowing = False)
+        models.TaskFloorStudent.objects.filter(task=self.task).update(flg = True)
 
     def add_admin(self):
         '''添加管理员
@@ -60,14 +80,14 @@ class Knowing(object):
             # user_all += user_list
 
         # 任务清空
-        models.TaskPlayer.objects.filter(task=self.obj,is_admin=False).delete()
+        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
 
         # 任务绑定
         for u in user_list:
-            models.TaskPlayer.objects.create(task=self.obj,user=u)
+            models.TaskPlayer.objects.create(task=self.task,user=u)
 
-        self.obj.roster = json.dumps(roster)
-        self.obj.save()
+        self.task.roster = json.dumps(roster)
+        self.task.save()
 
     # def condition(self):
     #     '''查看考勤工作情况
@@ -149,50 +169,100 @@ class Knowing(object):
     #     '''
     #     pass
 
-    # def submit(self):
-    #     '''考勤提交
-    #     '''
-    #     if not self._activity.console_code:
-    #         raise ActivityInitialization("活动未开始")
-    #     act_id = Manage.objects.get(id=leak_data['act_id'])
-    #     room = Room.objects.get(id=leak_data['room_id'])
-    #     worker = leak_data['worker']
-    #     worker = User.objects.get(username="19530226")
-    #     leak_info_list = leak_data['leak_info_list']
-    #     for leak_info in leak_info_list:
-    #         stu_approved = User.objects.get(id=leak_info['student_id'])
-    #         history_record = TaskRecord.objects.filter(
-    #             task_type=act_id,
-    #             created_time__date=datetime.date.today(),
-    #             student_approved=stu_approved
-    #         ).order_by('-created_time')
-    #         if history_record.exists():
-    #             print("更新")
-    #             if leak_info['status'] == "1":
-    #                 print("误操作销假")
-    #                 leak_info.pop('reason')
-    #                 leak_info['reason_str'] = "误操作"
-    #                 leak_info['manager'] = worker
-    #             else:
-    #                 # status = 0,表示还是不在寝室，注意是“还是”，此时需要把manager去掉，辣鸡zy，把flag砍了4，只能从manager去判断销假
-    #                 print("记录继续更新为缺勤")
-    #                 leak_info['manager'] = None
-    #                 leak_info['reason'] = PunishmentDetails.objects.get(
-    #                     id=leak_info['reason'])
-    #             TaskRecordAntiSerializer().update(history_record.first(), leak_info)
-    #         else:
-    #             print("正常创建")
-    #             reason = PunishmentDetails.objects.get(id=leak_info['reason'])
-    #             if leak_info['status'] == "0":
-    #                 DormitoryCheckTaskRecord.create(
-    #                     act_id,
-    #                     worker,
-    #                     stu_approved,
-    #                     reason,
-    #                     str(room)
-    #                 )
-    #             # status=1代表在寝，不需要创建
-    #     RoomHistory.objects.create(room=room, manager=worker)
+    def submit(self,data,room_id,worker_user):
+        '''考勤提交
+        '''
+        if not self.task.is_open:
+            return "活动未开始"
+
+        # 获取房间对象
+        room = SchoolInformationModels.Room.objects.get(id=room_id)
+
+        # 添加房间检查记录
+        obj,flg = models.RoomHistory.objects.get_or_create(room=room,task=self.task)
+        obj.is_knowing = True
+        obj.save()
+
+        for d in data:
+
+            # 获取用户
+            user = User.objects.get(id = d.user_id)
+
+            # 状态判断
+            if d.status == '1':
+                obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user=user)
+                obj.flg = True
+                obj.save()
+            elif d.status == '0':              
+                
+                reason = d.reason
+                rule_str = ''
+                rule = None
+
+                # 判断是否为规则ID
+                if is_number(reason):
+                    # 获取对应规则对象
+                    rule = models.RuleDetails.objects.get(id=reason)
+                    rule_str = rule.name
+                else:
+                    # 记录字符串函数
+                    rule_str = reason
+
+                d = {
+                    'task':self.task,
+                    'rule_str':rule_str,
+                    'room_str':room.name,
+                    'grade_str':user.studentinfo.grade.name,
+                    'student_approved':user,
+                    'worker':worker_user,
+                }
+
+                if rule:
+                    d['rule'] = rule,
+                    d['score'] = rule.score,
+
+                flg = models.Record.objects.create(**d)
+                # 写入历史记录
+        return 0
+        # act_id = Manage.objects.get(id=leak_data['act_id'])
+        # room = Room.objects.get(id=leak_data['room_id'])
+        # worker = leak_data['worker']
+        # worker = User.objects.get(username="19530226")
+        # leak_info_list = leak_data['leak_info_list']
+        # for leak_info in leak_info_list:
+        #     stu_approved = User.objects.get(id=leak_info['student_id'])
+        #     history_record = TaskRecord.objects.filter(
+        #         task_type=act_id,
+        #         created_time__date=datetime.date.today(),
+        #         student_approved=stu_approved
+        #     ).order_by('-created_time')
+        #     if history_record.exists():
+        #         print("更新")
+        #         if leak_info['status'] == "1":
+        #             print("误操作销假")
+        #             leak_info.pop('reason')
+        #             leak_info['reason_str'] = "误操作"
+        #             leak_info['manager'] = worker
+        #         else:
+        #             # status = 0,表示还是不在寝室，注意是“还是”，此时需要把manager去掉，辣鸡zy，把flag砍了4，只能从manager去判断销假
+        #             print("记录继续更新为缺勤")
+        #             leak_info['manager'] = None
+        #             leak_info['reason'] = PunishmentDetails.objects.get(
+        #                 id=leak_info['reason'])
+        #         TaskRecordAntiSerializer().update(history_record.first(), leak_info)
+        #     else:
+        #         print("正常创建")
+        #         reason = PunishmentDetails.objects.get(id=leak_info['reason'])
+        #         if leak_info['status'] == "0":
+        #             DormitoryCheckTaskRecord.create(
+        #                 act_id,
+        #                 worker,
+        #                 stu_approved,
+        #                 reason,
+        #                 str(room)
+        #             )
+        #         # status=1代表在寝，不需要创建
+        # RoomHistory.objects.create(room=room, manager=worker)
 
     # def executor_finish(self):
     #     '''执行人确认任务完成'''
@@ -202,7 +272,7 @@ class Knowing(object):
         '''晚查寝-楼工作数据
         '''
 
-        buildings = self.obj.buildings.all()
+        buildings = self.task.buildings.all()
         buildings_info = []
         for building in buildings:
             info = {"list": [], 'id': building.id,
@@ -214,31 +284,30 @@ class Knowing(object):
             buildings_info.append(info)
         return buildings_info
 
-    # def room(self):
-    #     '''晚查寝-层工作数据
-    #     '''
-    #     d = {"floor-health": "health_status", "floor-dorm": "dorm_status"}
-    #     if floor_id:
-    #         rooms = models.Room.objects.filter(floor_id=floor_id).values(
-    #             'id', 'name', 'health_status', 'dorm_status')
-    #         for room in rooms:
-    #             room['status'] = room[d[types]]
-    #             del room['health_status']
-    #             del room['dorm_status']
-    #         return list(rooms)
-    #     raise RoomParamException("缺少参数(层号+楼号)")
+    def room(self,floor_id):
+        '''晚查寝-层工作数据
+        '''
+        d = {"0": "dorm_status", "1": "health_status"}
+        if floor_id:
+            rooms = models.Room.objects.filter(floor_id=floor_id).values(
+                'id', 'name', 'health_status', 'dorm_status')
+            for room in rooms:
+                room['status'] = room[d[self.task.types]]
+                del room['health_status']
+                del room['dorm_status']
+            return list(rooms)
 
-    # def room_students(self):
-    #     '''晚查寝-房间工作数据
-    #     '''
-    #     room_info = []
-    #     room = models.Room.objects.get(id=room_id)
-    #     room_data = room.stu_in_room.all()
-    #     for i in room_data:
-    #         unit = {'id': i.student.id,
-    #                 'name': i.student.userinfo.name, 'status': i.status, 'position': i.bed_position}
-    #         room_info.append(unit)
-    #     return room_info
+    def room_students(self,room_id):
+        '''晚查寝-房间工作数据
+        '''
+        room_info = []
+        room = models.Room.objects.get(id=room_id)
+        room_data = room.stu_in_room.all()
+        for i in room_data:
+            unit = {'id': i.student.id,
+                    'name': i.student.userinfo.name, 'status': i.status, 'position': i.bed_position}
+            room_info.append(unit)
+        return room_info
 
     # @staticmethod
     # def search_room(room_info):

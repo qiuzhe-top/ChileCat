@@ -8,4 +8,5 @@ urlpatterns = [
     path('group_init', views.group_init),
     path('dormitory_exchange', views.dormitory_exchange),
     path('init_activity_permissions', views.init_activity_permissions),
+    path('uinitialization_rules', views.uinitialization_rules),
 ]
