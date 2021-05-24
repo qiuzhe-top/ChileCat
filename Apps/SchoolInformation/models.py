@@ -141,8 +141,6 @@ class StuInRoom(models.Model):
     bed_position = models.CharField(
         max_length=150, verbose_name="床铺位置", default="1")
 
-    status = models.CharField(max_length=50, verbose_name="是否在寝", default="1")
-
     class Meta:
         verbose_name = '寝室信息'
         verbose_name_plural = '寝室信息'
