@@ -49,7 +49,7 @@ class Knowing(object):
         '''
         models.RoomHistory.objects.filter(task=self.task).update(is_knowing = False)
         models.TaskFloorStudent.objects.filter(task=self.task).update(flg = True)
-
+        return '执行成功'
     def add_admin(self):
         '''添加管理员
         '''
@@ -66,10 +66,8 @@ class Knowing(object):
         '''排班
         '''
         # 同类型的活动工作组
-        active_groups = []
-        user_all = []
+        user_list = []
         for item in roster:
-            user_list = []
             for layer in item['layer_list']:
                 for user in layer['user']:
                     if len(item['title'][:1]) != 0 and len(user['username']) != 0:
@@ -77,22 +75,21 @@ class Knowing(object):
                         u = User.objects.get(username=user['username'])
                         user_list.append(u)
         
-            # user_all += user_list
-
-        # 任务清空
+        # 之前的班表记录清空
         models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
 
-        # 任务绑定
+        # 开始用户任务绑定
         for u in user_list:
             models.TaskPlayer.objects.create(task=self.task,user=u)
 
         self.task.roster = json.dumps(roster)
         self.task.save()
+        return '保存班表成功'
 
     def condition(self):
         '''查看考勤工作情况
         '''
-        records = models.Record.objects.filter(task=self.task)
+        records = models.Record.objects.filter(task=self.task,manager=None)
         data = serializers.ConditionRecord(instance=records,many=True).data
         return data
     # def progress(self):
