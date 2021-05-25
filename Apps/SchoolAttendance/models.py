@@ -45,7 +45,7 @@ class Record(models.Model):
         'Task', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="任务")
     rule_str = models.CharField(
         max_length=150, verbose_name="原因", null=True, blank=True)
-    score = models.IntegerField(null=True, blank=True, verbose_name="分值")
+    score = models.IntegerField(null=True, blank=True, verbose_name="分值") 
     rule = models.ForeignKey("RuleDetails",
                              on_delete=models.SET_NULL,
                              verbose_name="原因",
@@ -99,7 +99,7 @@ class Task(models.Model):
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
     roster = models.TextField(
-        verbose_name=u'班表', null=True, blank=True, default='')
+        verbose_name=u'班表', null=True, blank=True, default=u'[]')
     college = models.ForeignKey(
         College, on_delete=models.CASCADE, verbose_name=u'分院')
     buildings = models.ManyToManyField(
@@ -115,7 +115,7 @@ class Task(models.Model):
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return self.user.username + "-" + self.types
+        return self.user.username + "-" + self.get_types_display()
 
 
 class TaskPlayer(models.Model):
@@ -181,5 +181,10 @@ class UserCall(models.Model):
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name=u'用户')
+
+    flg = models.BooleanField(verbose_name='是否在班',default=None,null=True,blank=True)
+
     rule = models.ForeignKey("RuleDetails", on_delete=models.CASCADE,
                              verbose_name="第几次点名", null=True, blank=True)
+    class Meta:
+        verbose_name_plural = '学生点名情况'

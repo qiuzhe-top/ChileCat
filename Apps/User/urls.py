@@ -9,7 +9,7 @@ urlpatterns = [
     path('bindwx', views.BindVx.as_view(), name='BindVx'),
     path('mymood', views.MoodManage.as_view(), name='MoodManage'),
     path('activeity', views.Activeity.as_view(), name='Activeity'),
-    path('searchuser', views.SearchUser.as_view(), name='SearchUser'),
+    # path('searchuser', views.SearchUser.as_view(), name='SearchUser'),
     # path('validationToken', views.ValidationToken.as_view()),
 ]
 

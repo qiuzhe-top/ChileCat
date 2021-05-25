@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.http import JsonResponse
 from rest_framework.views import APIView
@@ -18,7 +19,19 @@ class StudentInformation(APIView):
             }
         '''
         ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
+        try:
+            username = request.GET['username']
+            user = User.objects.get(username=username)
+            ret['data'] ={
+                "username":username,
+                "name":user.userinfo.name,
+                "tel":user.userinfo.tel,
+                "grade":user.studentinfo.grade.name
+            }
+            ret['message'] = '搜索成功'
+            ret['code'] = 2000
+            return JsonResponse(ret)
+        except:
+            ret['code'] = 4000
+            ret['message'] = '没有用户或用户信息不完整'
         return JsonResponse(ret)

@@ -1,4 +1,6 @@
 from typing import List
+
+from django.db.models.manager import Manager
 from Apps.SchoolAttendance.service.task import TaskManage
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -44,7 +46,7 @@ class Task(APIView):
         ser1 = serializers.TaskBuilder(instance=task, many=True).data
 
         task_admin = models.TaskPlayer.objects.filter(
-            user=user, is_admin=True)
+            user=user, is_admin=True, task__types=is_type)
 
         ser2 = serializers.TaskAdmin(instance=task_admin, many=True).data
 
@@ -217,16 +219,15 @@ class TaskSwitch(APIView):
         '''
         ret = {}
         try:
-            id = int(request.data.get('id'))
+            id = int(request.data.get('task_id'))
         except:
             print('参数获取错误')
             return JsonResponse(ret)
 
-        TaskManage(id).clear_task()
+        message = TaskManage(id).clear_task()
 
-        ret['message'] = 'message'
+        ret['message'] = message
         ret['code'] = 2000
-        ret['data'] = 'data'
         return JsonResponse(ret)
 
 
@@ -261,8 +262,8 @@ class Scheduling(APIView):
         ret = {}
         roster = request.data['roster']
         id = request.data['id']
-        TaskManage(id).scheduling(roster)
-        ret['message'] = 'message'
+        message = TaskManage(id).scheduling(roster)
+        ret['message'] = message
         ret['code'] = 2000
         ret['data'] = roster
         return JsonResponse(ret)
@@ -296,12 +297,14 @@ class UndoRecord(APIView):
     def delete(self, request, *args, **kwargs):
         '''销假
             request：
-               id:213 # 考勤记录id
+               record_id:213 # 考勤记录id
         '''
         ret = {}
-        ret['message'] = 'message'
+        record_id = request.data['record_id']
+        task_id = request.data['task_id']
+        data = TaskManage(task_id).undo_record(record_id,request.user)
+        ret['message'] = data
         ret['code'] = 2000
-        ret['data'] = 'data'
         return JsonResponse(ret)
 
 

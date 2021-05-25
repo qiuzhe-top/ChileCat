@@ -3,33 +3,64 @@
 '''
 
 
+import json
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from Apps.SchoolAttendance import models
+
+
 class Late(object):
 
     
     def __init__(self, task_obj):
         if task_obj:
-            self.obj = task_obj
-            self.user = self.obj.user
+            self.task = task_obj
             
     def task_create(self):
         '''创建任务
         '''
+
         pass
     
     def clear_task(self):
         '''清除任务状态
+        学生点名情况 全部置为在班
         '''
-        pass
+        models.UserCall.objects.filter(task=self.task).update(flg=None)
+        return '执行成功'
 
-    def scheduling(self):
+    def scheduling(self,roster):
         '''排班
+        roster:[
+            {username:'19510144',name:'张三'},
+            {username:'19510144',name:'张三'}
+        ]
         '''
-        pass
+        user_list = []
+
+        # 从班表里面获取用户
+        for item in roster:
+            item['username']
+            u = User.objects.get(username=item['username'])
+            user_list.append(u)
+        
+        # 历史班表清空
+        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
+
+        # 新用户进行任务绑定
+        for u in user_list:
+            models.TaskPlayer.objects.create(task=self.task,user=u)
+
+        self.task.roster = json.dumps(roster)
+
+        return '执行成功'
 
     def condition(self):
         '''查看考勤工作情况      
         '''
-        pass
+        data = models.Record.objects.filter(task=self.task)
+        ser = serializers.ConditionRecord(instance=data,many=True).data
+        return ser
 
     def progress(self):
         '''查看考勤进度
@@ -39,6 +70,7 @@ class Late(object):
     def undo_record(self):
         '''销假
         '''
+        
         pass
 
     def out_data(self):

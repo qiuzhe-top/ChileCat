@@ -227,23 +227,3 @@ class Activeity(APIView):
         return JsonResponse(ret)
 
 
-# 用户搜索
-class SearchUser(APIView):
-    def get(self, request, *args, **kwargs):
-        ret = {}
-        try:
-            username = request.GET['username']
-            user = User.objects.get(username=username)
-            ret['data'] ={
-                "username":username,
-                "name":user.userinfo.name,
-                "tel":user.userinfo.tel,
-                "grade":user.studentinfo.grade.name
-            }
-            ret['message'] = '搜索成功'
-            ret['code'] = 2000
-            return JsonResponse(ret)
-        except:
-            ret['code'] = 4000
-            ret['message'] = '没有用户或用户信息不完整'
-            return JsonResponse(ret)

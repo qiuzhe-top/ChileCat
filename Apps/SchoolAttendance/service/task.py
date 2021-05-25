@@ -44,15 +44,15 @@ class TaskManage(object):
         '''清除任务状态
         '''
         task = self.task
-        task_factory[task.types](task).clear_task()
+        return task_factory[task.types](task).clear_task()
     # def task_create(self):
 
     def scheduling(self,roster):
         '''保存班表
         '''
         task = self.task
-        task_factory[task.types](task).scheduling(roster)
-        pass
+        return task_factory[task.types](task).scheduling(roster)
+        
 
     def task_roomInfo(self,type,user,floor_id,room_id):
         '''获取任务数据
@@ -77,3 +77,12 @@ class TaskManage(object):
         '''查看考勤工作情况
         '''
         return task_factory[self.task.types](self.task).condition()
+
+    def undo_record(self,record_id,worker_user):
+        '''销假
+        '''
+        # TODO: 需要传递任务ID 并且判断是否为任务创建者或者管理员
+        record = models.Record.objects.get(task=self.task,id=record_id)
+        record.manager=worker_user
+        record.save()
+        return '销假成功'
