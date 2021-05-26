@@ -71,7 +71,9 @@ class Knowing(object):
             for layer in item['layer_list']:
                 for user in layer['user']:
                     if len(item['title'][:1]) != 0 and len(user['username']) != 0:
-                        # 当前工作用户
+
+
+                        # 当前工作用户   # TODO 如果用户查找失败怎么处理
                         u = User.objects.get(username=user['username'])
                         user_list.append(u)
         
@@ -80,7 +82,7 @@ class Knowing(object):
 
         # 开始用户任务绑定
         for u in user_list:
-            models.TaskPlayer.objects.create(task=self.task,user=u)
+            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
 
         self.task.roster = json.dumps(roster)
         self.task.save()

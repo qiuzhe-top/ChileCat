@@ -18,6 +18,7 @@ class StudentInformation(APIView):
               phone: 19101245412 #电话
             }
         '''
+        # TODO 添加搜索多个用户
         ret = {}
         try:
             username = request.GET['username']
@@ -33,5 +34,5 @@ class StudentInformation(APIView):
             return JsonResponse(ret)
         except:
             ret['code'] = 4000
-            ret['message'] = '没有用户或用户信息不完整'
+            ret['message'] = '没有用户'+username+'或用户信息不完整'
         return JsonResponse(ret)

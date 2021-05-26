@@ -5,8 +5,8 @@
 
 import json
 from django.contrib.auth.models import User
-from rest_framework import serializers
-from Apps.SchoolAttendance import models
+from django.db.models import indexes
+from Apps.SchoolAttendance import models, serializers
 
 
 class Late(object):
@@ -37,29 +37,31 @@ class Late(object):
         ]
         '''
         user_list = []
-
+        roster_new = []
         # 从班表里面获取用户
         for item in roster:
-            item['username']
-            u = User.objects.get(username=item['username'])
-            user_list.append(u)
-        
+            u = User.objects.filter(username=item['username'])
+            if len(u) == 1:
+                user_list.append(u[0])
+                roster_new.append(item)
+
         # 历史班表清空
         models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
 
         # 新用户进行任务绑定
         for u in user_list:
-            models.TaskPlayer.objects.create(task=self.task,user=u)
+            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
 
-        self.task.roster = json.dumps(roster)
-
-        return '执行成功'
+        self.task.roster = json.dumps(roster_new)
+        self.task.save()
+        return '执行成功' + '更新' + str(len(roster_new)) + '个学生' 
 
     def condition(self):
         '''查看考勤工作情况      
         '''
         data = models.Record.objects.filter(task=self.task)
         ser = serializers.ConditionRecord(instance=data,many=True).data
+        
         return ser
 
     def progress(self):
@@ -70,7 +72,7 @@ class Late(object):
     def undo_record(self):
         '''销假
         '''
-        
+
         pass
 
     def out_data(self):
