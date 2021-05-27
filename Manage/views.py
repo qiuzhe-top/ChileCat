@@ -343,6 +343,13 @@ def init_activity_permissions(request):
 
 # 创建测试规则
 def uinitialization_rules(request):
+
+    rules_1()
+    rules_2()
+    return JsonResponse({})
+
+
+def rules_1():
     d = {
         'name':'缺寝原因',
         'codename':'0#001',
@@ -368,4 +375,24 @@ def uinitialization_rules(request):
         'rule':rule,
     }
     SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    return JsonResponse({})
+
+def rules_2():
+    d = {
+        'name':'点名规则',
+        'codename':'0#002',
+        'is_person':False,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+
+    d = {
+        'name':'第一次',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'第二次',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
