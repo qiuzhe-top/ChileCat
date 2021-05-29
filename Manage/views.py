@@ -346,6 +346,7 @@ def uinitialization_rules(request):
 
     rules_1()
     rules_2()
+    rules_3()
     return JsonResponse({})
 
 
@@ -392,6 +393,27 @@ def rules_2():
     SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
     d = {
         'name':'第二次',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+
+def rules_3():
+    d = {
+        'name':'晚自修违纪',
+        'codename':'0#003',
+        'is_person':False,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+
+    d = {
+        'name':'睡觉',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'玩手机',
         'score':'1',
         'rule':rule,
     }

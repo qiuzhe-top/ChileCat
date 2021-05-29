@@ -422,9 +422,11 @@ class LateClass(APIView):
                     1 # 获取班级名单附带学生多次点名情况
         '''
         ret = {}
+        task_id = request.GET['task_id']
+        grades = models.Task.objects.get(id=task_id).grades.all().values('id','name')
         ret['message'] = 'message'
         ret['code'] = 2000
-        ret['data'] = 'data'
+        ret['data'] = list(grades)
         return JsonResponse(ret)
 
 
