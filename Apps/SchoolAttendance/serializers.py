@@ -1,5 +1,8 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
+from Apps.SchoolInformation import models as SchoolInformationModels
+
 from . import models
 
 
@@ -72,3 +75,19 @@ class ConditionRecord(serializers.ModelSerializer):
     class Meta:
         model = models.Record
         fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+
+
+class UserCallGrader(serializers.ModelSerializer):
+    name = serializers.CharField(source='userinfo.name')
+    # flg = serializers.CharField(source='usercall_set.flg')
+    flg = serializers.SerializerMethodField()
+    def get_flg(self,obj):
+        call = obj.user_call
+        print(call)
+        if call:
+            return call.flg
+        return call
+
+    class Meta:
+        model =User
+        fields = ('id', 'name','username','flg')  # 包含

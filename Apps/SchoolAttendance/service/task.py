@@ -68,10 +68,10 @@ class TaskManage(object):
             return  task_factory[task.types](task).room_students(room_id)
 
 
-    def submit(self,data,room_id,worker_user):
+    def submit(self,data,worker_user):
         '''任务提交
-        '''
-        return task_factory[self.task.types](self.task).submit(data,room_id,worker_user)
+        ''' 
+        return task_factory[self.task.types](self.task).submit(data,worker_user)
 
     def condition(self):
         '''查看考勤工作情况

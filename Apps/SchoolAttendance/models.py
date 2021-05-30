@@ -179,8 +179,9 @@ class UserCall(models.Model):
     '''
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
+        
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'用户')
+        User, on_delete=models.CASCADE, verbose_name=u'用户', related_name="user_call")
 
     flg = models.BooleanField(verbose_name='是否在班',default=None,null=True,blank=True)
 

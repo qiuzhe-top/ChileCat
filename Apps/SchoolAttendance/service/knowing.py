@@ -169,11 +169,12 @@ class Knowing(object):
     #     '''
     #     pass
 
-    def submit(self,data,room_id,worker_user):
+    def submit(self,data,worker_user):
         '''考勤提交
         '''
         if not self.task.is_open:
             return "活动未开始"
+        room_id = data['room_id']
 
         # 获取房间对象
         room = SchoolInformationModels.Room.objects.get(id=room_id)
@@ -183,7 +184,7 @@ class Knowing(object):
         obj.is_knowing = True
         obj.save()
 
-        for d in data:
+        for d in data['user_list']:
             # 获取用户
             user = User.objects.get(id = d['user_id'])
 

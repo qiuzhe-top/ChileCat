@@ -95,10 +95,61 @@ class Late(object):
         '''
         pass
 
-    def submit(self):
-        '''考勤提交
+    def submit(self,data,worker_user):
+        '''点名提交
         '''
-        pass
+
+        if data['type'] == 1:
+            self.submit_discipline(data,worker_user)
+            return
+
+        flg = data['flg']
+        rule_id = data['rule_id']
+        # 多用户点名
+        user_list = data['user_list']
+        # 获取规则
+        rule = models.RuleDetails.objects.get(id=rule_id)
+        for u in user_list:
+            user = User.objects.get(username=u)
+
+            call,status = models.UserCall.objects.get_or_create(task=self.task,user=user,rule=rule)
+
+            # 判断是不是本次任务第一次点名
+            if call.flg == None:
+                call.flg = flg
+                call.save()
+
+                # 写入考勤记录
+                if not flg:
+                    d = {
+                        'task':self.task,
+                        'rule_str':rule.name+'点名迟到',
+                        'score':rule.score,
+                        'rule':rule,
+                        'grade_str':user.studentinfo.grade.name,
+                        'student_approved':user,
+                        'worker':worker_user,
+                    }
+
+                    models.Record.objects.create(**d)
+            
+    def submit_discipline(self,data,worker_user):
+        username = data['username']
+        rule_id_list = data['rule_id_list']
+        user = User.objects.get(username=username)
+        for id in rule_id_list:
+            rule = models.RuleDetails.objects.get(id=id)
+            d = {
+              'task' : self.task,
+              'rule_str' : rule.name,
+              'score' : rule.score,
+              'rule' : rule,
+              'grade_str' : user.studentinfo.grade.name,
+              'student_approved' : user,
+              'worker' : worker_user,
+            }
+            models.Record.objects.create(**d)
+            print(user,rule,d)
 
     def executor_finish(self):
         '''执行人确认任务完成'''

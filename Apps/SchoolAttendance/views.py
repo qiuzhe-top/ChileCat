@@ -2,6 +2,7 @@ from typing import List
 
 from django.db.models.manager import Manager
 from Apps.SchoolAttendance.service.task import TaskManage
+from Apps.SchoolInformation import models as SchoolInformationModels
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -357,7 +358,7 @@ class Rule(APIView):
         ret = {}
         codename = request.GET['codename']
         rule = models.Rule.objects.get(codename=codename)
-        data = rule.ruledetails_set.all().values('id','name','parent_id')
+        data = rule.ruledetails_set.all().values('id','name','parent_id','score')
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = list(data)
@@ -373,19 +374,29 @@ class Submit(APIView):
                 data:
                     rule_id:[1,2,3]     # 规则的ID列表
                     user_id:2           # 用户ID
-                room_id:20          # 寝室ID
+                    flg :               # 点名状态
+                    room_id:20          # 寝室ID
         '''
         ret = {'message': 'message', 'code': 2000, 'data': 'data'}
+
         task_id = request.data['task_id']
         data = request.data['data']
-        room_id = request.data['room_id']
         type_ = request.data['type']
+
         if type_ == 0:
-            ret['message'] =  TaskManage(task_id).submit(data,room_id,request.user)
+            ret['message'] =  TaskManage(task_id).submit(data,request.user)
         elif type_ == 1:
             pass
         return JsonResponse(ret)
 
+class SubmitPublic(APIView):
+    def post(self, request, *args, **kwargs):
+        '''通用考勤规则提交
+            user_username_list:[]
+            rule_id_list:[]
+        '''
+
+        pass
 
 class TaskRoomInfo(APIView):
     def get(self, request, *args, **kwargs):
@@ -417,17 +428,38 @@ class LateClass(APIView):
         '''晚自修 相关数据
             request:
                 task_id:任务ID
+                rule_id:规则ID
+                class_id:班级ID
                 type: 
                     0 # 获取任务绑定的班级
                     1 # 获取班级名单附带学生多次点名情况
         '''
         ret = {}
+        type_ = int(request.GET['type'])
         task_id = request.GET['task_id']
-        grades = models.Task.objects.get(id=task_id).grades.all().values('id','name')
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = list(grades)
-        return JsonResponse(ret)
+        task = models.Task.objects.get(id=task_id)
+        if type_ == 0:
+            grades = models.Task.objects.get(id=task_id).grades.all().values('id','name')
+            ret['code'] = 2000
+            ret['data'] = list(grades)
+            return JsonResponse(ret)
+        elif type_ == 1:
+            class_id = request.GET['class_id']
+            rule_id = request.GET['rule_id']
+            users = SchoolInformationModels.Grade.objects.get(id=class_id).get_users()
+            rule = models.RuleDetails.objects.get(id=rule_id)
+            l = [] #TODO 性能影响
+            for u in users:
+                call,flg = models.UserCall.objects.get_or_create(task=task,user=u,rule=rule)
+                d={}
+                d['username'] = u.username
+                d['name'] = u.userinfo.name
+                d['flg'] = call.flg
+                l.append(d)
+            ret['message'] = 'message'
+            ret['code'] = 2000
+            ret['data'] = l
+            return JsonResponse(ret)
 
 
 # ----------------------------------------------------------------
