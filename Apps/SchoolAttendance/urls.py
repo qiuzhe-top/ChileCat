@@ -31,6 +31,8 @@ urlpatterns = [
     path('rule', views.Rule.as_view(), name='Rule'),
     # 考勤提交  执行人确认任务完成
     path('submit', views.Submit.as_view(), name='Submit'),
+    # 通用 规则提交
+    path('submit_public', views.SubmitPublic.as_view(), name='SubmitPublic'),
     # 查寝相关任务信息 楼层 房间 学生状态
     path('task_room_info', views.TaskRoomInfo.as_view(), name='TaskRoomInfo'),
 
