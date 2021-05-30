@@ -59,7 +59,7 @@ class Late(object):
     def condition(self):
         '''查看考勤工作情况      
         '''
-        data = models.Record.objects.filter(task=self.task)
+        data = models.Record.objects.filter(task=self.task,manager=None)
         ser = serializers.ConditionRecord(instance=data,many=True).data
         
         return ser

@@ -71,7 +71,9 @@ class TaskManage(object):
     def submit(self,data,worker_user):
         '''任务提交
         ''' 
-        return task_factory[self.task.types](self.task).submit(data,worker_user)
+        if self.task.is_open:
+            return task_factory[self.task.types](self.task).submit(data,worker_user)
+        return ''
 
     def condition(self):
         '''查看考勤工作情况
