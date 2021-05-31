@@ -42,4 +42,8 @@ urlpatterns = [
          name='LateClass'),
 
     # 考勤记录查询接口 支持多条件查询
+    path('record',views.RecordQuery.as_view()),
+    # 管理员 销假 
+    path('undo_record_admin', views.UndoRecordAdmin.as_view(), name='UndoRecord'),
+
 ]

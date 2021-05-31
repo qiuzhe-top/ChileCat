@@ -73,6 +73,7 @@ class Record(models.Model):
         verbose_name="销假人",
         related_name="销假人",
     )
+     
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
     star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
@@ -115,7 +116,7 @@ class Task(models.Model):
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return self.user.username + "-" + self.get_types_display()
+        return self.user.username + "-" + self.college.name + "-" + self.get_types_display()
 
 
 class TaskPlayer(models.Model):

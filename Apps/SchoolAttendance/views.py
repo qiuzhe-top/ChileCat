@@ -1,10 +1,14 @@
+import datetime
 from typing import List
+from django.db.models import manager
 
 from django.db.models.manager import Manager
+from django.db.models.query_utils import Q
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
 from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework.pagination import PageNumberPagination
 
 # Create your views here.
 from rest_framework.views import APIView
@@ -308,6 +312,24 @@ class UndoRecord(APIView):
         ret['code'] = 2000
         return JsonResponse(ret)
 
+class UndoRecordAdmin(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        '''销假
+            request：
+               record_id:213 # 考勤记录id
+        '''
+        ret = {}
+        # TODO 进行身份验证
+        record_id = request.data['record_id']
+        record = models.Record.objects.get(id=record_id)
+        record.manager=request.user
+        record.save()
+        ret['message'] = '操作成功'
+        ret['code'] = 2000
+        return JsonResponse(ret)
+
+
 
 class OutData(APIView):
     def get(self, request, *args, **kwargs):
@@ -460,8 +482,56 @@ class LateClass(APIView):
             ret['code'] = 2000
             ret['data'] = l
             return JsonResponse(ret)
+class RecordQueryrPagination(PageNumberPagination):
+    #每页显示多少个
+    page_size = 5
+    #默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
+    page_size_query_param = "size"
+    #最大页数不超过10
+    #max_page_size = 10
+    #获取页码数的
+    page_query_param = "page"
 
+class RecordQuery(APIView):
+    def get(self,request):
+        '''考勤记录查询接口
+        request：
+            start_date：2005-1-1
+            end_date:2005-1-1
+            username
+        '''
+        ret = {}
 
+        username = request.GET.get('username',None)
+        start_date = request.GET['start_date']
+        end_date = request.GET['end_date']
+
+        # start_date = datetime.date(*json.loads(start_date))  # [2005,1,1]
+        # end_date = datetime.date(*json.loads(end_date))
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        Data = models.Record.objects.filter(
+                star_time__range=(start_date, end_date),
+                manager__isnull=True
+            )
+        # 警告:过滤具有日期的DateTimeField不会包含最后一天，因为边界被解释为“给定日期的0am”。   
+        if username:
+            try:
+                user = User.objects.get(Q(username=username)|Q(userinfo__name=username))
+                Data = Data.filter(student_approved=user)
+            except:
+                Data = []
+
+        pg = RecordQueryrPagination()
+        page_roles = pg.paginate_queryset(queryset=Data,request=request,view=self)
+        #对数据进行序列化
+        ser = serializers.RecordQuery(instance=page_roles,many=True).data
+        print(len(ser))
+        ret['message'] = "获取成功"
+        ret['code'] = 2000
+        # page = round(len(Data) / pg.page_size)
+        ret['data'] =  {"total":len(Data),"results":ser,"page_size":pg.page_size} 
+        return JsonResponse(ret)
 # ----------------------------------------------------------------
 # class ExportExcel(APIView):
 #     """导出excel """

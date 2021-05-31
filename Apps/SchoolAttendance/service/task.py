@@ -15,8 +15,7 @@ task_factory = {
 
 class TaskManage(object):
 
-    def __init__(self,task_id=None) -> None:
-        super().__init__()
+    def __init__(self,task_id=None):
         if task_id:
             self.task = models.Task.objects.get(id=int(task_id))
         else:

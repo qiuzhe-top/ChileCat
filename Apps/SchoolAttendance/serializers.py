@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import fields
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from Apps.SchoolInformation import models as SchoolInformationModels
@@ -75,6 +76,18 @@ class ConditionRecord(serializers.ModelSerializer):
     class Meta:
         model = models.Record
         fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+
+class RecordQuery(serializers.ModelSerializer):
+    '''考勤结果查询'''
+    student_approved = serializers.CharField(source='student_approved.userinfo.name')
+    student_approved_number = serializers.CharField(source='student_approved.username')
+    # manager = serializers.CharField(source='manager.userinfo.name')
+    worker = serializers.CharField(source='worker.userinfo.name')
+    task = serializers.CharField(source = 'task.__str__')
+    class Meta:
+        model = models.Record
+        # fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+        fields = "__all__"
 
 
 class UserCallGrader(serializers.ModelSerializer):
