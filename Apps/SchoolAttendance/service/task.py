@@ -87,3 +87,7 @@ class TaskManage(object):
         record.manager=worker_user
         record.save()
         return '销假成功'
+
+    def early_sign(self,excel):
+        """针对寝室表"""
+        pass

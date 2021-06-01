@@ -1,5 +1,6 @@
 """管理视图"""
 import logging
+import os
 # import re
 from django.http import JsonResponse, HttpResponse
 from openpyxl import load_workbook
@@ -421,32 +422,66 @@ def rules_3():
 
 
 
+class in_zaoqian_excel(APIView):
 
-def in_zaoqian_excel(request):
-    """针对寝室表"""
-    file = 'x2.xlsx'
-    
-    wb = load_workbook(file,read_only=True)
-    li = []
-    for rows in wb:
-        for row in rows:#遍历行
-            username = row[0].internal_value
-            name = row[1].internal_value
-            str_time = row[3].internal_value
-            if not (username == None or name == None or str_time ==None) and len(str_time) >2:
-                str_time = datetime.datetime.strptime(str_time,'%Y/%m/%d')
-                u = User.objects.get(username=username)
-                d = {
-                    'rule_str':'旷操',
-                    'student_approved':u,
-                }
-                
-                try:
-                    SchoolAttendanceModels.Record.objects.create(**d)
-                except:
-                    print(username,str_time)
+    def post(self,request):
+        """针对寝室表"""
+        file = request.data['file']
 
-                li.append(name)
-    print(len(li))
-    return JsonResponse({})
-    
+        file_name = str(time.time())+ '__' +file.name
+        file_path = os.path.join('upload', file_name)
+        f = open(file_path,'wb')
+        for i in file.chunks():   #chunks方法是一点点获取上传的文件内容
+            f.write(i)
+        f.close()
+
+        file_name = 'upload//' + file_name
+
+        # return JsonResponse({})
+        
+        wb = load_workbook(file,read_only=True)
+
+        error_list=[]
+        for rows in wb:
+            for row in rows:#遍历行
+                username = row[0].internal_value
+                name = row[1].internal_value
+                str_time = row[3].internal_value
+                is_header = username.find('考勤') != -1 or username.find('统计') != -1 or username.find('员工号') != -1
+                if not (username == None or name == None or str_time == None) and not is_header:
+                    print(username)
+                    try:
+                        u = User.objects.get(username=username)
+                        try:
+                            str_time = datetime.datetime.strptime(str_time,'%Y/%m/%d')
+                            d = {
+                                'rule_str':'旷早签',
+                                'student_approved':u,
+                                'score':1,
+                                'star_time':str_time
+                            }
+                            sa,flg = SchoolAttendanceModels.Record.objects.get_or_create(**d)
+                            sa.worker =  request.user
+                            sa.save()
+                        except:
+                            error_list.append({
+                                'username':username,
+                                'name':name,
+                                'str_time':str_time,
+                                'message':'导入记录失败'
+                            })
+                    except:
+                        error_list.append({
+                            'username':username,
+                            'name':name,
+                            'str_time':str_time,
+                            'message':'用户不存在'
+                        })
+
+        ret = {
+            'message': '添加成功 请检查添加结果',
+            'code':'2000',
+            'data':error_list
+        }
+        return JsonResponse(ret)
+        

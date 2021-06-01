@@ -75,5 +75,5 @@ class RuleDetails(admin.ModelAdmin):
 class Record(admin.ModelAdmin):
     """任务记录"""
     list_display = (
-        "id", "task", "rule", "rule_str", "score","grade_str","student_approved","worker","manager","last_time"
+        "id", "task", "rule", "rule_str", "score","grade_str","student_approved","worker","manager","star_time","last_time"
     )

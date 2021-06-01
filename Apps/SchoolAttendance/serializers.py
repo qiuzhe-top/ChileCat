@@ -84,7 +84,9 @@ class RecordQuery(serializers.ModelSerializer):
     # manager = serializers.CharField(source='manager.userinfo.name')
     worker = serializers.CharField(source='worker.userinfo.name')
     task = serializers.CharField(source = 'task.__str__')
+
     class Meta:
+
         model = models.Record
         # fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
         fields = "__all__"

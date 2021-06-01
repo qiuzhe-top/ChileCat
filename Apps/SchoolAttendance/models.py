@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
+import datetime
 from Apps.SchoolInformation.models import *
 # Create your models here.
 
@@ -75,7 +75,8 @@ class Record(models.Model):
     )
      
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
-    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+
+    star_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
     class Meta:
