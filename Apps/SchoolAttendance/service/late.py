@@ -102,6 +102,7 @@ class Late(object):
         if data['type'] == 1:
             self.submit_discipline(data,worker_user)
             return
+            
 
         flg = data['flg']
         rule_id = data['rule_id']
@@ -134,9 +135,23 @@ class Late(object):
                     models.Record.objects.create(**d)
             
     def submit_discipline(self,data,worker_user):
+
         username = data['username']
         rule_id_list = data['rule_id_list']
+        role_obj = data.get('role_obj',None)
         user = User.objects.get(username=username)
+
+        if role_obj:
+            d = {
+              'task' : self.task,
+              'rule_str' : role_obj['role_name'],
+              'score' : role_obj['role_score'],
+              'grade_str' : user.studentinfo.grade.name,
+              'student_approved' : user,
+              'worker' : worker_user,
+            }
+            models.Record.objects.create(**d)
+
         for id in rule_id_list:
             rule = models.RuleDetails.objects.get(id=id)
             d = {
