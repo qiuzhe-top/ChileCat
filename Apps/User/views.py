@@ -8,8 +8,9 @@ from .utils.auth import get_groups
 from Apps.User.models import StudentInfo, TeacherForGrade
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission,AnonymousUser
 from Apps.Permission.models import OperatePermission,ApiPermission
+
 from django.contrib.contenttypes.models import ContentType
 from Apps.User.utils import auth
 
@@ -58,22 +59,16 @@ class Auth(APIView):
                 password
                 password_repeat
         '''
-
-
         ret = {}
-
+        
+        user = request.user
         password_new = request.data['password_new']
         password_repeat = request.data['password_repeat']
-        try:
+        if user == AnonymousUser:
             username = request.data['username']
             password_old = request.data['password_old']
             user = authenticate(username=username, password=password_old)
-        except:
-           
-            user = request.user
-        
-        user = authenticate(username=username, password=password_old)
-        
+    
         if password_new == password_repeat and len(password_new)>=6 and user:
             user.set_password(password_new)
             user.save()
