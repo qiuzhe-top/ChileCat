@@ -3,6 +3,7 @@
 '''
 
 
+import datetime
 import json
 from django.contrib.auth.models import User
 from django.db.models import indexes
@@ -59,7 +60,8 @@ class Late(object):
     def condition(self):
         '''查看考勤工作情况      
         '''
-        data = models.Record.objects.filter(task=self.task,manager=None)
+        now = datetime.datetime.now()
+        data = models.Record.objects.filter(task=self.task,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
         ser = serializers.ConditionRecord(instance=data,many=True).data
         
         return ser
@@ -97,6 +99,7 @@ class Late(object):
 
     def submit(self,data,worker_user):
         '''点名提交
+        flg: 点名状态 在/不在
         '''
 
         if data['type'] == 1:
@@ -135,9 +138,12 @@ class Late(object):
                     models.Record.objects.create(**d)
             
     def submit_discipline(self,data,worker_user):
-
+        '''
+        role_obj： 当规则为自定义的情况下 传递此参数
+        rule_id_list: 规则id列表  多选规则时传递
+        '''
         username = data['username']
-        rule_id_list = data['rule_id_list']
+        rule_id_list = data.get('rule_id_list',None)
         role_obj = data.get('role_obj',None)
         user = User.objects.get(username=username)
 
@@ -151,20 +157,19 @@ class Late(object):
               'worker' : worker_user,
             }
             models.Record.objects.create(**d)
-
-        for id in rule_id_list:
-            rule = models.RuleDetails.objects.get(id=id)
-            d = {
-              'task' : self.task,
-              'rule_str' : rule.name,
-              'score' : rule.score,
-              'rule' : rule,
-              'grade_str' : user.studentinfo.grade.name,
-              'student_approved' : user,
-              'worker' : worker_user,
-            }
-            models.Record.objects.create(**d)
-            print(user,rule,d)
+        else:
+            for id in rule_id_list:
+                rule = models.RuleDetails.objects.get(id=id)
+                d = {
+                'task' : self.task,
+                'rule_str' : rule.name,
+                'score' : rule.score,
+                'rule' : rule,
+                'grade_str' : user.studentinfo.grade.name,
+                'student_approved' : user,
+                'worker' : worker_user,
+                }
+                models.Record.objects.create(**d)
 
     def executor_finish(self):
         '''执行人确认任务完成'''

@@ -1,3 +1,4 @@
+from Manage.views import ApiPer
 import datetime
 from typing import List
 from django.db.models import manager
@@ -330,6 +331,13 @@ class UndoRecordAdmin(APIView):
         return JsonResponse(ret)
 
 
+# 导入早签数据
+class InZaoqianExcel(APIView):
+
+    def post(slef,request):
+        ret = TaskManage().in_zaoqian_excel(request)
+        return JsonResponse(ret)
+
 
 class OutData(APIView):
     def get(self, request, *args, **kwargs):
@@ -442,6 +450,31 @@ class TaskRoomInfo(APIView):
         data = TaskManage(task_id).task_roomInfo(int(types),request.user,floor_id,room_id)
         ret['data'] = data
         return JsonResponse(ret)
+
+
+# 学生查看公告
+class StudentDisciplinary(APIView):
+
+    def get(self,request):
+        '''
+        request：
+        
+        response 
+            room_name
+            student
+            reason
+        '''
+        # TODO 支持查看本学院的情况
+        task_id_list = models.Task.objects.filter(types='0').values_list('id',flat=True)
+        now = datetime.datetime.now() #,star_time__date=datetime.date(now.year, now.month,now.day))
+        records = models.Record.objects.filter(task__in=task_id_list,star_time__date=datetime.date(now.year, now.month,now.day))
+        ser = serializers.StudentDisciplinary(instance=records,many=True).data
+        ret = {}   
+        ret['code'] = 2000
+        ret['message'] = '查询成功'
+        ret['data'] = ser
+        return JsonResponse(ret)
+
 
 class LateClass(APIView):
     API_PERMISSIONS = ['楼层号', 'get']

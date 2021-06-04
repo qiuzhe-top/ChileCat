@@ -37,6 +37,10 @@ urlpatterns = [
     path('task_room_info', views.TaskRoomInfo.as_view(), name='TaskRoomInfo'),
 
 
+    #学生查看公告
+    path('student_disciplinary', views.StudentDisciplinary.as_view(), name='StudentDisciplinary'),
+
+
     # 晚自修-管理的班级  班级内的学生
     path('late_class', views.LateClass.as_view(),
          name='LateClass'),
@@ -45,5 +49,8 @@ urlpatterns = [
     path('record',views.RecordQuery.as_view()),
     # 管理员 销假 
     path('undo_record_admin', views.UndoRecordAdmin.as_view(), name='UndoRecord'),
+
+    # 导入早签数据
+    path('in_zaoqian_excel', views.InZaoqianExcel.as_view()),
 
 ]

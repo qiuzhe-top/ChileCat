@@ -9,5 +9,5 @@ urlpatterns = [
     path('dormitory_exchange', views.dormitory_exchange),
     path('init_activity_permissions', views.init_activity_permissions),
     path('uinitialization_rules', views.uinitialization_rules),
-    path('in_zaoqian_excel', views.in_zaoqian_excel.as_view()),
+    # path('in_zaoqian_excel', views.In_zaoqian_excel.as_view()),
 ]

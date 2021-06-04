@@ -422,7 +422,7 @@ def rules_3():
 
 
 
-class in_zaoqian_excel(APIView):
+class In_zaoqian_excel(APIView):
 
     def post(self,request):
         """针对寝室表"""
