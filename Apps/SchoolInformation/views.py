@@ -61,6 +61,7 @@ class AddUser(APIView):
 def update_or_create_user(request):
 
     file = request.data['file']
+    # from openpyxl.reader.excel import load_workbook
     wb = load_workbook(file,read_only=True)
 
     error_list=[] # 执行中错误记录
