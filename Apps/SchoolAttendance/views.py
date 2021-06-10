@@ -229,8 +229,9 @@ class TaskSwitch(APIView):
         except:
             print('参数获取错误')
             return JsonResponse(ret)
+        task = models.Task.objects.get(id=task_id)
 
-        message = TaskManage(id).clear_task()
+        message = TaskManage(task).clear_task()
 
         ret['message'] = message
         ret['code'] = 2000
@@ -268,7 +269,9 @@ class Scheduling(APIView):
         ret = {}
         roster = request.data['roster']
         id = request.data['id']
-        message = TaskManage(id).scheduling(roster)
+        task = models.Task.objects.get(id=id)
+
+        message = TaskManage(task).scheduling(roster)
         ret['message'] = message
         ret['code'] = 2000
         ret['data'] = roster
@@ -291,7 +294,9 @@ class Condition(APIView):
         '''
         ret = {}
         task_id = request.GET['task_id']
-        data = TaskManage(task_id).condition()
+        task = models.Task.objects.get(id=task_id)
+
+        data = TaskManage(task).condition()
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = data
@@ -308,7 +313,8 @@ class UndoRecord(APIView):
         ret = {}
         record_id = request.data['record_id']
         task_id = request.data['task_id']
-        data = TaskManage(task_id).undo_record(record_id,request.user)
+        task = models.Task.objects.get(id=task_id)
+        data = TaskManage(task).undo_record(record_id,request.user)
         ret['message'] = data
         ret['code'] = 2000
         return JsonResponse(ret)
@@ -413,8 +419,13 @@ class Submit(APIView):
         data = request.data['data']
         type_ = request.data['type']
 
+        task = models.Task.objects.get(id=task_id)
+        n = models.TaskPlayer.objects.filter(task=task,user=request.user).count()
+        print(n)
+        return JsonResponse(ret)
+
         if type_ == 0:
-            code =  TaskManage(task_id).submit(data,request.user)
+            code =  TaskManage(task).submit(data,request.user)
             if code == 4001:
                 ret['code'] = code
                 ret['message'] = '获取未开启'
@@ -449,8 +460,9 @@ class TaskRoomInfo(APIView):
         types = request.GET['type']
         floor_id = request.GET.get('floor_id',-1)
         room_id = request.GET.get('room_id',-1)
+        task = models.Task.objects.get(id=task_id)
 
-        data = TaskManage(task_id).task_roomInfo(int(types),request.user,floor_id,room_id)
+        data = TaskManage(task).task_roomInfo(int(types),request.user,floor_id,room_id)
         ret['data'] = data
         return JsonResponse(ret)
 
@@ -562,7 +574,7 @@ class RecordQuery(APIView):
         page_roles = pg.paginate_queryset(queryset=Data,request=request,view=self)
         #对数据进行序列化
         ser = serializers.RecordQuery(instance=page_roles,many=True).data
-        print(len(ser))
+        # print(len(ser))
         ret['message'] = "获取成功"
         ret['code'] = 2000
         # page = round(len(Data) / pg.page_size)
