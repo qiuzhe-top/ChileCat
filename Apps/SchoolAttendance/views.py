@@ -407,25 +407,17 @@ class Submit(APIView):
                     flg :               # 点名状态
                     room_id:20          # 寝室ID
         '''
-<<<<<<< HEAD
         ret = {'message': '', 'code': 2000, 'data': 'data'}
-=======
-        ret = {'message': 'message', 'code': 2000, 'data': 'data'}
->>>>>>> 0f1a6b5d54c064f4be24b64f5fcb76c64d74eca7
 
         task_id = request.data['task_id']
         data = request.data['data']
         type_ = request.data['type']
 
         if type_ == 0:
-<<<<<<< HEAD
             code =  TaskManage(task_id).submit(data,request.user)
             if code == 4001:
                 ret['code'] = code
                 ret['message'] = '获取未开启'
-=======
-            ret['message'] =  TaskManage(task_id).submit(data,request.user)
->>>>>>> 0f1a6b5d54c064f4be24b64f5fcb76c64d74eca7
         elif type_ == 1:
             pass
         return JsonResponse(ret)
