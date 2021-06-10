@@ -420,10 +420,7 @@ class Submit(APIView):
         type_ = request.data['type']
 
         task = models.Task.objects.get(id=task_id)
-        n = models.TaskPlayer.objects.filter(task=task,user=request.user).count()
-        print(n)
-        return JsonResponse(ret)
-
+        n = models.TaskPlayer.objects.filter(task=task,user=request.user,is_admin=False).count()
         if type_ == 0:
             code =  TaskManage(task).submit(data,request.user)
             if code == 4001:
