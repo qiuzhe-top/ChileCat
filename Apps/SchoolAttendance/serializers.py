@@ -1,5 +1,9 @@
+from django.contrib.auth.models import User
+from django.db.models import fields
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
+from Apps.SchoolInformation import models as SchoolInformationModels
+
 from . import models
 
 
@@ -72,3 +76,46 @@ class ConditionRecord(serializers.ModelSerializer):
     class Meta:
         model = models.Record
         fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+
+class RecordQuery(serializers.ModelSerializer):
+    '''考勤结果查询'''
+    student_approved = serializers.CharField(source='student_approved.userinfo.name')
+    student_approved_number = serializers.CharField(source='student_approved.username')
+    # manager = serializers.CharField(source='manager.userinfo.name')
+    worker = serializers.CharField(source='worker.userinfo.name')
+    task = serializers.CharField(source = 'task.__str__')
+
+    class Meta:
+
+        model = models.Record
+        # fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+        fields = "__all__"
+
+
+class UserCallGrader(serializers.ModelSerializer):
+    name = serializers.CharField(source='userinfo.name')
+    # flg = serializers.CharField(source='usercall_set.flg')
+    flg = serializers.SerializerMethodField()
+    def get_flg(self,obj):
+        call = obj.user_call
+        print(call)
+        if call:
+            return call.flg
+        return call
+
+    class Meta:
+        model =User
+        fields = ('id', 'name','username','flg')  # 包含
+
+
+class StudentDisciplinary(serializers.ModelSerializer):
+    room_name = serializers.CharField(source='room_str')
+    student_name = serializers.CharField(source='student_approved.userinfo.name')
+    student = serializers.CharField(source='student_approved.username')
+    reason = serializers.CharField(source='rule_str')
+    classname = serializers.CharField(source='grade_str')
+    created_time = serializers.CharField(source='star_time')
+
+    class Meta:
+        model =models.Record
+        fields = ('room_name', 'student','student_name','reason','classname','created_time')  # 包含

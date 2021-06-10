@@ -1,3 +1,4 @@
+import datetime
 import json
 from django.contrib.auth.models import User
 from . import task
@@ -17,7 +18,7 @@ def is_number(s):
         return True
     except ValueError:
         pass
- 
+    
     try:
         import unicodedata
         unicodedata.numeric(s)
@@ -91,7 +92,9 @@ class Knowing(object):
     def condition(self):
         '''查看考勤工作情况
         '''
-        records = models.Record.objects.filter(task=self.task,manager=None)
+        now = datetime.datetime.now() #
+
+        records = models.Record.objects.filter(task=self.task,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
         data = serializers.ConditionRecord(instance=records,many=True).data
         return data
     # def progress(self):
@@ -169,11 +172,12 @@ class Knowing(object):
     #     '''
     #     pass
 
-    def submit(self,data,room_id,worker_user):
+    def submit(self,data,worker_user):
         '''考勤提交
         '''
         if not self.task.is_open:
             return "活动未开始"
+        room_id = data['room_id']
 
         # 获取房间对象
         room = SchoolInformationModels.Room.objects.get(id=room_id)
@@ -183,7 +187,7 @@ class Knowing(object):
         obj.is_knowing = True
         obj.save()
 
-        for d in data:
+        for d in data['user_list']:
             # 获取用户
             user = User.objects.get(id = d['user_id'])
 
@@ -192,15 +196,13 @@ class Knowing(object):
             if d['status'] == '1':
                 task_floor_student.flg = True
                 task_floor_student.save()
-                obj = {
-                    'task':self.task,
-                    'rule_str':'撤销查寝记录',
-                    'room_str':room.name,
-                    'grade_str':user.studentinfo.grade.name,
-                    'student_approved':user,
-                    'worker':worker_user,
-                }
-                models.Record.objects.create(**obj)
+                t = datetime.datetime.now()
+                models.Record.objects.filter(
+                    star_time__date=t,
+                    worker=worker_user,
+                    student_approved=user
+                ).update(manager=worker_user,rule_str=rule_str+'：误操作 撤销')
+               
             elif d['status'] == '0':              
                 
                 reason = d['reason']
@@ -210,8 +212,12 @@ class Knowing(object):
                 # 判断是否为规则ID
                 if is_number(reason):
                     # 获取对应规则对象
-                    rule = models.RuleDetails.objects.get(id=reason)
-                    rule_str = rule.name
+                    try:
+                        rule = models.RuleDetails.objects.get(id=reason)
+                        rule_str = rule.name
+                    except:
+                        rule = None
+                        rule_str = reason
                 else:
                     # 记录字符串函数
                     rule_str = reason

@@ -54,7 +54,6 @@ class UserInfo(models.Model):
     identity = models.CharField(max_length=20, choices=(
         ("student", "学生"),
         ("teacher", "老师"),
-        ("college", "院领导")
     ), default="student", verbose_name="身份信息")
     # 头像 https://a.jgp
     photo = models.CharField(
@@ -187,3 +186,4 @@ class TeacherForGrade(models.Model):
 
     def __str__(self):
         return self.user.userinfo.name + "->" + self.grade.name
+ 

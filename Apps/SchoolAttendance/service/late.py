@@ -3,6 +3,7 @@
 '''
 
 
+import datetime
 import json
 from django.contrib.auth.models import User
 from django.db.models import indexes
@@ -59,7 +60,8 @@ class Late(object):
     def condition(self):
         '''查看考勤工作情况      
         '''
-        data = models.Record.objects.filter(task=self.task)
+        now = datetime.datetime.now()
+        data = models.Record.objects.filter(task=self.task,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
         ser = serializers.ConditionRecord(instance=data,many=True).data
         
         return ser
@@ -95,10 +97,79 @@ class Late(object):
         '''
         pass
 
-    def submit(self):
-        '''考勤提交
+    def submit(self,data,worker_user):
+        '''点名提交
+        flg: 点名状态 在/不在
         '''
-        pass
+
+        if data['type'] == 1:
+            self.submit_discipline(data,worker_user)
+            return
+            
+
+        flg = data['flg']
+        rule_id = data['rule_id']
+        # 多用户点名
+        user_list = data['user_list']
+        # 获取规则
+        rule = models.RuleDetails.objects.get(id=rule_id)
+        for u in user_list:
+            user = User.objects.get(username=u)
+
+            call,status = models.UserCall.objects.get_or_create(task=self.task,user=user,rule=rule)
+
+            # 判断是不是本次任务第一次点名
+            if call.flg == None:
+                call.flg = flg
+                call.save()
+
+                # 写入考勤记录
+                if not flg:
+                    d = {
+                        'task':self.task,
+                        'rule_str':rule.name+'点名迟到',
+                        'score':rule.score,
+                        'rule':rule,
+                        'grade_str':user.studentinfo.grade.name,
+                        'student_approved':user,
+                        'worker':worker_user,
+                    }
+
+                    models.Record.objects.create(**d)
+            
+    def submit_discipline(self,data,worker_user):
+        '''
+        role_obj： 当规则为自定义的情况下 传递此参数
+        rule_id_list: 规则id列表  多选规则时传递
+        '''
+        username = data['username']
+        rule_id_list = data.get('rule_id_list',None)
+        role_obj = data.get('role_obj',None)
+        user = User.objects.get(username=username)
+
+        if role_obj:
+            d = {
+              'task' : self.task,
+              'rule_str' : role_obj['role_name'],
+              'score' : role_obj['role_score'],
+              'grade_str' : user.studentinfo.grade.name,
+              'student_approved' : user,
+              'worker' : worker_user,
+            }
+            models.Record.objects.create(**d)
+        else:
+            for id in rule_id_list:
+                rule = models.RuleDetails.objects.get(id=id)
+                d = {
+                'task' : self.task,
+                'rule_str' : rule.name,
+                'score' : rule.score,
+                'rule' : rule,
+                'grade_str' : user.studentinfo.grade.name,
+                'student_approved' : user,
+                'worker' : worker_user,
+                }
+                models.Record.objects.create(**d)
 
     def executor_finish(self):
         '''执行人确认任务完成'''

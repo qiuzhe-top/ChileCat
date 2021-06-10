@@ -1,9 +1,15 @@
+from Manage.views import ApiPer
+import datetime
 from typing import List
+from django.db.models import manager
 
 from django.db.models.manager import Manager
+from django.db.models.query_utils import Q
 from Apps.SchoolAttendance.service.task import TaskManage
+from Apps.SchoolInformation import models as SchoolInformationModels
 from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework.pagination import PageNumberPagination
 
 # Create your views here.
 from rest_framework.views import APIView
@@ -307,6 +313,31 @@ class UndoRecord(APIView):
         ret['code'] = 2000
         return JsonResponse(ret)
 
+class UndoRecordAdmin(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        '''销假
+            request：
+               record_id:213 # 考勤记录id
+        '''
+        ret = {}
+        # TODO 进行身份验证
+        record_id = request.data['record_id']
+        record = models.Record.objects.get(id=record_id)
+        record.manager=request.user
+        record.save()
+        ret['message'] = '操作成功'
+        ret['code'] = 2000
+        return JsonResponse(ret)
+
+
+# 导入早签数据
+class InZaoqianExcel(APIView):
+
+    def post(slef,request):
+        ret = TaskManage().in_zaoqian_excel(request)
+        return JsonResponse(ret)
+
 
 class OutData(APIView):
     def get(self, request, *args, **kwargs):
@@ -334,7 +365,7 @@ class TaskExecutor(APIView):
                 },]
         '''
         ret = {}
-        tasks = models.TaskPlayer.objects.filter(user=request.user,is_admin=False)
+        tasks = models.TaskPlayer.objects.filter(user=request.user,is_admin=False,task__is_open=True)
         ser = serializers.TaskExecutor(instance=tasks,many=True).data
         ret['message'] = 'message'
         ret['code'] = 2000
@@ -357,7 +388,7 @@ class Rule(APIView):
         ret = {}
         codename = request.GET['codename']
         rule = models.Rule.objects.get(codename=codename)
-        data = rule.ruledetails_set.all().values('id','name','parent_id')
+        data = rule.ruledetails_set.all().values('id','name','parent_id','score')
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = list(data)
@@ -373,19 +404,32 @@ class Submit(APIView):
                 data:
                     rule_id:[1,2,3]     # 规则的ID列表
                     user_id:2           # 用户ID
-                room_id:20          # 寝室ID
+                    flg :               # 点名状态
+                    room_id:20          # 寝室ID
         '''
-        ret = {'message': 'message', 'code': 2000, 'data': 'data'}
+        ret = {'message': '', 'code': 2000, 'data': 'data'}
+
         task_id = request.data['task_id']
         data = request.data['data']
-        room_id = request.data['room_id']
         type_ = request.data['type']
+
         if type_ == 0:
-            ret['message'] =  TaskManage(task_id).submit(data,room_id,request.user)
+            code =  TaskManage(task_id).submit(data,request.user)
+            if code == 4001:
+                ret['code'] = code
+                ret['message'] = '获取未开启'
         elif type_ == 1:
             pass
         return JsonResponse(ret)
 
+class SubmitPublic(APIView):
+    def post(self, request, *args, **kwargs):
+        '''通用考勤规则提交
+            user_username_list:[]
+            rule_id_list:[]
+        '''
+
+        pass
 
 class TaskRoomInfo(APIView):
     def get(self, request, *args, **kwargs):
@@ -410,6 +454,31 @@ class TaskRoomInfo(APIView):
         ret['data'] = data
         return JsonResponse(ret)
 
+
+# 学生查看公告
+class StudentDisciplinary(APIView):
+
+    def get(self,request):
+        '''
+        request：
+        
+        response 
+            room_name
+            student
+            reason
+        '''
+        # TODO 支持查看本学院的情况
+        task_id_list = models.Task.objects.filter(types='0').values_list('id',flat=True)
+        now = datetime.datetime.now() #,star_time__date=datetime.date(now.year, now.month,now.day))
+        records = models.Record.objects.filter(task__in=task_id_list,star_time__date=datetime.date(now.year, now.month,now.day))
+        ser = serializers.StudentDisciplinary(instance=records,many=True).data
+        ret = {}   
+        ret['code'] = 2000
+        ret['message'] = '查询成功'
+        ret['data'] = ser
+        return JsonResponse(ret)
+
+
 class LateClass(APIView):
     API_PERMISSIONS = ['楼层号', 'get']
 
@@ -417,17 +486,88 @@ class LateClass(APIView):
         '''晚自修 相关数据
             request:
                 task_id:任务ID
+                rule_id:规则ID
+                class_id:班级ID
                 type: 
                     0 # 获取任务绑定的班级
                     1 # 获取班级名单附带学生多次点名情况
         '''
         ret = {}
-        ret['message'] = 'message'
+        type_ = int(request.GET['type'])
+        task_id = request.GET['task_id']
+        task = models.Task.objects.get(id=task_id)
+        if type_ == 0:
+            grades = models.Task.objects.get(id=task_id).grades.all().values('id','name')
+            ret['code'] = 2000
+            ret['data'] = list(grades)
+            return JsonResponse(ret)
+        elif type_ == 1:
+            class_id = request.GET['class_id']
+            rule_id = request.GET['rule_id']
+            users = SchoolInformationModels.Grade.objects.get(id=class_id).get_users()
+            rule = models.RuleDetails.objects.get(id=rule_id)
+            l = [] #TODO 性能影响
+            for u in users:
+                call,flg = models.UserCall.objects.get_or_create(task=task,user=u,rule=rule)
+                d={}
+                d['username'] = u.username
+                d['name'] = u.userinfo.name
+                d['flg'] = call.flg
+                l.append(d)
+            ret['message'] = 'message'
+            ret['code'] = 2000
+            ret['data'] = l
+            return JsonResponse(ret)
+class RecordQueryrPagination(PageNumberPagination):
+    #每页显示多少个
+    page_size = 5
+    #默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
+    page_size_query_param = "size"
+    #最大页数不超过10
+    #max_page_size = 10
+    #获取页码数的
+    page_query_param = "page"
+
+class RecordQuery(APIView):
+    def get(self,request):
+        '''考勤记录查询接口
+        request：
+            start_date：2005-1-1
+            end_date:2005-1-1
+            username
+        '''
+        ret = {}
+
+        username = request.GET.get('username',None)
+        start_date = request.GET['start_date']
+        end_date = request.GET['end_date']
+
+        # start_date = datetime.date(*json.loads(start_date))  # [2005,1,1]
+        # end_date = datetime.date(*json.loads(end_date))
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        Data = models.Record.objects.filter(
+                star_time__range=(start_date, end_date),
+                manager__isnull=True
+            )
+        # 警告:过滤具有日期的DateTimeField不会包含最后一天，因为边界被解释为“给定日期的0am”。   
+        if username:
+            try:
+                user = User.objects.get(Q(username=username)|Q(userinfo__name=username))
+                Data = Data.filter(student_approved=user)
+            except:
+                Data = []
+
+        pg = RecordQueryrPagination()
+        page_roles = pg.paginate_queryset(queryset=Data,request=request,view=self)
+        #对数据进行序列化
+        ser = serializers.RecordQuery(instance=page_roles,many=True).data
+        print(len(ser))
+        ret['message'] = "获取成功"
         ret['code'] = 2000
-        ret['data'] = 'data'
+        # page = round(len(Data) / pg.page_size)
+        ret['data'] =  {"total":len(Data),"results":ser,"page_size":pg.page_size} 
         return JsonResponse(ret)
-
-
 # ----------------------------------------------------------------
 # class ExportExcel(APIView):
 #     """导出excel """

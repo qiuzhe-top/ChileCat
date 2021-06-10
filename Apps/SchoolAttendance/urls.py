@@ -31,8 +31,14 @@ urlpatterns = [
     path('rule', views.Rule.as_view(), name='Rule'),
     # 考勤提交  执行人确认任务完成
     path('submit', views.Submit.as_view(), name='Submit'),
+    # 通用 规则提交
+    path('submit_public', views.SubmitPublic.as_view(), name='SubmitPublic'),
     # 查寝相关任务信息 楼层 房间 学生状态
     path('task_room_info', views.TaskRoomInfo.as_view(), name='TaskRoomInfo'),
+
+
+    #学生查看公告
+    path('student_disciplinary', views.StudentDisciplinary.as_view(), name='StudentDisciplinary'),
 
 
     # 晚自修-管理的班级  班级内的学生
@@ -40,4 +46,11 @@ urlpatterns = [
          name='LateClass'),
 
     # 考勤记录查询接口 支持多条件查询
+    path('record',views.RecordQuery.as_view()),
+    # 管理员 销假 
+    path('undo_record_admin', views.UndoRecordAdmin.as_view(), name='UndoRecord'),
+
+    # 导入早签数据
+    path('in_zaoqian_excel', views.InZaoqianExcel.as_view()),
+
 ]

@@ -34,6 +34,11 @@ class Grade(models.Model):
         verbose_name = "班级"
         verbose_name_plural = "班级"
 
+    def get_users(self):
+        '''获取班级内学生'''
+        user_list = self.student_grade.all().values_list('user',flat=True)
+        return User.objects.filter(id__in=list(user_list))
+
     def __str__(self):
         return self.name
 
@@ -151,3 +156,4 @@ class StuInRoom(models.Model):
     def __str__(self):
         """返回房间号"""
         return self.room.floor.building.name + self.room.floor.name + self.room.name
+ 

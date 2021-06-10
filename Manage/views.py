@@ -1,5 +1,6 @@
 """管理视图"""
 import logging
+import os
 # import re
 from django.http import JsonResponse, HttpResponse
 from openpyxl import load_workbook
@@ -14,7 +15,7 @@ from Apps.Permission.models import *
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
 from .tests import *
 from django.contrib.contenttypes.models import ContentType
-
+import time,datetime
 # from rest_framework.authtoken.models import Token
 
 logger = logging.getLogger(__name__)
@@ -202,7 +203,23 @@ class Index(APIView):
 
 # 用户组初始化
 def group_init(request):
-    # group2 = ['ask_admin','life_admin']
+    names = [
+        # 检查卫生
+        'health_admin',
+        # 学生会考勤管理
+        'task_admin',
+        # 晚自修
+        'late_admin',
+        # 晚查寝
+        'knowing_admin',
+        # 后台导航栏是否展示 <考勤系统> 父选项
+        'attendance_admin'
+    ]
+    d = expand_permission.group_init(names)
+    return JsonResponse(d, safe=False)
+
+
+def init_Attendance_group():
 
     # 待添加进用户组的权限
     permissions = [
@@ -221,12 +238,9 @@ def group_init(request):
         '19510140',
     ]
 
-    expand_permission.group_init(name)
-    # expand_permission.group_add_permission(name,permissions)
+    expand_permission.group_init([name])
     expand_permission.group_add_user(name, users)
-
     return JsonResponse(2000, safe=False)
-
 
 # 寝室调换
 
@@ -343,6 +357,14 @@ def init_activity_permissions(request):
 
 # 创建测试规则
 def uinitialization_rules(request):
+
+    rules_1()
+    rules_2()
+    rules_3()
+    return JsonResponse({})
+
+
+def rules_1():
     d = {
         'name':'缺寝原因',
         'codename':'0#001',
@@ -368,4 +390,111 @@ def uinitialization_rules(request):
         'rule':rule,
     }
     SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    return JsonResponse({})
+
+def rules_2():
+    d = {
+        'name':'点名规则',
+        'codename':'0#002',
+        'is_person':False,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+
+    d = {
+        'name':'第一次',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'第二次',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+
+def rules_3():
+    d = {
+        'name':'晚自修违纪',
+        'codename':'0#003',
+        'is_person':False,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+
+    d = {
+        'name':'睡觉',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    d = {
+        'name':'玩手机',
+        'score':'1',
+        'rule':rule,
+    }
+    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+
+
+
+class In_zaoqian_excel(APIView):
+
+    def post(self,request):
+        """针对寝室表"""
+        file = request.data['file']
+
+        file_name = str(time.time())+ '__' +file.name
+        file_path = os.path.join('upload', file_name)
+        f = open(file_path,'wb')
+        for i in file.chunks():   #chunks方法是一点点获取上传的文件内容
+            f.write(i)
+        f.close()
+
+        file_name = 'upload//' + file_name
+
+        # return JsonResponse({})
+        
+        wb = load_workbook(file,read_only=True)
+
+        error_list=[]
+        for rows in wb:
+            for row in rows:#遍历行
+                username = row[0].internal_value
+                name = row[1].internal_value
+                str_time = row[3].internal_value
+                is_header = username.find('考勤') != -1 or username.find('统计') != -1 or username.find('员工号') != -1
+                if not (username == None or name == None or str_time == None) and not is_header:
+                    print(username)
+                    try:
+                        u = User.objects.get(username=username)
+                        try:
+                            str_time = datetime.datetime.strptime(str_time,'%Y/%m/%d')
+                            d = {
+                                'rule_str':'旷早签',
+                                'student_approved':u,
+                                'score':1,
+                                'star_time':str_time
+                            }
+                            sa,flg = SchoolAttendanceModels.Record.objects.get_or_create(**d)
+                            sa.worker =  request.user
+                            sa.save()
+                        except:
+                            error_list.append({
+                                'username':username,
+                                'name':name,
+                                'str_time':str_time,
+                                'message':'导入记录失败'
+                            })
+                    except:
+                        error_list.append({
+                            'username':username,
+                            'name':name,
+                            'str_time':str_time,
+                            'message':'用户不存在'
+                        })
+
+        ret = {
+            'message': '添加成功 请检查添加结果',
+            'code':'2000',
+            'data':error_list
+        }
+        return JsonResponse(ret)
+        

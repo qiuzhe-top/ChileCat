@@ -49,10 +49,10 @@ class Health(Knowing):
         '''
         pass
 
-    def submit(self):
+    def submit(self,data,worker_user):
         '''考勤提交
         '''
-        pass
+        print(data)
 
     def executor_finish(self):
         '''执行人确认任务完成'''

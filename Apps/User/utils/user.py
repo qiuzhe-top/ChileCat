@@ -1,6 +1,7 @@
 """用户操作"""
 import requests
 from django.contrib.auth import authenticate
+from Apps.User import models
 from Apps.User.models import OtherUser, User
 from Apps.User.utils import auth
 from Apps.User.utils.exceptions import *
@@ -160,8 +161,14 @@ class WebLogin(Login):
         if __username and __password:
             __user = authenticate(username=__username, password=__password)
             if __user:
-                __token = auth.update_token(__user)
-                return __token
+                
+                try:
+                    models.Token.objects.get(user = __user)
+                    __token = auth.update_token(__user)
+                    return __token
+                except:
+                    return 5506
+
             raise WebLoginException("登录失败: 账号密码错误")
         # 参数缺失
         raise ParamException("参数缺失: 获取用户名密码失败")

@@ -1,4 +1,5 @@
 """用户模块"""
+from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from . import models, ser
@@ -7,9 +8,11 @@ from .utils.auth import get_groups
 from Apps.User.models import StudentInfo, TeacherForGrade
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission,AnonymousUser
 from Apps.Permission.models import OperatePermission,ApiPermission
+
 from django.contrib.contenttypes.models import ContentType
+from Apps.User.utils import auth
 
 
 class Auth(APIView):
@@ -28,9 +31,14 @@ class Auth(APIView):
         user = UserExtraOperate(self.request)
         try:
             token = user.login(login_type)
-            ret['data']['token'] = token
-            ret['message'] = "获取成功"
-            ret['code'] = 2000
+            if 5506 == token:
+                ret['data'] = token
+                ret['message'] = "第一次登陆请修改密码"
+                ret['code'] = token
+            else:
+                ret['data']['token'] = token
+                ret['message'] = "获取成功"
+                ret['code'] = 2000
         except VxBindException as not_bind:
             ret['message'] = str(not_bind)
             ret['code'] = 5001
@@ -45,20 +53,49 @@ class Auth(APIView):
             ret['code'] = 5000
         return JsonResponse(ret)
 
-    def put(self, request):
-        """
-        注册账户
-        """
-        ret = {'code': 0000, 'message': ""}
-        try:
-            user = UserExtraOperate(self.request)
-            user.register()
-            ret['message'] = "注册成功"
-            ret['code'] = 2000
-        except ParamException as leak_param:
-            ret['message'] = str(leak_param)
-            ret['code'] = 5000
+    def put(self,request):
+        '''修改密码
+            request:
+                password
+                password_repeat
+        '''
+        ret = {}
+        
+        user = request.user
+        password_new = request.data['password_new']
+        password_repeat = request.data['password_repeat']
+        if user == AnonymousUser:
+            username = request.data['username']
+            password_old = request.data['password_old']
+            user = authenticate(username=username, password=password_old)
+    
+        if password_new == password_repeat and len(password_new)>=6 and user:
+            user.set_password(password_new)
+            user.save()
+            auth.update_token(user)
+            ret['message'] = '修改成功'
+            ret['code'] =  2000
+        else:
+            ret['message'] = '修改失败'
+            ret['code'] =  5000
+
         return JsonResponse(ret)
+
+
+    # def post(self, request):
+    #     """
+    #     注册账户
+    #     """
+    #     ret = {'code': 0000, 'message': ""}
+    #     try:
+    #         user = UserExtraOperate(self.request)
+    #         user.register()
+    #         ret['message'] = "注册成功"
+    #         ret['code'] = 2000
+    #     except ParamException as leak_param:
+    #         ret['message'] = str(leak_param)
+    #         ret['code'] = 5000
+    #     return JsonResponse(ret)
 
     def delete(self, request):
         ret = {'code': 2000}
@@ -83,9 +120,11 @@ class Information(APIView):
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
         user = self.request.user
         data = {'permissions': []}
+        
         p = self.request.user.user_permissions.filter().exclude(
             content_type=ContentType.objects.get_for_model(ApiPermission)
         ).values()
+
         for permission in p:
             if "operatepermission" not in permission['codename']:
                 data['permissions'].append(permission['codename'])

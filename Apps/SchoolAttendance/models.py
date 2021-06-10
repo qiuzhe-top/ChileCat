@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
+import datetime
 from Apps.SchoolInformation.models import *
 # Create your models here.
 
@@ -73,8 +73,10 @@ class Record(models.Model):
         verbose_name="销假人",
         related_name="销假人",
     )
+     
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
-    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+
+    star_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
     class Meta:
@@ -115,7 +117,7 @@ class Task(models.Model):
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return self.user.username + "-" + self.get_types_display()
+        return self.user.username + "-" + self.college.name + "-" + self.get_types_display()
 
 
 class TaskPlayer(models.Model):
@@ -179,8 +181,9 @@ class UserCall(models.Model):
     '''
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
+        
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'用户')
+        User, on_delete=models.CASCADE, verbose_name=u'用户', related_name="user_call")
 
     flg = models.BooleanField(verbose_name='是否在班',default=None,null=True,blank=True)
 
