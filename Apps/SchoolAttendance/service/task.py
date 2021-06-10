@@ -78,7 +78,11 @@ class TaskManage(object):
         ''' 
         if self.task.is_open:
             return task_factory[self.task.types](self.task).submit(data,worker_user)
+<<<<<<< HEAD
         return 4001
+=======
+        return ''
+>>>>>>> 0f1a6b5d54c064f4be24b64f5fcb76c64d74eca7
 
     def condition(self):
         '''查看考勤工作情况
