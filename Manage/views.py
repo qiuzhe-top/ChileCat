@@ -203,7 +203,23 @@ class Index(APIView):
 
 # 用户组初始化
 def group_init(request):
-    # group2 = ['ask_admin','life_admin']
+    names = [
+        # 检查卫生
+        'health_admin',
+        # 学生会考勤管理
+        'task_admin',
+        # 晚自修
+        'late_admin',
+        # 晚查寝
+        'knowing_admin',
+        # 后台导航栏是否展示 <考勤系统> 父选项
+        'attendance_admin'
+    ]
+    d = expand_permission.group_init(names)
+    return JsonResponse(d, safe=False)
+
+
+def init_Attendance_group():
 
     # 待添加进用户组的权限
     permissions = [
@@ -222,12 +238,9 @@ def group_init(request):
         '19510140',
     ]
 
-    expand_permission.group_init(name)
-    # expand_permission.group_add_permission(name,permissions)
+    expand_permission.group_init([name])
     expand_permission.group_add_user(name, users)
-
     return JsonResponse(2000, safe=False)
-
 
 # 寝室调换
 

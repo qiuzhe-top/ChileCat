@@ -21,11 +21,10 @@ task_factory = {
 
 class TaskManage(object):
 
-    def __init__(self,task_id=None):
-        if task_id:
-            self.task = models.Task.objects.get(id=int(task_id))
-        else:
-            self.task = None
+    def __init__(self,task_obj=None):
+        self.task = task_obj
+
+
     def create_task(self,task,ids):
         '''创建任务
         '''
@@ -53,7 +52,7 @@ class TaskManage(object):
     # def task_create(self):
 
     def scheduling(self,roster):
-        '''保存班表
+        '''保存班表 
         '''
         task = self.task
         return task_factory[task.types](task).scheduling(roster)
@@ -74,11 +73,12 @@ class TaskManage(object):
 
 
     def submit(self,data,worker_user):
-        '''任务提交
+        '''任务提交 
         ''' 
+
         if self.task.is_open:
             return task_factory[self.task.types](self.task).submit(data,worker_user)
-        return ''
+        return 4001
 
     def condition(self):
         '''查看考勤工作情况
@@ -124,6 +124,7 @@ class TaskManage(object):
                 username = row[0].internal_value
                 name = row[1].internal_value
                 str_time = row[3].internal_value
+   
                 is_header = username.find('考勤') != -1 or username.find('统计') != -1 or username.find('员工号') != -1
                 if not (username == None or name == None or str_time == None) and not is_header:
                     print(username)

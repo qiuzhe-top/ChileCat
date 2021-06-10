@@ -201,7 +201,7 @@ class Knowing(object):
                     star_time__date=t,
                     worker=worker_user,
                     student_approved=user
-                ).update(manager=worker_user,rule_str=rule_str+'：误操作 撤销')
+                ).update(manager=worker_user,rule_str='查寝：误操作撤销')
                
             elif d['status'] == '0':              
                 

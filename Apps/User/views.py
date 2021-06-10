@@ -120,9 +120,11 @@ class Information(APIView):
         ret = {'code': 2000, 'message': "执行成功", 'data': {}}
         user = self.request.user
         data = {'permissions': []}
+        
         p = self.request.user.user_permissions.filter().exclude(
             content_type=ContentType.objects.get_for_model(ApiPermission)
         ).values()
+
         for permission in p:
             if "operatepermission" not in permission['codename']:
                 data['permissions'].append(permission['codename'])
