@@ -1,4 +1,3 @@
-from Manage.views import ApiPer
 import datetime
 from typing import List
 from django.db.models import manager

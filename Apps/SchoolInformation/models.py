@@ -24,7 +24,7 @@ class Grade(models.Model):
     """
     name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
     college = models.ForeignKey(
-        "College", on_delete=models.CASCADE, verbose_name="学院")
+        "College",null=True, blank=True, related_name="grade", on_delete=models.CASCADE, verbose_name="学院")
     whole_grade = models.ForeignKey(
         "WholeGrade", on_delete=models.CASCADE, related_name="grade", verbose_name="年级",
         null=True, blank=True

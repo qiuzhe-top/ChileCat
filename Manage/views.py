@@ -1,4 +1,6 @@
 """管理视图"""
+import Manage
+from Apps.SchoolInformation.models import *
 import logging
 import os
 # import re
@@ -20,53 +22,7 @@ import time,datetime
 
 logger = logging.getLogger(__name__)
 
-
-class Test(APIView):
-    """后台接口调用"""
-
-    def get(self, request):
-        """测试接口"""
-        print("GET参数:", self.request.query_params)
-        print("request data:", self.request.data)
-        print("TOKEN:", self.request.META.get("HTTP_TOKEN"))
-        print('测试接口')
-        # users = User.objects.all()
-        # for user in users:
-        #     user.set_password("123456")
-        #     user.save()
-        #     if len(user.username) != 8 and user.username[0:3] == "195":
-        #         print(user.username)
-
-        # 用户名小写
-        # users = User.objects.all()
-        # for user in users:
-        #     if user.username != user.username.lower():
-        #         user.username = user.username.lower()
-        #         user.save()
-
-        # 班级改小写
-        # grades = Grade.objects.all()
-        # for grade in grades:
-        #     if grade.name != grade.name.lower():
-        #         grade.name = grade.name.lower()
-        #         grade.save()
-        #
-        # print("创建班主任:")
-        # grades = Grade.objects.all()
-        # for grade in grades:
-        #     grade_name = grade.name
-        #     teacher_username = grade_name + "00"
-        #     teacher, flag = User.objects.get_or_create(username=teacher_username)
-        #     teacher.set_password("123456")
-        #     teacher.save()
-        #     UserInfo.objects.get_or_create(user=teacher, name=grade_name+"班老师", identity="teacher")
-        #     print(TeacherForGrade.objects.get_or_create(user=teacher, grade=grade))
-        # import_stu_data("leaksfile//副本智慧交通学院学生寝室信息表（全).xlsx")
-        add_student("leaksfile//学生导入表.xlsx")
-        return JsonResponse({"message": ""})
-
-
-def add_student(file):
+def add_student_in_room(file):
     """针对寝室导入表"""
     work_book = load_workbook(file)
     log = open(file + ".log", "w")
@@ -168,38 +124,81 @@ def import_stu_data(file):
             except UserInfo.DoesNotExist:
                 print(name, grade, stu_id, tel)
 
+# excel 转 列表 当第一个单元格为空是过滤这行数据
+def excel_to_list(request):
+    file = request.data['file']
+    data = []
+    wb = load_workbook(file,read_only=True)
+    for rows in wb:
+        for row in rows:#遍历行
+            if row[0].value:
+                l = []
+                for i in row:
+                    l.append(str(i.internal_value))
+                data.append(l)
+    return data
 
-class ApiPer(APIView):
-    """API权限生成"""
+# 用户与组的管理
+def group_user(request):
+    ret = {}
+    list_ = excel_to_list(request)
+    for row in list_:
+        group = row[0]
+        username = row[1]
+        flg = row[2]
+        # 当 组为'-'学号有参 时 清空用户所在的所有组
+        if group == '-' and username != None:
 
-    def get(self, request):
-        """test"""
-        ret = {'message': 'message', 'code': 2000}
+            pass
+        # 当 学号为'-'组有参 时 清空组内的用户
+        elif username == '-' and group != None:
+            expand_permission.group_clean(group)
+        # 根据flg的状态执行删除/添加
+        elif group != None and username != None and flg != None:
+            if flg == '+':
+                # 组里面添加学生
+                expand_permission.group_add_user(group,[username,])
+            # flg = -
+                # 组里面删除学生
 
-        # expand_permission.group_clean('life_admin')
-        # expand_permission.user_admin_clean(['19510144','19510143'])
-        # expand_permission.init_api_permissions()
-        return JsonResponse(ret)
+    return ret
+# 导入学生
+def user_init(request):
 
+    message_list={}
+    message_list['create'] = []
+    message_list['update'] = []
+    excel = excel_to_list(request)
 
-class Index(APIView):
-    """"""
+    for row in excel:
+        grade = row[0]
+        username = row[1]
+        name = row[2]
+        
+        # 创建/获取 班级
+        grade,f0 = Grade.objects.get_or_create(name=grade)
 
-    def get(self, request):
-        api_permission_list = ApiPermission.objects.filter(
-            permission__codename="/api/life/idcode:GET").values_list('permission__codename', flat=True)
-        urls = []
-        id_code = "api/life/idcode"
-        for api in api_permission_list:
-            ap = str(api).split(":")
-            urls.append(ap[0])
-        template = loader.get_template('Manage/index.html')
-        context = {
-            'display_list': api_permission_list,
-            'id_code': id_code,
-        }
-        return HttpResponse(template.render(context, request))
+        # 创建/获取 用户对象
+        u,f = User.objects.get_or_create(username=username)
+        if not u:
+            continue
+        u.set_password(username)
+        u.save()
 
+        # 创建/修改 用户 UserInfo StudentInfo
+        user_info,f1 = UserInfo.objects.get_or_create(user=u, defaults={"name":name})
+        stu_info,f2 = StudentInfo.objects.get_or_create(user=u, defaults={"grade":grade})
+
+        # 记录结果
+        if f1 and f2:
+            message_list['create'].append(username+"---"+name)
+        else:
+            user_info.name = name
+            user_info.save()
+            stu_info.grade = grade
+            stu_info.save()
+            message_list['update'].append(username+"---"+name)
+    return message_list
 
 # 用户组初始化
 def group_init(request):
@@ -216,8 +215,45 @@ def group_init(request):
         'attendance_admin'
     ]
     d = expand_permission.group_init(names)
-    return JsonResponse(d, safe=False)
+    ret = {
+        "message":d,
+        "names":names
+    }
+    return ret
 
+# 用户寝室关联
+def user_room(request):
+    rows = excel_to_list(request)
+    for row in rows:
+        room = row[0]
+        username = row[1]
+        flg = row[2] 
+        building = room.split('#')[0]
+        floor = room.split('#')[1][:1]
+        room_str = room.split('#')[1][1:3]
+        building_obj =  Building.objects.get_or_create(name=building)
+        building_obj =  Floor.objects.get_or_create(name=building)
+        building_obj =  Building.objects.get_or_create(name=building)
+        print(1)
+        # 学生寝室绑定
+        # if flg == '+':
+
+
+    pass
+
+class DataInit(APIView):
+    """系统数据初始化"""
+
+    def post(self, request):
+        init_dict = {
+            "group_init":group_init,
+            "user_init":user_init,
+            "group_user":group_user,
+            "user_room":user_room,
+        }
+        type_ = request.data['type']
+        data = init_dict[type_](request)
+        return JsonResponse(data, safe=False)
 
 def init_Attendance_group():
 
@@ -241,41 +277,6 @@ def init_Attendance_group():
     expand_permission.group_init([name])
     expand_permission.group_add_user(name, users)
     return JsonResponse(2000, safe=False)
-
-# 寝室调换
-
-def dormitory_exchange(request):
-    ret = {'message': 'message', 'code': 2000}
-    # 待调换的数据
-    data = {
-        '19510110': ['3', '4', '22'],
-        # '19530139': ['3', '3', '04'],
-        # '19530116': ['3', '3', '03'],
-        # '1853w115': ['3', '2', '14']
-    }
-    # file = "x.xlsx"
-    # work_book = load_workbook(file)
-    # log = open(file + ".log", "w")
-    # for sheet in work_book:
-    #     room_name = ""
-    #     for info in sheet.values:
-    #         data[info[0]]=1
-    # print(data)
-
-    for item in data:
-        try:
-            user = User.objects.get(username=item)
-            # 新寝室
-            # b = Building.objects.get(name=data[item][0])
-            # f = Floor.objects.get(name=data[item][1], building=b)
-            # r = Room.objects.get(name=data[item][2], floor=f)
-            # print('学生：', user, '旧寝室：', user.stu_in_room.all()[0], '待换寝室：', r)
-            StuInRoom.objects.filter(student=user).delete()
-        except:
-            print('失败', item)
-
-    return JsonResponse(ret)
-
 
 def add_user():
     L = [

@@ -23,7 +23,7 @@ class UserInfoTeleAdmin(admin.ModelAdmin):
     #         return obj.tel
     #     return format_html('<span style="color:#8E8E8E;">(无电话信息)</span>')
     list_display = ("id", "user", "name", "tel",
-                    "identity",  "photo")  # ,"user_to_role"
+                     "photo")  # ,"user_to_role"
     # user_to_role.short_description = "用户角色"
     # filter_horizontal = ['user_role']
     empty_value_display = format_html(
