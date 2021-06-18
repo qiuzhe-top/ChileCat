@@ -46,7 +46,9 @@ def add_student_in_room(file):
                 college = College.objects.get_or_create(name="智慧交通学院")
                 grade = Grade.objects.get_or_create(
                     name=grade, college=college[0])
-                StudentInfo.objects.get_or_create(user=user[0], grade=grade[0])
+                stu_info = StudentInfo.objects.get_or_create(user=user[0])
+                stu_info[0].grade = grade
+                stu_info[0].save()
                 put_stu_room(user[0], room_name, log)
             except User.DoesNotExist:
                 print(name, grade, stu_id, tel)
@@ -54,18 +56,16 @@ def add_student_in_room(file):
                 print(name, grade, stu_id, tel)
 
 
-def put_stu_room(stu, room, log):
+def put_stu_room(stu, room,ret):
     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
-    student = stu
-    history = StuInRoom.objects.filter(room=search_room(room), student=student)
+    history = StuInRoom.objects.filter(room=search_room(room), user=stu)
     if history.exists():
-        print("学生", student.userinfo.name, "->", history.first(), "已存在")
+        ret.append("学生"+stu.userinfo.name+ "->"+ history.first().get_room()+ "已存在")
     else:
         room = search_room(room)
         stu_in_room = StuInRoom.objects.get_or_create(
-            room=room, student=student)
-        print("记录(", "学号:", student.username, "姓名:",
-              student.userinfo.name, "->", stu_in_room[0], "寝室)已创建")
+            room=room, user=stu)
+        ret.append("记录("+ "学号:"+ stu.username+ "姓名:"+ stu.userinfo.name+ "->"+stu_in_room[0].get_room()+ "寝室)已创建")
 
 
 def search_room(room_info):
@@ -95,10 +95,11 @@ def create_class(class_name, college_name):
     return None
 
 
-def import_stu_data(file):
+def import_stu_data(request):
     """针对寝室表"""
+    file = request.data['file']
     work_book = load_workbook(file)
-    log = open(file + ".log", "w")
+    ret = []
     for sheet in work_book:
         room_name = ""
         for info in sheet.values:
@@ -112,18 +113,24 @@ def import_stu_data(file):
             tel = str(info[8]).strip()
             try:
                 user = User.objects.get_or_create(username=stu_id)
-                UserInfo.objects.get_or_create(
-                    user=user[0], name=name, tel=tel)
-                college = College.objects.get_or_create(name="智慧交通学院")
-                grade = Grade.objects.get_or_create(
-                    name=grade, college=college[0])
-                StudentInfo.objects.get_or_create(user=user[0], grade=grade[0])
-                put_stu_room(user[0], room_name, log)
-            except User.DoesNotExist:
-                print(name, grade, stu_id, tel)
-            except UserInfo.DoesNotExist:
-                print(name, grade, stu_id, tel)
+                user_info,flg0 = UserInfo.objects.get_or_create(
+                    user=user[0])
+                user_info.name = name
+                user_info.tel = tel
+                user_info.save()
 
+                grade = Grade.objects.get_or_create(
+                    name=grade)
+                stu_info,flg1 = StudentInfo.objects.get_or_create(user=user[0],defaults={"grade":grade[0]})
+                if not flg1:
+                    stu_info.grade = grade[0]
+                    stu_info.save()
+                put_stu_room(user[0], room_name,ret)
+            except User.DoesNotExist:
+                ret.append(name+"异常")
+            except UserInfo.DoesNotExist:
+                ret.append(name+"异常")
+    return ret
 # excel 转 列表 当第一个单元格为空是过滤这行数据
 def excel_to_list(request):
     file = request.data['file']
@@ -224,22 +231,39 @@ def group_init(request):
 # 用户寝室关联
 def user_room(request):
     rows = excel_to_list(request)
+    message={}
+    message['username-'] = []
+    message['flg-'] = []
+    message['flg+'] = []
+    message['update'] = []
     for row in rows:
-        room = row[0]
-        username = row[1]
+        room_ = row[0]
+        username_ = row[1]
         flg = row[2] 
-        building = room.split('#')[0]
-        floor = room.split('#')[1][:1]
-        room_str = room.split('#')[1][1:3]
-        building_obj =  Building.objects.get_or_create(name=building)
-        building_obj =  Floor.objects.get_or_create(name=building)
-        building_obj =  Building.objects.get_or_create(name=building)
-        print(1)
-        # 学生寝室绑定
-        # if flg == '+':
 
+        room = search_room(room_)
 
-    pass
+        # 清空寝室内的学生
+        if username_ =="-":
+            room.stu_in_room.all().delete()
+            message['username-'].append(room_ + "：清空")
+
+        # 学生寝室绑定/删除
+        elif flg == '+':
+            user = User.objects.get(username=username_)
+            st,flg = StuInRoom.objects.get_or_create(user=user,defaults={"room":room})
+            if flg:
+                message['flg+'].append(room_ + " 添加 " +  username_)
+            else:
+                message['update'].append(username_ + " 更新为 " +  room_)
+
+        elif flg == '-':
+            user = User.objects.get(username=username_)
+            StuInRoom.objects.filter(user=user).delete()
+            message['flg-'].append(room_ + " 删除 " +  username_)
+
+    return message
+
 
 class DataInit(APIView):
     """系统数据初始化"""
@@ -250,6 +274,7 @@ class DataInit(APIView):
             "user_init":user_init,
             "group_user":group_user,
             "user_room":user_room,
+            "import_stu_data":import_stu_data,
         }
         type_ = request.data['type']
         data = init_dict[type_](request)

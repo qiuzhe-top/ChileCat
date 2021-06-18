@@ -139,7 +139,7 @@ class StuInRoom(models.Model):
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE, verbose_name="房间id", related_name="stu_in_room"
     )
-    student = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE, verbose_name="学生", related_name="stu_in_room"
     )
@@ -153,7 +153,9 @@ class StuInRoom(models.Model):
             ('operate-stu_in_room_view', "operate-查询学生位置权限")
         ]
 
+    def get_room(self):
+        return self.room.floor.building.name + self.room.floor.name + self.room.name
+
     def __str__(self):
         """返回房间号"""
-        return self.room.floor.building.name + self.room.floor.name + self.room.name
- 
+        return self.get_room()

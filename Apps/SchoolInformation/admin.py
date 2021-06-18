@@ -55,5 +55,5 @@ class Room(admin.ModelAdmin):
 @admin.register(StuInRoom)
 class StuInRoom(admin.ModelAdmin):
     list_display = (
-        "id", "room", "student", "bed_position" #, "status"
+        "id", "room", "user", "bed_position" #, "status"
     )
