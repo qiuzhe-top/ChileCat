@@ -265,20 +265,7 @@ def user_room(request):
     return message
 
 
-class DataInit(APIView):
-    """系统数据初始化"""
 
-    def post(self, request):
-        init_dict = {
-            "group_init":group_init,
-            "user_init":user_init,
-            "group_user":group_user,
-            "user_room":user_room,
-            "import_stu_data":import_stu_data,
-        }
-        type_ = request.data['type']
-        data = init_dict[type_](request)
-        return JsonResponse(data, safe=False)
 
 def init_Attendance_group():
 
@@ -387,7 +374,7 @@ def uinitialization_rules(request):
     rules_1()
     rules_2()
     rules_3()
-    return JsonResponse({})
+    return {"code":2000}
 
 
 def rules_1():
@@ -524,3 +511,20 @@ class In_zaoqian_excel(APIView):
         }
         return JsonResponse(ret)
         
+
+
+class DataInit(APIView):
+    """系统数据初始化"""
+
+    def post(self, request):
+        init_dict = {
+            "group_init":group_init,
+            "user_init":user_init,
+            "group_user":group_user,
+            "user_room":user_room,
+            "import_stu_data":import_stu_data,
+            "uinitialization_rules":uinitialization_rules,
+        }
+        type_ = request.data['type']
+        data = init_dict[type_](request)
+        return JsonResponse(data, safe=False)

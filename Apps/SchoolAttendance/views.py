@@ -1,6 +1,7 @@
 import datetime
 from typing import List
 from django.db.models import manager
+from django.db.models.aggregates import Count
 
 from django.db.models.manager import Manager
 from django.db.models.query_utils import Q
@@ -24,6 +25,8 @@ SchoolAttendance
 
 '''
 class Task(APIView):
+    API_PERMISSIONS = ['考勤管理员获取任务', '*get']
+
     def get(self, request, *args, **kwargs):
         '''获取任务
             request:
@@ -110,6 +113,8 @@ class Task(APIView):
 
 
 class TaskAdmin(APIView):
+    API_PERMISSIONS = ['获取任务管理员', '*get', '*post', '*put', '*delete']
+
     def get(self, request, *args, **kwargs):
         '''获取任务管理员
             request:
@@ -197,6 +202,7 @@ class TaskAdmin(APIView):
 
 
 class TaskSwitch(APIView):
+    API_PERMISSIONS = ['修改任务状态', '*put']
 
     def put(self, request, *args, **kwargs):
         '''修改任务状态
@@ -238,6 +244,8 @@ class TaskSwitch(APIView):
 
 
 class Scheduling(APIView):
+    API_PERMISSIONS = ['获取班表', '*get']
+
     def get(self, request, *args, **kwargs):
         '''
             获取班表
@@ -278,6 +286,8 @@ class Scheduling(APIView):
 
 
 class Condition(APIView):
+    API_PERMISSIONS = ['查看当天考勤工作情况', '*get']
+
     def get(self, request, *args, **kwargs):
         '''查看当天考勤工作情况
             request:
@@ -303,6 +313,7 @@ class Condition(APIView):
 
 
 class UndoRecord(APIView):
+    API_PERMISSIONS = ['获取任务管理员', '*delete']
 
     def delete(self, request, *args, **kwargs):
         '''销假
@@ -351,6 +362,12 @@ class OutData(APIView):
                 id:任务ID
         '''
         ret = {}
+        task_id = request.GET['task_id']
+        # 获取用户所属分院
+
+        # task = models.Task.objects.get(id=task_id)
+        record = models.Record.objects.values('grade_str','student_approved').annotate(grade_num=Count('rule_str'))#.values('student_approved__userinfo__name')
+        print(record)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
