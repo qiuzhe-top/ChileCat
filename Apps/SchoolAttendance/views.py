@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 from django.db.models import manager
-from django.db.models.aggregates import Count
+from django.db.models.aggregates import Count, Sum
 
 from django.db.models.manager import Manager
 from django.db.models.query_utils import Q
@@ -353,8 +353,37 @@ class InZaoqianExcel(APIView):
     def post(slef,request):
         ret = TaskManage().in_zaoqian_excel(request)
         return JsonResponse(ret)
+from django.db.models import Aggregate
 
+class Msum(Aggregate):
+    # Supports SUM(ALL field).
+    function = 'SUM'
+    template = '%(function)s(%(all_values)s%(expressions)s)'
+    allow_distinct = False
 
+    def __init__(self, expression, all_values=False, **extra):
+        # print(self, expression, all_values, **extra)
+        super().__init__(
+            expression,
+            all_values='ALL ' if all_values else '',
+            **extra
+        )
+        # return "123"
+from django.db.models import Aggregate, CharField
+
+# 自定义聚合函数的名字
+class Concat(Aggregate):  # 写一个类继承Aggregate，
+    function = 'GROUP_CONCAT'
+    template = '%(function)s(%(distinct)s%(expressions)s)'
+
+    def __init__(self, expression, distinct=False, **extra):
+        super(Concat, self).__init__(
+            expression,
+            distinct='DISTINCT ' if distinct else '',
+            output_field=CharField(),
+            arg_joiner="-",
+            **extra)
+from django.db.models import F
 class OutData(APIView):
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
@@ -366,8 +395,33 @@ class OutData(APIView):
         # 获取用户所属分院
 
         # task = models.Task.objects.get(id=task_id)
-        record = models.Record.objects.values('grade_str','student_approved').annotate(grade_num=Count('rule_str'))#.values('student_approved__userinfo__name')
-        print(record)
+        record = models.Record.objects.annotate(
+                    time=F('star_time'),
+                ).values(
+                    grade=F('grade_str'),
+                    name=F('student_approved__userinfo__name')
+                ).annotate(
+                # rule=Concat('rule_str'),
+                # score=Sum('score'),
+                # n=F('score') + 111,
+
+                ).annotate(
+                    rule=Concat('rule_str'),
+                    time=Concat('star_time'),
+                    score=Sum('score'),
+                )
+        # records = models.Record.objects.all()
+        # grade_dict = {}
+        # # record = models.Record.objects.raw('select * from SchoolAttendance_record')
+        # for item in records:
+        #     if not item.grade_str in grade_dict:
+        #         grade_dict[item.grade_str] = {}
+
+        #     if not item.student_approved.userinfo.name in grade_dict[item.grade_str]:
+        #         grade_dict[item.grade_str][item.student_approved.userinfo.name] = []
+        #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
+        for i in record:
+            print(i)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
