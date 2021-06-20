@@ -193,10 +193,10 @@ SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 # 全局权限控制
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # "Apps.Permission.utils.auth.AuthPermission",
+        "Apps.Permission.utils.auth.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-    #    "Apps.Permission.utils.permission.ApiPublicPermission",
+       "Apps.Permission.utils.permission.ApiPublicPermission",
     ],
     'EXCEPTION_HANDLER': 'Apps.Permission.utils.expand_permission.custom_exception_handler',
 }

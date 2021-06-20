@@ -48,6 +48,14 @@ class Knowing(object):
         清空房间记录信息
         清空学生记录信息
         '''
+        # TODO 请简化循环
+        b = self.task.buildings.all()
+        for i in b:
+            for j in i.floor.all():
+                for k in j.room.all():
+                    k.dorm_status = False
+                    k.save()
+
         models.RoomHistory.objects.filter(task=self.task).update(is_knowing = False)
         models.TaskFloorStudent.objects.filter(task=self.task).update(flg = True)
         return '执行成功'
@@ -237,6 +245,8 @@ class Knowing(object):
                 models.Record.objects.create(**obj)
                 task_floor_student.flg = False
                 task_floor_student.save()
+                room.dorm_status = True
+                room.save()
                 # 写入历史记录
         return '执行成功'
         # act_id = Manage.objects.get(id=leak_data['act_id'])
@@ -319,9 +329,10 @@ class Knowing(object):
         room = models.Room.objects.get(id=room_id)
         room_data = room.stu_in_room.all()
         for i in room_data:
-            unit = {'id': i.student.id,
-                    'name': i.student.userinfo.name, 'position': i.bed_position}
-            obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user = i.student)
+            unit = {'id': i.user.id,
+                    'name': i.user.userinfo.name,
+                     'position': i.bed_position}
+            obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user = i.user)
             unit['status'] = obj.flg
             room_info.append(unit)
         return room_info

@@ -96,7 +96,7 @@ def create_class(class_name, college_name):
 
 
 def import_stu_data(request):
-    """针对寝室表"""
+    """寝室表导入"""
     file = request.data['file']
     work_book = load_workbook(file)
     ret = []

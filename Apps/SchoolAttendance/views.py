@@ -386,7 +386,7 @@ class Concat(Aggregate):  # 写一个类继承Aggregate，
             **extra)
 from django.db.models import F
 class OutData(APIView):
-    permission_classes = ['进入结果','*get']
+    API_PERMISSIONS = ['进入结果','*get']
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
             request:
@@ -448,7 +448,7 @@ class OutData(APIView):
 
 
 class TaskExecutor(APIView):
-    permission_classes = ['工作者获取任务','*get']
+    API_PERMISSIONS = ['工作者获取任务','*get']
     
     def get(self, request, *args, **kwargs):
         '''工作人员获取任务 
@@ -471,7 +471,7 @@ class TaskExecutor(APIView):
 
 
 class Rule(APIView):
-    permission_classes = ['规则','*get']
+    API_PERMISSIONS = ['规则','*get']
 
     def get(self, request, *args, **kwargs):
         '''获取规则
@@ -495,7 +495,7 @@ class Rule(APIView):
 
 
 class Submit(APIView):
-    permission_classes=['考勤提交','*post']
+    API_PERMISSIONS=['考勤提交','*post']
     def post(self, request, *args, **kwargs):
         '''考勤提交
             request:
@@ -534,7 +534,7 @@ class SubmitPublic(APIView):
         pass
 
 class TaskRoomInfo(APIView):
-    permission_classes = ['晚查寝数据','*get']
+    API_PERMISSIONS = ['晚查寝数据','*get']
     def get(self, request, *args, **kwargs):
         '''宿舍 相关任务信息
             request:
@@ -561,7 +561,7 @@ class TaskRoomInfo(APIView):
 
 # 学生查看公告
 class StudentDisciplinary(APIView):
-    permission_classes=['考勤公告','get']
+    API_PERMISSIONS=['考勤公告','get']
     def get(self,request):
         '''
         request：
@@ -633,7 +633,7 @@ class RecordQueryrPagination(PageNumberPagination):
     page_query_param = "page"
 
 class RecordQuery(APIView):
-    permission_classes = ['考勤查询','get']
+    API_PERMISSIONS = ['考勤查询','get']
     def get(self,request):
         '''考勤记录查询接口
         request：

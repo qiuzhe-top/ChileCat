@@ -141,7 +141,7 @@ class StuInRoom(models.Model):
     )
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE, verbose_name="学生", related_name="stu_in_room"
+        on_delete=models.CASCADE, verbose_name="学生"
     )
     bed_position = models.CharField(
         max_length=150, verbose_name="床铺位置", default="1")
