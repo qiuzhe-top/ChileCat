@@ -147,6 +147,7 @@ def excel_to_list(request):
 
 # 用户与组的管理
 def group_user(request):
+    '''用户与组的管理'''
     ret = {}
     list_ = excel_to_list(request)
     for row in list_:
@@ -171,7 +172,7 @@ def group_user(request):
     return ret
 # 导入学生
 def user_init(request):
-
+    ''' 导入学生'''
     message_list={}
     message_list['create'] = []
     message_list['update'] = []
@@ -210,16 +211,16 @@ def user_init(request):
 # 用户组初始化
 def group_init(request):
     names = [
+        # 考勤任务管理 # 后台导航栏是否展示 <考勤系统> 父选项
+        'task_admin',
+        # 考勤数据管理
+        'task_data',
         # 检查卫生
         'health_admin',
-        # 学生会考勤管理
-        'task_admin',
         # 晚自修
         'late_admin',
         # 晚查寝
         'knowing_admin',
-        # 后台导航栏是否展示 <考勤系统> 父选项
-        'attendance_admin'
     ]
     d = expand_permission.group_init(names)
     ret = {
@@ -230,6 +231,7 @@ def group_init(request):
 
 # 用户寝室关联
 def user_room(request):
+    '''用户寝室关联'''
     rows = excel_to_list(request)
     message={}
     message['username-'] = []
@@ -268,7 +270,7 @@ def user_room(request):
 
 
 def init_Attendance_group(request):
-    # 考勤权限分组
+    '''考勤权限分组'''
 
     # 待添加进用户组的权限
     per1 = [
@@ -385,7 +387,7 @@ def init_activity_permissions(request):
 
 # 创建测试规则
 def uinitialization_rules(request):
-
+    '''晚自修规则'''
     rules_1()
     rules_2()
     rules_3()
@@ -428,13 +430,13 @@ def rules_2():
     rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
 
     d = {
-        'name':'第一次',
+        'name':'旷一',
         'score':'1',
         'rule':rule,
     }
     SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
     d = {
-        'name':'第二次',
+        'name':'旷二',
         'score':'1',
         'rule':rule,
     }

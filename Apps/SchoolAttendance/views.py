@@ -445,14 +445,11 @@ class OutData(APIView):
             del record['rule']
         print(records)
         return at_all_out_xls(records)
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
 
 
 class TaskExecutor(APIView):
     permission_classes = ['工作者获取任务','*get']
+    
     def get(self, request, *args, **kwargs):
         '''工作人员获取任务 
             response:
