@@ -1,3 +1,4 @@
+from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls
 import datetime
 from typing import List
 from django.db.models import manager
@@ -395,21 +396,29 @@ class OutData(APIView):
         # 获取用户所属分院
 
         # task = models.Task.objects.get(id=task_id)
-        record = models.Record.objects.annotate(
+        records = models.Record.objects.annotate(
                     time=F('star_time'),
                 ).values(
                     grade=F('grade_str'),
                     name=F('student_approved__userinfo__name')
                 ).annotate(
-                # rule=Concat('rule_str'),
-                # score=Sum('score'),
-                # n=F('score') + 111,
-
-                ).annotate(
                     rule=Concat('rule_str'),
-                    time=Concat('star_time'),
+                    score_onn=Concat('score'),
                     score=Sum('score'),
+                    time=Concat('star_time'),
+                ).values(
+                    'grade',
+                    'name',
+                    'rule',
+                    'score_onn',
+                    'score',
+                    'time',
+                    usernames=F('student_approved__username'),
                 )
+        
+        print(records)
+        # return JsonResponse({})
+        # 手动分组
         # records = models.Record.objects.all()
         # grade_dict = {}
         # # record = models.Record.objects.raw('select * from SchoolAttendance_record')
@@ -420,8 +429,21 @@ class OutData(APIView):
         #     if not item.student_approved.userinfo.name in grade_dict[item.grade_str]:
         #         grade_dict[item.grade_str][item.student_approved.userinfo.name] = []
         #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
-        for i in record:
-            print(i)
+        for record in records:
+            # 拼接违纪情况  原因 分数  时间
+            times = record['time'].split(',')
+            score_onn = record['score_onn'].split(',')
+            rule = record['rule'].split(',')
+            n = len(times)
+            rule_details = ''
+            for index in range(0,n):
+                rule_details = rule_details + times[index][5:10] +"因:"+ rule[index] + "扣:"+ score_onn[index] +"，"
+            record['rule_details'] = rule_details
+            del record['time']
+            del record['score_onn']
+            del record['rule']
+        print(records)
+        return at_all_out_xls(records)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
