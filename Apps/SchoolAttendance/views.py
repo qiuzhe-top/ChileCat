@@ -26,7 +26,7 @@ SchoolAttendance
 
 '''
 class Task(APIView):
-    API_PERMISSIONS = ['考勤管理员获取任务', '*get']
+    API_PERMISSIONS = ['考勤任务管理']
 
     def get(self, request, *args, **kwargs):
         '''获取任务
@@ -114,7 +114,7 @@ class Task(APIView):
 
 
 class TaskAdmin(APIView):
-    API_PERMISSIONS = ['获取任务管理员', '*get', '*post', '*put', '*delete']
+    API_PERMISSIONS = ['任务分配管理']
 
     def get(self, request, *args, **kwargs):
         '''获取任务管理员
@@ -203,7 +203,7 @@ class TaskAdmin(APIView):
 
 
 class TaskSwitch(APIView):
-    API_PERMISSIONS = ['修改任务状态', '*put']
+    API_PERMISSIONS = ['任务状态修改']
 
     def put(self, request, *args, **kwargs):
         '''修改任务状态
@@ -235,7 +235,7 @@ class TaskSwitch(APIView):
         except:
             print('参数获取错误')
             return JsonResponse(ret)
-        task = models.Task.objects.get(id=task_id)
+        task = models.Task.objects.get(id=id)
 
         message = TaskManage(task).clear_task()
 
@@ -245,7 +245,7 @@ class TaskSwitch(APIView):
 
 
 class Scheduling(APIView):
-    API_PERMISSIONS = ['获取班表', '*get']
+    API_PERMISSIONS = ['任务班表']
 
     def get(self, request, *args, **kwargs):
         '''
@@ -287,7 +287,7 @@ class Scheduling(APIView):
 
 
 class Condition(APIView):
-    API_PERMISSIONS = ['查看当天考勤工作情况', '*get']
+    API_PERMISSIONS = ['考勤工作情况']
 
     def get(self, request, *args, **kwargs):
         '''查看当天考勤工作情况
@@ -314,7 +314,7 @@ class Condition(APIView):
 
 
 class UndoRecord(APIView):
-    API_PERMISSIONS = ['获取任务管理员', '*delete']
+    API_PERMISSIONS = ['任务模块销假']
 
     def delete(self, request, *args, **kwargs):
         '''销假
@@ -333,7 +333,7 @@ class UndoRecord(APIView):
 class UndoRecordAdmin(APIView):
 
     def delete(self, request, *args, **kwargs):
-        '''销假
+        '''考勤汇总销假
             request：
                record_id:213 # 考勤记录id
         '''
@@ -386,6 +386,7 @@ class Concat(Aggregate):  # 写一个类继承Aggregate，
             **extra)
 from django.db.models import F
 class OutData(APIView):
+    permission_classes = ['进入结果','*get']
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
             request:
@@ -451,6 +452,7 @@ class OutData(APIView):
 
 
 class TaskExecutor(APIView):
+    permission_classes = ['工作者获取任务','*get']
     def get(self, request, *args, **kwargs):
         '''工作人员获取任务 
             response:
@@ -472,6 +474,8 @@ class TaskExecutor(APIView):
 
 
 class Rule(APIView):
+    permission_classes = ['规则','*get']
+
     def get(self, request, *args, **kwargs):
         '''获取规则
             request:
@@ -494,6 +498,7 @@ class Rule(APIView):
 
 
 class Submit(APIView):
+    permission_classes=['考勤提交','*post']
     def post(self, request, *args, **kwargs):
         '''考勤提交
             request:
@@ -532,6 +537,7 @@ class SubmitPublic(APIView):
         pass
 
 class TaskRoomInfo(APIView):
+    permission_classes = ['晚查寝数据','*get']
     def get(self, request, *args, **kwargs):
         '''宿舍 相关任务信息
             request:
@@ -558,7 +564,7 @@ class TaskRoomInfo(APIView):
 
 # 学生查看公告
 class StudentDisciplinary(APIView):
-
+    permission_classes=['考勤公告','get']
     def get(self,request):
         '''
         request：
@@ -581,7 +587,7 @@ class StudentDisciplinary(APIView):
 
 
 class LateClass(APIView):
-    API_PERMISSIONS = ['楼层号', 'get']
+    API_PERMISSIONS = ['晚自修数据', '*get']
 
     def get(self, request, *args, **kwargs):
         '''晚自修 相关数据
@@ -630,6 +636,7 @@ class RecordQueryrPagination(PageNumberPagination):
     page_query_param = "page"
 
 class RecordQuery(APIView):
+    permission_classes = ['考勤查询','get']
     def get(self,request):
         '''考勤记录查询接口
         request：

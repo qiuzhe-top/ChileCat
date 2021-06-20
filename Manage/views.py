@@ -267,28 +267,43 @@ def user_room(request):
 
 
 
-def init_Attendance_group():
+def init_Attendance_group(request):
+    # 考勤权限分组
 
     # 待添加进用户组的权限
-    permissions = [
-        '/api/life/switchknowing:PUT',
-        '/api/life/switchknowing:POST',
-        '/api/life/idcode:PUT',
-        '/api/life/recordsearch:PUT',
-        '/api/life/studentleak:PUT',
+    per1 = [
+        '/api/school_attendance/task:GET',
+        '/api/school_attendance/task:POST',
+
+        '/api/school_attendance/task_admin:GET',
+        '/api/school_attendance/task_admin:POST',
+        '/api/school_attendance/task_admin:DELETE',
+
+        '/api/school_attendance/task_switch:PUT',
+        '/api/school_attendance/task_switch:DELETE',
+
+        '/api/school_attendance/scheduling:GET',
+        '/api/school_attendance/scheduling:POST',
+
+        '/api/school_attendance/condition:GET',
+
+        '/api/school_attendance/undo_record:DELETE',
     ]
 
-    # 用户组
-    name = 'life_admin'
+    # 任务管理组
+    name1 = 'task_admin'
 
-    # 用户
-    users = [
-        '19510140',
+    per2 = [
+        '/api/school_attendance/in_zaoqian_excel:POST',
+        '/api/school_attendance/undo_record_admin:DELETE',
     ]
 
-    expand_permission.group_init([name])
-    expand_permission.group_add_user(name, users)
-    return JsonResponse(2000, safe=False)
+    # 数据汇总组
+    name2 = 'task_data'
+
+    expand_permission.group_add_permission(name1,per1)
+    expand_permission.group_add_permission(name2,per2)
+    return 2000
 
 def add_user():
     L = [
@@ -524,6 +539,7 @@ class DataInit(APIView):
             "user_room":user_room,
             "import_stu_data":import_stu_data,
             "uinitialization_rules":uinitialization_rules,
+            "init_Attendance_group":init_Attendance_group,
         }
         type_ = request.data['type']
         data = init_dict[type_](request)

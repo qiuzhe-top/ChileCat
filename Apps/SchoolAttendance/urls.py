@@ -46,11 +46,11 @@ urlpatterns = [
          name='LateClass'),
 
     # 考勤记录查询接口 支持多条件查询
-    path('record',views.RecordQuery.as_view()),
+    path('record',views.RecordQuery.as_view(), name='RecordQuery'),
     # 管理员 销假 
     path('undo_record_admin', views.UndoRecordAdmin.as_view(), name='UndoRecord'),
 
     # 导入早签数据
-    path('in_zaoqian_excel', views.InZaoqianExcel.as_view()),
+    path('in_zaoqian_excel', views.InZaoqianExcel.as_view(), name='InZaoqianExcel'),
 
 ]
