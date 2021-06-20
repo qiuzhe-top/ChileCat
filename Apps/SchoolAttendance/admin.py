@@ -53,6 +53,9 @@ class Task(admin.ModelAdmin):
     list_display = (
         "id", "user", "is_open", "types", "user"
     )
+    raw_id_fields = ['user',]
+
+    filter_horizontal=['grades',]
 
 
 @admin.register(Rule)

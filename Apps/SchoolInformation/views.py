@@ -15,6 +15,8 @@ from openpyxl.reader.excel import load_workbook
 
 
 class StudentInformation(APIView):
+    API_PERMISSIONS = ['考勤搜索用户信息', '*get']
+
     def get(self, request, *args, **kwargs):
         '''
           request:

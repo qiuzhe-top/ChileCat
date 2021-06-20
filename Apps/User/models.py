@@ -51,10 +51,6 @@ class UserInfo(models.Model):
         max_length=20, verbose_name="电话", blank=True, null=True)
     gender = models.CharField(max_length=20, verbose_name="性别", choices=(("male", "男"), ("female", "女")), null=True,
                               blank=True)
-    identity = models.CharField(max_length=20, choices=(
-        ("student", "学生"),
-        ("teacher", "老师"),
-    ), default="student", verbose_name="身份信息")
     # 头像 https://a.jgp
     photo = models.CharField(
         max_length=2048, verbose_name="学生照片", null=True, blank=True)

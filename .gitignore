@@ -5,3 +5,4 @@ leaksfile/
 migrations/
 .vscode/
 .idea/
+env

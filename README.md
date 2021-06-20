@@ -5,3 +5,8 @@
  - 根据情况添加到 查寝 晚自修 卫生 等的分组
  - 使用用户创建任务
  - 把任务相关的管理员进行绑定
+
+
+
+ pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+ npm config set registry https://registry.npm.taobao.org

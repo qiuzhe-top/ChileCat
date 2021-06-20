@@ -1,7 +1,8 @@
-from Manage.views import ApiPer
+from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls
 import datetime
 from typing import List
 from django.db.models import manager
+from django.db.models.aggregates import Count, Sum
 
 from django.db.models.manager import Manager
 from django.db.models.query_utils import Q
@@ -25,6 +26,8 @@ SchoolAttendance
 
 '''
 class Task(APIView):
+    API_PERMISSIONS = ['考勤任务管理']
+
     def get(self, request, *args, **kwargs):
         '''获取任务
             request:
@@ -111,6 +114,8 @@ class Task(APIView):
 
 
 class TaskAdmin(APIView):
+    API_PERMISSIONS = ['任务分配管理']
+
     def get(self, request, *args, **kwargs):
         '''获取任务管理员
             request:
@@ -198,6 +203,7 @@ class TaskAdmin(APIView):
 
 
 class TaskSwitch(APIView):
+    API_PERMISSIONS = ['任务状态修改']
 
     def put(self, request, *args, **kwargs):
         '''修改任务状态
@@ -229,7 +235,7 @@ class TaskSwitch(APIView):
         except:
             print('参数获取错误')
             return JsonResponse(ret)
-        task = models.Task.objects.get(id=task_id)
+        task = models.Task.objects.get(id=id)
 
         message = TaskManage(task).clear_task()
 
@@ -239,6 +245,8 @@ class TaskSwitch(APIView):
 
 
 class Scheduling(APIView):
+    API_PERMISSIONS = ['任务班表']
+
     def get(self, request, *args, **kwargs):
         '''
             获取班表
@@ -279,6 +287,8 @@ class Scheduling(APIView):
 
 
 class Condition(APIView):
+    API_PERMISSIONS = ['考勤工作情况']
+
     def get(self, request, *args, **kwargs):
         '''查看当天考勤工作情况
             request:
@@ -304,6 +314,7 @@ class Condition(APIView):
 
 
 class UndoRecord(APIView):
+    API_PERMISSIONS = ['任务模块销假']
 
     def delete(self, request, *args, **kwargs):
         '''销假
@@ -322,7 +333,7 @@ class UndoRecord(APIView):
 class UndoRecordAdmin(APIView):
 
     def delete(self, request, *args, **kwargs):
-        '''销假
+        '''考勤汇总销假
             request：
                record_id:213 # 考勤记录id
         '''
@@ -343,15 +354,97 @@ class InZaoqianExcel(APIView):
     def post(slef,request):
         ret = TaskManage().in_zaoqian_excel(request)
         return JsonResponse(ret)
+from django.db.models import Aggregate
 
+class Msum(Aggregate):
+    # Supports SUM(ALL field).
+    function = 'SUM'
+    template = '%(function)s(%(all_values)s%(expressions)s)'
+    allow_distinct = False
 
+    def __init__(self, expression, all_values=False, **extra):
+        # print(self, expression, all_values, **extra)
+        super().__init__(
+            expression,
+            all_values='ALL ' if all_values else '',
+            **extra
+        )
+        # return "123"
+from django.db.models import Aggregate, CharField
+
+# 自定义聚合函数的名字
+class Concat(Aggregate):  # 写一个类继承Aggregate，
+    function = 'GROUP_CONCAT'
+    template = '%(function)s(%(distinct)s%(expressions)s)'
+
+    def __init__(self, expression, distinct=False, **extra):
+        super(Concat, self).__init__(
+            expression,
+            distinct='DISTINCT ' if distinct else '',
+            output_field=CharField(),
+            arg_joiner="-",
+            **extra)
+from django.db.models import F
 class OutData(APIView):
+    permission_classes = ['进入结果','*get']
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
             request:
                 id:任务ID
         '''
         ret = {}
+        task_id = request.GET['task_id']
+        # 获取用户所属分院
+
+        # task = models.Task.objects.get(id=task_id)
+        records = models.Record.objects.annotate(
+                    time=F('star_time'),
+                ).values(
+                    grade=F('grade_str'),
+                    name=F('student_approved__userinfo__name')
+                ).annotate(
+                    rule=Concat('rule_str'),
+                    score_onn=Concat('score'),
+                    score=Sum('score'),
+                    time=Concat('star_time'),
+                ).values(
+                    'grade',
+                    'name',
+                    'rule',
+                    'score_onn',
+                    'score',
+                    'time',
+                    usernames=F('student_approved__username'),
+                )
+        
+        print(records)
+        # return JsonResponse({})
+        # 手动分组
+        # records = models.Record.objects.all()
+        # grade_dict = {}
+        # # record = models.Record.objects.raw('select * from SchoolAttendance_record')
+        # for item in records:
+        #     if not item.grade_str in grade_dict:
+        #         grade_dict[item.grade_str] = {}
+
+        #     if not item.student_approved.userinfo.name in grade_dict[item.grade_str]:
+        #         grade_dict[item.grade_str][item.student_approved.userinfo.name] = []
+        #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
+        for record in records:
+            # 拼接违纪情况  原因 分数  时间
+            times = record['time'].split(',')
+            score_onn = record['score_onn'].split(',')
+            rule = record['rule'].split(',')
+            n = len(times)
+            rule_details = ''
+            for index in range(0,n):
+                rule_details = rule_details + times[index][5:10] +"因:"+ rule[index] + "扣:"+ score_onn[index] +"，"
+            record['rule_details'] = rule_details
+            del record['time']
+            del record['score_onn']
+            del record['rule']
+        print(records)
+        return at_all_out_xls(records)
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = 'data'
@@ -359,6 +452,7 @@ class OutData(APIView):
 
 
 class TaskExecutor(APIView):
+    permission_classes = ['工作者获取任务','*get']
     def get(self, request, *args, **kwargs):
         '''工作人员获取任务 
             response:
@@ -380,6 +474,8 @@ class TaskExecutor(APIView):
 
 
 class Rule(APIView):
+    permission_classes = ['规则','*get']
+
     def get(self, request, *args, **kwargs):
         '''获取规则
             request:
@@ -402,6 +498,7 @@ class Rule(APIView):
 
 
 class Submit(APIView):
+    permission_classes=['考勤提交','*post']
     def post(self, request, *args, **kwargs):
         '''考勤提交
             request:
@@ -440,6 +537,7 @@ class SubmitPublic(APIView):
         pass
 
 class TaskRoomInfo(APIView):
+    permission_classes = ['晚查寝数据','*get']
     def get(self, request, *args, **kwargs):
         '''宿舍 相关任务信息
             request:
@@ -466,7 +564,7 @@ class TaskRoomInfo(APIView):
 
 # 学生查看公告
 class StudentDisciplinary(APIView):
-
+    permission_classes=['考勤公告','get']
     def get(self,request):
         '''
         request：
@@ -489,7 +587,7 @@ class StudentDisciplinary(APIView):
 
 
 class LateClass(APIView):
-    API_PERMISSIONS = ['楼层号', 'get']
+    API_PERMISSIONS = ['晚自修数据', '*get']
 
     def get(self, request, *args, **kwargs):
         '''晚自修 相关数据
@@ -538,6 +636,7 @@ class RecordQueryrPagination(PageNumberPagination):
     page_query_param = "page"
 
 class RecordQuery(APIView):
+    permission_classes = ['考勤查询','get']
     def get(self,request):
         '''考勤记录查询接口
         request：
