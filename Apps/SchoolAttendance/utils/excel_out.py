@@ -34,6 +34,5 @@ def at_all_out_xls(data):
         ws.save(output)
         output.seek(0)
         response.write(output.getvalue())
-        print("导出excel")
         return response
 

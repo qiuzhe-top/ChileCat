@@ -21,8 +21,6 @@ urlpatterns = [
     #     path('progress', views.Progress.as_view(), name='Progress'),
     # 销假
     path('undo_record', views.UndoRecord.as_view(), name='UndoRecord'),
-    # 数据导出
-    path('out_data', views.OutData.as_view(), name='OutData'),
 
 
     # 执行人获取任务
@@ -49,7 +47,8 @@ urlpatterns = [
     path('record',views.RecordQuery.as_view(), name='RecordQuery'),
     # 管理员 销假 
     path('undo_record_admin', views.UndoRecordAdmin.as_view(), name='UndoRecord'),
-
+    # 数据导出
+    path('out_data', views.OutData.as_view(), name='OutData'),
     # 导入早签数据
     path('in_zaoqian_excel', views.InZaoqianExcel.as_view(), name='InZaoqianExcel'),
 

@@ -393,11 +393,19 @@ class OutData(APIView):
                 id:任务ID
         '''
         ret = {}
-        task_id = request.GET['task_id']
         # 获取用户所属分院
 
-        # task = models.Task.objects.get(id=task_id)
-        records = models.Record.objects.annotate(
+        start_date = request.GET['start_date']
+        end_date = request.GET['end_date']
+
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
+        
+        records = models.Record.objects.filter(
+                    star_time__range=(start_date, end_date),
+                    manager__isnull=True
+                ).annotate(
                     time=F('star_time'),
                 ).values(
                     grade=F('grade_str'),
@@ -416,8 +424,6 @@ class OutData(APIView):
                     'time',
                     usernames=F('student_approved__username'),
                 )
-        
-        print(records)
         # return JsonResponse({})
         # 手动分组
         # records = models.Record.objects.all()
@@ -443,7 +449,6 @@ class OutData(APIView):
             del record['time']
             del record['score_onn']
             del record['rule']
-        print(records)
         return at_all_out_xls(records)
 
 
@@ -624,7 +629,7 @@ class LateClass(APIView):
             return JsonResponse(ret)
 class RecordQueryrPagination(PageNumberPagination):
     #每页显示多少个
-    page_size = 5
+    page_size = 30
     #默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
     page_size_query_param = "size"
     #最大页数不超过10
@@ -651,6 +656,7 @@ class RecordQuery(APIView):
         # end_date = datetime.date(*json.loads(end_date))
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
         Data = models.Record.objects.filter(
                 star_time__range=(start_date, end_date),
                 manager__isnull=True

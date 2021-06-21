@@ -127,7 +127,7 @@ class Late(object):
                 if not flg:
                     d = {
                         'task':self.task,
-                        'rule_str':rule.name+'点名迟到',
+                        'rule_str':rule.name,
                         'score':rule.score,
                         'rule':rule,
                         'grade_str':user.studentinfo.grade.name,
