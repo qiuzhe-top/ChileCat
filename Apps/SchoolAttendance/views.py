@@ -395,33 +395,34 @@ class OutData(APIView):
         ret = {}
         # 获取用户所属分院
 
-        start_date = request.GET['start_date']
-        end_date = request.GET['end_date']
+        # start_date = request.GET['start_date']
+        # end_date = request.GET['end_date']
 
-        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
+        # start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        # end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        # end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
         
         records = models.Record.objects.filter(
-                    star_time__range=(start_date, end_date),
-                    manager__isnull=True
+                    # star_time__range=(start_date, end_date),
+                    # manager__isnull=True
                 ).values(
                     grade=F('grade_str'),
                     name=F('student_approved__userinfo__name'),
-                    rule_=F('rule__rule__name'),
+                    # rule_=F('rule__rule__name'),
                 ).annotate(
                     rule=Concat('rule_str'),
                     score_onn=Concat('score'),
                     score=Sum('score'),
-                    # time=Concat('star_time'),
+                    time=Concat('star_time'),
+                    rule_type=Concat('rule__rule__codename'),
                 ).values(
                     'grade',
                     'name',
-                    'rule_',
+                    'rule_type',
                     'rule',
                     'score_onn',
                     'score',
-                    # 'time',
+                    'time',
                     usernames=F('student_approved__username'),
                 )
         # records = models.Record.objects.filter(
@@ -471,9 +472,44 @@ class OutData(APIView):
             # del record['time']
             # del record['score_onn']
             # del record['rule']
-            print(record)
-        return JsonResponse({})
-        # return at_all_out_xls(records)
+            # 获取rule_type rule score_onn 转为数组
+            rule_type = record['rule_type'].split(',')
+            rule = record['rule'].split(',')
+            score_onn = record['score_onn'].split(',')
+            time = record['time'].split(',')
+
+            # 根据rule_type 把违纪情况拆分合并为 分数1 分数1 分数1 原因1 原因1 原因1
+            for index in range(0,len(rule_type)):
+                type_ = rule_type[index]
+
+                if not type_+'score' in record:
+                    record['0#001score'] = 0
+                    record['0#002score'] = 0
+                    record['0#003score'] = 0
+                    record['0#004score'] = 0
+                    record['0#005score'] = 0
+                if not type_+'rule' in record:
+                    record['0#001rule'] = ''
+                    record['0#002rule'] = ''
+                    record['0#003rule'] = ''
+                    record['0#004rule'] = ''
+                    record['0#005rule'] = ''
+
+                # 分数累加
+                record[type_+'score'] += int(score_onn[index])
+
+                # 规则拼接
+                t = time[index][5:10]
+                record[type_+'rule'] += t + ":" + str(rule[index]) + ','
+         
+            del record['time']
+            del record['rule_type']
+            del record['rule']
+            del record['score_onn']
+            # print(record)
+
+        # return JsonResponse({})
+        return at_all_out_xls(records)
 
 
 class TaskExecutor(APIView):

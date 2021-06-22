@@ -133,13 +133,19 @@ class TaskManage(object):
                         u = User.objects.get(username=username)
                         try:
                             str_time = datetime.datetime.strptime(str_time,'%Y/%m/%d')
+                            
                             d = {
-                                'rule_str':'旷早签',
+                                'rule_str':'早签',
                                 'student_approved':u,
                                 'score':1,
                                 'grade_str':u.studentinfo.grade.name,
                                 'star_time':str_time
                             }
+                            try:
+                                d['rule'] = models.RuleDetails.objects.get(name='早签')
+                            except:
+                                pass
+                            
                             sa,flg = models.Record.objects.get_or_create(**d)
                             sa.worker =  request.user
                             sa.save()

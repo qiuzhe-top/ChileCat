@@ -388,7 +388,7 @@ def init_activity_permissions(request):
 # 创建测试规则
 def uinitialization_rules(request):
     '''晚自修规则
-        codename:系统内部使用不能随意修改
+        codename:系统内部使用不能随意修改 导出Excel会使用
     '''
     # TODO 效率低
     rule_f = {
@@ -429,6 +429,33 @@ def uinitialization_rules(request):
     rules = [
         {'name':'睡觉', 'score':'1', 'rule':rule},
         {'name':'玩手机', 'score':'1', 'rule':rule},
+    ]
+    for r in rules:
+        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+    # ---------------------------------------------------------------
+    # 早签的名字修改 会影响早签数据批量导入和平台数据导出
+    rule_f = {
+        'name':'早签',
+        'codename':'0#004',
+        'is_person':True,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
+
+    rules = [
+        {'name':'早签', 'score':'1', 'rule':rule},
+    ]
+    for r in rules:
+        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+    # ---------------------------------------------------------------
+    rule_f = {
+        'name':'课堂',
+        'codename':'0#005',
+        'is_person':True,
+    }
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
+
+    rules = [
+        {'name':'早退', 'score':'1', 'rule':rule},
     ]
     for r in rules:
         SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
