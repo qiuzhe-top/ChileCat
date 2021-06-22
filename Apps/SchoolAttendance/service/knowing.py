@@ -237,6 +237,7 @@ class Knowing(object):
                     'grade_str':user.studentinfo.grade.name,
                     'student_approved':user,
                     'worker':worker_user,
+                    'score':1, # 默认夜不归扣一分
                 }
 
                 if rule:

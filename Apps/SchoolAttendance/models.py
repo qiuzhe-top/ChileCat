@@ -47,10 +47,10 @@ class Record(models.Model):
         max_length=150, verbose_name="原因", null=True, blank=True)
     score = models.IntegerField(null=True, blank=True, verbose_name="分值") 
     rule = models.ForeignKey("RuleDetails",
-                             on_delete=models.SET_NULL,
-                             verbose_name="原因",
-                             null=True,
-                             blank=True
+                                on_delete=models.SET_NULL,
+                                verbose_name="原因",
+                                null=True,
+                                blank=True
                              )
 
     room_str = models.CharField(

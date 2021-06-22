@@ -386,7 +386,7 @@ class Concat(Aggregate):  # 写一个类继承Aggregate，
             **extra)
 from django.db.models import F
 class OutData(APIView):
-    API_PERMISSIONS = ['进入结果','*get']
+    API_PERMISSIONS = ['进入结果','get']
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
             request:
@@ -405,25 +405,47 @@ class OutData(APIView):
         records = models.Record.objects.filter(
                     star_time__range=(start_date, end_date),
                     manager__isnull=True
-                ).annotate(
-                    time=F('star_time'),
                 ).values(
                     grade=F('grade_str'),
-                    name=F('student_approved__userinfo__name')
+                    name=F('student_approved__userinfo__name'),
+                    rule_=F('rule__rule__name'),
                 ).annotate(
                     rule=Concat('rule_str'),
                     score_onn=Concat('score'),
                     score=Sum('score'),
-                    time=Concat('star_time'),
+                    # time=Concat('star_time'),
                 ).values(
                     'grade',
                     'name',
+                    'rule_',
                     'rule',
                     'score_onn',
                     'score',
-                    'time',
+                    # 'time',
                     usernames=F('student_approved__username'),
                 )
+        # records = models.Record.objects.filter(
+        #             star_time__range=(start_date, end_date),
+        #             manager__isnull=True
+        #         ).annotate(
+        #             time=F('star_time'),
+        #         ).values(
+        #             grade=F('grade_str'),
+        #             name=F('student_approved__userinfo__name'),
+        #         ).annotate(
+        #             rule=Concat('rule_str'),
+        #             score_onn=Concat('score'),
+        #             score=Sum('score'),
+        #             time=Concat('star_time'),
+        #         ).values(
+        #             'grade',
+        #             'name',
+        #             'rule',
+        #             'score_onn',
+        #             'score',
+        #             'time',
+        #             usernames=F('student_approved__username'),
+        #         )
         # return JsonResponse({})
         # 手动分组
         # records = models.Record.objects.all()
@@ -438,18 +460,20 @@ class OutData(APIView):
         #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
         for record in records:
             # 拼接违纪情况  原因 分数  时间
-            times = record['time'].split(',')
-            score_onn = record['score_onn'].split(',')
-            rule = record['rule'].split(',')
-            n = len(times)
-            rule_details = ''
-            for index in range(0,n):
-                rule_details = rule_details + times[index][5:10] +"因:"+ rule[index] + "扣:"+ score_onn[index] +"，"
-            record['rule_details'] = rule_details
-            del record['time']
-            del record['score_onn']
-            del record['rule']
-        return at_all_out_xls(records)
+            # times = record['time'].split(',')
+            # score_onn = record['score_onn'].split(',')
+            # rule = record['rule'].split(',')
+            # n = len(times)
+            # rule_details = ''
+            # for index in range(0,n):
+            #     rule_details = rule_details + times[index][5:10] +"因:"+ rule[index] + "扣:"+ score_onn[index] +"，"
+            # record['rule_details'] = rule_details
+            # del record['time']
+            # del record['score_onn']
+            # del record['rule']
+            print(record)
+        return JsonResponse({})
+        # return at_all_out_xls(records)
 
 
 class TaskExecutor(APIView):
@@ -513,18 +537,24 @@ class Submit(APIView):
                     room_id:20          # 寝室ID
         '''
         ret = {'message': '', 'code': 2000, 'data': 'data'}
-
+        # 获取参数
         task_id = request.data['task_id']
         data = request.data['data']
         type_ = request.data['type']
-
+        # 获取任务
         task = models.Task.objects.get(id=task_id)
         n = models.TaskPlayer.objects.filter(task=task,user=request.user,is_admin=False).count()
+
+        if n <= 0:
+            ret['code'] = 4000
+            ret['message'] = '未知考勤'
+            return JsonResponse(ret)
+
         if type_ == 0:
             code =  TaskManage(task).submit(data,request.user)
             if code == 4001:
                 ret['code'] = code
-                ret['message'] = '获取未开启'
+                ret['message'] = '活动未开启'
         elif type_ == 1:
             pass
         return JsonResponse(ret)
@@ -579,7 +609,7 @@ class StudentDisciplinary(APIView):
         # TODO 支持查看本学院的情况
         task_id_list = models.Task.objects.filter(types='0').values_list('id',flat=True)
         now = datetime.datetime.now() #,star_time__date=datetime.date(now.year, now.month,now.day))
-        records = models.Record.objects.filter(task__in=task_id_list,star_time__date=datetime.date(now.year, now.month,now.day))
+        records = models.Record.objects.filter(task__in=task_id_list,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
         ser = serializers.StudentDisciplinary(instance=records,many=True).data
         ret = {}   
         ret['code'] = 2000

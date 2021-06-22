@@ -387,82 +387,53 @@ def init_activity_permissions(request):
 
 # 创建测试规则
 def uinitialization_rules(request):
-    '''晚自修规则'''
-    rules_1()
-    rules_2()
-    rules_3()
-    return {"code":2000}
-
-
-def rules_1():
-    d = {
-        'name':'缺寝原因',
+    '''晚自修规则
+        codename:系统内部使用不能随意修改
+    '''
+    # TODO 效率低
+    rule_f = {
+        'name':'查寝',
         'codename':'0#001',
         'is_person':True,
     }
-    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
-
-    d = {
-        'name':'请假',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    d = {
-        'name':'当兵',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    d = {
-        'name':'未到校',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-
-def rules_2():
-    d = {
-        'name':'点名规则',
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
+    rules = [
+        {'name':'请假', 'score':'1', 'rule':rule},
+        {'name':'未到校', 'score':'1', 'rule':rule},
+        {'name':'当兵', 'score':'1', 'rule':rule},
+    ]
+    for r in rules:
+        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+    # ----------------------------------------------------------------
+    rule_f = {
+        'name':'晚签',
         'codename':'0#002',
-        'is_person':False,
+        'is_person':True,
     }
-    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
 
-    d = {
-        'name':'旷一',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    d = {
-        'name':'旷二',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-
-def rules_3():
-    d = {
+    rules = [
+        {'name':'旷一', 'score':'1', 'rule':rule},
+        {'name':'旷二', 'score':'1', 'rule':rule},
+    ]
+    for r in rules:
+        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+    # ----------------------------------------------------------------
+    rule_f = {
         'name':'晚自修违纪',
         'codename':'0#003',
-        'is_person':False,
+        'is_person':True,
     }
-    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**d)
+    rule,flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
 
-    d = {
-        'name':'睡觉',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
-    d = {
-        'name':'玩手机',
-        'score':'1',
-        'rule':rule,
-    }
-    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**d)
+    rules = [
+        {'name':'睡觉', 'score':'1', 'rule':rule},
+        {'name':'玩手机', 'score':'1', 'rule':rule},
+    ]
+    for r in rules:
+        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
 
+    return {"code":2000}
 
 
 class In_zaoqian_excel(APIView):
