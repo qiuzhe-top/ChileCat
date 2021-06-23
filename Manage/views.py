@@ -22,61 +22,33 @@ import time,datetime
 
 logger = logging.getLogger(__name__)
 
-def add_student_in_room(file):
-    """针对寝室导入表"""
-    work_book = load_workbook(file)
-    log = open(file + ".log", "w")
-    for sheet in work_book:
-        room_name = ""
-        for info in sheet.values:
-            print(info)
-            if info[0] == "寝室".strip():
-                continue
-            if info[0]:
-                room_name = str(info[0])[0:info[0].find("#") + 3 + 1]
-            name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[1]))).strip()
-            grade = str(info[2]).strip()
-            stu_id = str(info[3]).strip()
-            tel = str(info[4]).strip()
-            print(room_name, name, grade, stu_id, tel)
-            try:
-                user = User.objects.get_or_create(username=stu_id)
-                UserInfo.objects.get_or_create(
-                    user=user[0], name=name, tel=tel)
-                college = College.objects.get_or_create(name="智慧交通学院")
-                grade = Grade.objects.get_or_create(
-                    name=grade, college=college[0])
-                stu_info = StudentInfo.objects.get_or_create(user=user[0])
-                stu_info[0].grade = grade
-                stu_info[0].save()
-                put_stu_room(user[0], room_name, log)
-            except User.DoesNotExist:
-                print(name, grade, stu_id, tel)
-            except UserInfo.DoesNotExist:
-                print(name, grade, stu_id, tel)
-
 
 def put_stu_room(stu, room,ret):
     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
     history = StuInRoom.objects.filter(room=search_room(room), user=stu)
-    if history.exists():
-        ret.append("学生"+stu.userinfo.name+ "->"+ history.first().get_room()+ "已存在")
-    else:
-        room = search_room(room)
-        stu_in_room = StuInRoom.objects.get_or_create(
-            room=room, user=stu)
-        ret.append("记录("+ "学号:"+ stu.username+ "姓名:"+ stu.userinfo.name+ "->"+stu_in_room[0].get_room()+ "寝室)已创建")
-
+    try:
+        if history.exists():
+            ret.append("学生"+stu.userinfo.name+ "->"+ history.first().get_room()+ "已存在")
+        else:
+            room = search_room(room)
+            stu_in_room = StuInRoom.objects.get_or_create(
+                room=room, user=stu)
+            ret.append("记录("+ "学号:"+ stu.username+ "姓名:"+ stu.userinfo.name+ "->"+stu_in_room[0].get_room()+ "寝室)已创建")
+    except:
+        ret.append(str(stu)+"异常")
 
 def search_room(room_info):
     """xx#xxx解析"""
-    building_name = room_info.strip().split("#")[0].strip()
-    floor = room_info.strip().split("#")[1].strip()[0].strip()
-    room = room_info.strip().split("#")[1].strip()[1:3].strip()
-    building, flag = Building.objects.get_or_create(name=building_name)
-    floor, flag = Floor.objects.get_or_create(building=building, name=floor)
-    room, flag = Room.objects.get_or_create(name=room, floor=floor)
-    return room
+    try:
+        building_name = room_info.strip().split("#")[0].strip()
+        floor = room_info.strip().split("#")[1].strip()[0].strip()
+        room = room_info.strip().split("#")[1].strip()[1:3].strip()
+        building, flag = Building.objects.get_or_create(name=building_name)
+        floor, flag = Floor.objects.get_or_create(building=building, name=floor)
+        room, flag = Room.objects.get_or_create(name=room, floor=floor)
+        return room
+    except:
+        return None
 
 
 def create_class(class_name, college_name):
@@ -105,12 +77,16 @@ def import_stu_data(request):
         for info in sheet.values:
             if info[0] == "寝室日".strip():
                 continue
-            if info[0]:
-                room_name = str(info[0])[0:info[0].find("#") + 3 + 1]
-            name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
-            grade = str(info[6]).strip()
-            stu_id = str(info[7]).strip()
-            tel = str(info[8]).strip()
+            try:
+                if info[0]:
+                    room_name = str(info[0])[0:info[0].find("#") + 3 + 1]
+                name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
+                grade = str(info[6]).strip()
+                stu_id = str(info[7]).strip()
+                tel = str(info[8]).strip()
+            except:
+                ret.append(info[2]+"获取数据异常")
+
             try:
                 user = User.objects.get_or_create(username=stu_id)
                 user_info,flg0 = UserInfo.objects.get_or_create(
@@ -127,9 +103,9 @@ def import_stu_data(request):
                     stu_info.save()
                 put_stu_room(user[0], room_name,ret)
             except User.DoesNotExist:
-                ret.append(name+"异常")
+                ret.append(info[2]+name+"异常")
             except UserInfo.DoesNotExist:
-                ret.append(name+"异常")
+                ret.append(info[2]+name+"异常")
     return ret
 # excel 转 列表 当第一个单元格为空是过滤这行数据
 def excel_to_list(request):
@@ -141,7 +117,7 @@ def excel_to_list(request):
             if row[0].value:
                 l = []
                 for i in row:
-                    l.append(str(i.internal_value))
+                    l.append(str(i.value))
                 data.append(l)
     return data
 
@@ -210,6 +186,7 @@ def user_init(request):
 
 # 用户组初始化
 def group_init(request):
+    '''用户组初始化'''
     names = [
         # 考勤任务管理 # 后台导航栏是否展示 <考勤系统> 父选项
         'task_admin',
@@ -385,7 +362,7 @@ def init_activity_permissions(request):
 
 
 
-# 创建测试规则
+# 晚自修规则
 def uinitialization_rules(request):
     '''晚自修规则
         codename:系统内部使用不能随意修改 导出Excel会使用
@@ -457,6 +434,7 @@ def uinitialization_rules(request):
     rules = [
         {'name':'早退', 'score':'1', 'rule':rule},
     ]
+
     for r in rules:
         SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
 
@@ -533,13 +511,20 @@ class DataInit(APIView):
 
     def post(self, request):
         init_dict = {
+            # 用户组初始化
             "group_init":group_init,
-            "user_init":user_init,
-            "group_user":group_user,
-            "user_room":user_room,
-            "import_stu_data":import_stu_data,
+            # 晚自修规则
             "uinitialization_rules":uinitialization_rules,
+            # 考勤权限分组
             "init_Attendance_group":init_Attendance_group,
+            # 导入学生
+            "user_init":user_init,
+            # 用户寝室关联
+            "user_room":user_room,
+            # 寝室表导入
+            "import_stu_data":import_stu_data,
+            # 用户与组的管理
+            "group_user":group_user,
         }
         type_ = request.data['type']
         data = init_dict[type_](request)

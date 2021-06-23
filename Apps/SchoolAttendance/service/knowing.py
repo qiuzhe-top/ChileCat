@@ -195,6 +195,10 @@ class Knowing(object):
         obj.is_knowing = True
         obj.save()
 
+        
+        rule_obj = models.Rule.objects.get(codename='0#001')
+        rule_obj,f = models.RuleDetails.objects.get_or_create(name='查寝自定义',defaults={'rule':rule_obj,'score':1})
+        
         for d in data['user_list']:
             # 获取用户
             user = User.objects.get(id = d['user_id'])
@@ -224,10 +228,11 @@ class Knowing(object):
                         rule = models.RuleDetails.objects.get(id=reason)
                         rule_str = rule.name
                     except:
-                        rule = None
+                        rule = rule_obj
                         rule_str = reason
                 else:
                     # 记录字符串函数
+                    rule = rule_obj
                     rule_str = reason
 
                 obj = {

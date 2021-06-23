@@ -430,31 +430,8 @@ class OutData(APIView):
                     'time',
                     usernames=F('student_approved__username'),
                 )
-        # 手动分组 第一版 
-        # records = models.Record.objects.all()
-        # grade_dict = {}
-        # # record = models.Record.objects.raw('select * from SchoolAttendance_record')
-        # for item in records:
-        #     if not item.grade_str in grade_dict:
-        #         grade_dict[item.grade_str] = {}
-
-        #     if not item.student_approved.userinfo.name in grade_dict[item.grade_str]:
-        #         grade_dict[item.grade_str][item.student_approved.userinfo.name] = []
-        #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
+        
         for record in records:
-            # 拼接违纪情况原因 分数  时间 第一版 
-            # times = record['time'].split(',')
-            # score_onn = record['score_onn'].split(',')
-            # rule = record['rule'].split(',')
-            # n = len(times)
-            # rule_details = ''
-            # for index in range(0,n):
-            #     rule_details = rule_details + times[index][5:10] +"因:"+ rule[index] + "扣:"+ score_onn[index] +"，"
-            # record['rule_details'] = rule_details
-            # del record['time']
-            # del record['score_onn']
-            # del record['rule']
-            # 获取rule_type rule score_onn 转为数组
             rule_type = record['rule_type'].split(',')
             rule = record['rule'].split(',')
             score_onn = record['score_onn'].split(',')
@@ -489,7 +466,6 @@ class OutData(APIView):
             del record['rule']
             del record['score_onn']
             # print(record)
-        # print(records)
         # return JsonResponse({})
         return at_all_out_xls(records)
 

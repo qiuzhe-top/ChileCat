@@ -48,7 +48,7 @@ class Record(models.Model):
     score = models.IntegerField(null=True, blank=True, verbose_name="分值") 
     rule = models.ForeignKey("RuleDetails",
                                 on_delete=models.SET_NULL,
-                                verbose_name="原因",
+                                verbose_name="原因规则",
                                 null=True,
                                 blank=True
                              )

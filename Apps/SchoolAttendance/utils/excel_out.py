@@ -17,17 +17,19 @@ def at_all_out_xls(data):
         w.write(0, 0, u'班级')
         w.write(0, 1, u'学号')
         w.write(0, 2, u'姓名')
-        w.write(0, 3, u'课堂')
-        w.write(0, 4, u'早签')
+
+        w.write(0, 3, u'查寝')
+        w.write(0, 4, u'晚签')
         w.write(0, 5, u'晚自修违纪')
-        w.write(0, 6, u'晚签')
-        w.write(0, 7, u'查寝')
+        w.write(0, 6, u'早签')
+        w.write(0, 7, u'课堂')
         w.write(0, 8, u'总分')
-        w.write(0, 9, u'课堂')
-        w.write(0, 10, u'早签')
+
+        w.write(0, 9, u'查寝')
+        w.write(0, 10, u'晚签')
         w.write(0, 11, u'晚自修违纪')
-        w.write(0, 12, u'晚签')
-        w.write(0, 13, u'查寝')
+        w.write(0, 12, u'早签')
+        w.write(0, 13, u'课堂')
         row = 1
         for i in data:
             k = dict(i)

@@ -148,9 +148,12 @@ class Late(object):
         user = User.objects.get(username=username)
 
         if role_obj:
+            rule_obj = models.Rule.objects.get(codename='0#003')
+            rule_obj,f = models.RuleDetails.objects.get_or_create(name='违纪自定义',defaults={'rule':rule_obj,'score':1})
             d = {
               'task' : self.task,
               'rule_str' : role_obj['role_name'],
+              'rule' : rule_obj,
               'score' : role_obj['role_score'],
               'grade_str' : user.studentinfo.grade.name,
               'student_approved' : user,
