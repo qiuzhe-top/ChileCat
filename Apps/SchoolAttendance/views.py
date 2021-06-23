@@ -1,3 +1,4 @@
+from django.utils import tree
 from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls
 import datetime
 from typing import List
@@ -394,18 +395,22 @@ class OutData(APIView):
         '''
         ret = {}
         # 获取用户所属分院
+        # TODO 优化时间查询默认值
+        now = datetime.datetime.now()
+        t = datetime.datetime(now.year,now.month,now.day)
+        t = datetime.datetime.strftime(t,"%Y-%m-%d")
+        start_date = request.GET.get('start_date',t)
+        end_date = request.GET.get('end_date',t)
+        username = request.GET.get('username','')
 
-        # start_date = request.GET['start_date']
-        # end_date = request.GET['end_date']
-
-        # start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-        # end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-        # end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
-        
-        records = models.Record.objects.filter(
-                    # star_time__range=(start_date, end_date),
-                    # manager__isnull=True
-                ).values(
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
+        q1 = Q(manager__isnull=True)
+        q2 = Q(star_time__range=(start_date, end_date))
+        q3 = Q(student_approved = User.objects.get(username=username)) if len(username) > 0 else q1
+     
+        records = models.Record.objects.filter(q2 & q1 & q3).values(
                     grade=F('grade_str'),
                     name=F('student_approved__userinfo__name'),
                     # rule_=F('rule__rule__name'),
@@ -425,30 +430,7 @@ class OutData(APIView):
                     'time',
                     usernames=F('student_approved__username'),
                 )
-        # records = models.Record.objects.filter(
-        #             star_time__range=(start_date, end_date),
-        #             manager__isnull=True
-        #         ).annotate(
-        #             time=F('star_time'),
-        #         ).values(
-        #             grade=F('grade_str'),
-        #             name=F('student_approved__userinfo__name'),
-        #         ).annotate(
-        #             rule=Concat('rule_str'),
-        #             score_onn=Concat('score'),
-        #             score=Sum('score'),
-        #             time=Concat('star_time'),
-        #         ).values(
-        #             'grade',
-        #             'name',
-        #             'rule',
-        #             'score_onn',
-        #             'score',
-        #             'time',
-        #             usernames=F('student_approved__username'),
-        #         )
-        # return JsonResponse({})
-        # 手动分组
+        # 手动分组 第一版 
         # records = models.Record.objects.all()
         # grade_dict = {}
         # # record = models.Record.objects.raw('select * from SchoolAttendance_record')
@@ -460,7 +442,7 @@ class OutData(APIView):
         #         grade_dict[item.grade_str][item.student_approved.userinfo.name] = []
         #     grade_dict[item.grade_str][item.student_approved.userinfo.name].append(item)
         for record in records:
-            # 拼接违纪情况  原因 分数  时间
+            # 拼接违纪情况原因 分数  时间 第一版 
             # times = record['time'].split(',')
             # score_onn = record['score_onn'].split(',')
             # rule = record['rule'].split(',')
@@ -507,7 +489,7 @@ class OutData(APIView):
             del record['rule']
             del record['score_onn']
             # print(record)
-
+        # print(records)
         # return JsonResponse({})
         return at_all_out_xls(records)
 
