@@ -193,7 +193,10 @@ class Knowing(object):
         # 添加房间检查记录
         obj,flg = models.RoomHistory.objects.get_or_create(room=room,task=self.task)
         obj.is_knowing = True
+        obj.room.dorm_status = True
+        obj.room.save()
         obj.save()
+
 
         
         rule_obj = models.Rule.objects.get(codename='0#001')
