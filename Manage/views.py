@@ -1,4 +1,5 @@
 """管理视图"""
+from copy import error
 import Manage
 from Apps.SchoolInformation.models import *
 import logging
@@ -81,13 +82,11 @@ def import_stu_data(request):
                 if info[0]:
                     room_name = str(info[0])[0:info[0].find("#") + 3 + 1]
                 name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
-                grade = str(info[6]).strip()
-                stu_id = str(info[7]).strip()
-                tel = str(info[8]).strip()
-            except:
-                ret.append(info[2]+"获取数据异常")
-
-            try:
+                if len(name) == 0 or not name:
+                    continue
+                grade = str(info[3]).strip()
+                stu_id = str(info[4]).strip()
+                tel = str(info[5]).strip()
                 user = User.objects.get_or_create(username=stu_id)
                 user_info,flg0 = UserInfo.objects.get_or_create(
                     user=user[0])
@@ -106,6 +105,9 @@ def import_stu_data(request):
                 ret.append(info[2]+name+"异常")
             except UserInfo.DoesNotExist:
                 ret.append(info[2]+name+"异常")
+            except:
+                ret.append(info[2]+"---获取数据异常")
+
     return ret
 # excel 转 列表 当第一个单元格为空是过滤这行数据
 def excel_to_list(request):
@@ -136,15 +138,17 @@ def group_user(request):
             pass
         # 当 学号为'-'组有参 时 清空组内的用户
         elif username == '-' and group != None:
-            expand_permission.group_clean(group)
+            error = expand_permission.group_clean(group)
         # 根据flg的状态执行删除/添加
         elif group != None and username != None and flg != None:
             if flg == '+':
                 # 组里面添加学生
-                expand_permission.group_add_user(group,[username,])
-            # flg = -
+                error = expand_permission.group_add_user(group,[username,])
+            elif flg == '-':
+                # pass
+                error = expand_permission.group_remove_user(group,[username,])
                 # 组里面删除学生
-
+    ret['error'] = error
     return ret
 # 导入学生
 def user_init(request):
@@ -185,8 +189,9 @@ def user_init(request):
     return message_list
 
 # 用户组初始化
-def group_init(request):
+def group_init(request=None):
     '''用户组初始化'''
+    print('用户组初始化')
     names = [
         # 考勤任务管理 # 后台导航栏是否展示 <考勤系统> 父选项
         'task_admin',
@@ -220,17 +225,20 @@ def user_room(request):
         username_ = row[1]
         flg = row[2] 
 
-        room = search_room(room_)
 
         # 清空寝室内的学生
         if username_ =="-":
+            room = search_room(room_)
             room.stu_in_room.all().delete()
             message['username-'].append(room_ + "：清空")
 
         # 学生寝室绑定/删除
         elif flg == '+':
             user = User.objects.get(username=username_)
+            room = search_room(room_)
             st,flg = StuInRoom.objects.get_or_create(user=user,defaults={"room":room})
+            st.room = room
+            st.save()
             if flg:
                 message['flg+'].append(room_ + " 添加 " +  username_)
             else:
@@ -246,9 +254,9 @@ def user_room(request):
 
 
 
-def init_Attendance_group(request):
+def init_Attendance_group(request=None):
     '''考勤权限分组'''
-
+    print('考勤权限分组')
     # 待添加进用户组的权限
     per1 = [
         '/api/school_attendance/task:GET',
@@ -363,10 +371,11 @@ def init_activity_permissions(request):
 
 
 # 晚自修规则
-def uinitialization_rules(request):
+def uinitialization_rules(request=None):
     '''晚自修规则
         codename:系统内部使用不能随意修改 导出Excel会使用
     '''
+    print('晚自修规则初始化')
     # TODO 效率低
     rule_f = {
         'name':'查寝',

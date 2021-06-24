@@ -48,7 +48,7 @@ def get_obj(app, object_name, name):
 
 
 # API 权限管理
-def init_api_permissions(request):
+def init_api_permissions(request=None):
     """
     根据当前URL路由自动初始化API权限
     is_auth ： 公共接口是否需要登录
@@ -194,7 +194,17 @@ def group_add_user(group, users):
     Group.objects.get(name=group).user_set.add(*list(v))
     v.update(is_staff=True)
 
+def group_remove_user(group, users):
+    '''用户组删除一组用户'''
 
+    user_list = User.objects.filter(username__in=users)
+    
+    error = []
+    group = Group.objects.get(name=group)
+    for u in user_list:
+        u.groups.remove(group)
+    return error
+    
 def group_clean(group_name):
     # 用户组中所有用户退出组
     group = Group.objects.get(name=group_name)

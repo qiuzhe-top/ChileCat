@@ -169,29 +169,34 @@ class ClassList(APIView):
             ret['message'] = '用户信息不完整'
             return JsonResponse(ret)
 
-        ser_list = ''
-        if info.identity == "student":
-            grade = user.studentinfo.grade
-            # django 序列化
-            ser_list = ser.GradeSerializer(instance=grade, many=False).data
-        elif info.identity == "teacher":
-            grade = TeacherForGrade.objects.filter(user_id=self.request.user)
-            ser_list = ser.TeacherForGradeSerializer(instance=grade, many=True).data
-        elif info.identity == "college":
-            college_list = user.teacherforcollege_set.all()
-            ser_list = ser.TeacherForCollegeSerializer(instance=college_list, many=True).data
-            ser_all_class = []
-            for item in ser_list:
-                for k, v in item.items():
-                    ser_all_class += v
-            ser_list = ser_all_class
-        if len(ser_list) == 0:
+        try:
+            ser_list = ''
+            if info.identity == "student":
+                grade = user.studentinfo.grade
+                # django 序列化
+                ser_list = ser.GradeSerializer(instance=grade, many=False).data
+            elif info.identity == "teacher":
+                grade = TeacherForGrade.objects.filter(user_id=self.request.user)
+                ser_list = ser.TeacherForGradeSerializer(instance=grade, many=True).data
+            elif info.identity == "college":
+                college_list = user.teacherforcollege_set.all()
+                ser_list = ser.TeacherForCollegeSerializer(instance=college_list, many=True).data
+                ser_all_class = []
+                for item in ser_list:
+                    for k, v in item.items():
+                        ser_all_class += v
+                ser_list = ser_all_class
+            if len(ser_list) == 0:
+                ret['code'] = 5000
+                ret['message'] = "您的班级未绑定，请联系管理员"
+                return JsonResponse(ret)
+            ret['code'] = 2000
+            ret['message'] = "执行成功"
+            ret['data'] = ser_list
+        except:
             ret['code'] = 5000
-            ret['message'] = "您的班级未绑定，请联系管理员"
-            return JsonResponse(ret)
-        ret['code'] = 2000
-        ret['message'] = "执行成功"
-        ret['data'] = ser_list
+            ret['message'] = "未知班级信息"
+            ret['data'] = ser_list
         return JsonResponse(ret)
 
 

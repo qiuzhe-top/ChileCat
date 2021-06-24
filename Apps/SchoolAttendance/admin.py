@@ -45,6 +45,8 @@ class TaskPlayer(admin.ModelAdmin):
     list_display = (
         "id", "task", "user", "is_admin"
     )
+    raw_id_fields = ['user',]
+
 
 
 @admin.register(Task)
