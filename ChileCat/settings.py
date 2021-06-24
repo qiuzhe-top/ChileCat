@@ -95,7 +95,8 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 
 db_url = "ChileCat"
-HOST = '47.102.215.230'
+# HOST = '47.102.215.230'
+HOST = '127.0.0.1'
 print('DEBUG:',DEBUG,'当前数据库名称:',HOST+db_url)
 DATABASES = {
     'default': {
