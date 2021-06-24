@@ -31,11 +31,6 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if ENV_PROFILE == "DEVELOP":   
-    # 开发环境
-    DEBUG = True
-else:
-    DEBUG = False
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
@@ -98,14 +93,9 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-if DEBUG:   
-    # 开发环境
-    db_url = "ChileCat"
-    HOST = '127.0.0.1'
-else:
-    db_url = "ChileCat"
-    HOST = '127.0.0.1'
 
+db_url = "ChileCat"
+HOST = '47.102.215.230'
 print('DEBUG:',DEBUG,'当前数据库名称:',HOST+db_url)
 DATABASES = {
     'default': {
