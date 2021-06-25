@@ -34,10 +34,8 @@ urlpatterns = [
     # 查寝相关任务信息 楼层 房间 学生状态
     path('task_room_info', views.TaskRoomInfo.as_view(), name='TaskRoomInfo'),
 
-
     #学生查看公告
     path('student_disciplinary', views.StudentDisciplinary.as_view(), name='StudentDisciplinary'),
-
 
     # 晚自修-管理的班级  班级内的学生
     path('late_class', views.LateClass.as_view(),
