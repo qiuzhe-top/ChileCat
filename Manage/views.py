@@ -280,6 +280,8 @@ def init_Attendance_group(request=None):
         '/api/school_attendance/condition:GET',
 
         '/api/school_attendance/undo_record:DELETE',
+        '/api/school_attendance/out_knowing_excel_data:GET'
+
     ]
 
     # 任务管理组

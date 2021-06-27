@@ -106,7 +106,19 @@ class UserCallGrader(serializers.ModelSerializer):
     class Meta:
         model =User
         fields = ('id', 'name','username','flg')  # 包含
+    
+# 晚查寝数据导出    
+class TaskRecordExcelSerializer(serializers.ModelSerializer):
+    room_name = serializers.CharField(source='room_str')
+    student_name = serializers.CharField(source='student_approved.userinfo.name')
+    student = serializers.CharField(source='student_approved.username')
+    reason = serializers.CharField(source='rule_str')
+    classname = serializers.CharField(source='grade_str')
+    created_time = serializers.CharField(source='star_time')
 
+    class Meta:
+        model =models.Record
+        fields = ('created_time', 'room_name','classname','student','student_name','reason')  # 包含
 
 class StudentDisciplinary(serializers.ModelSerializer):
     room_name = serializers.CharField(source='room_str')

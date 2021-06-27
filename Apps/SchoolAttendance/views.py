@@ -1,5 +1,5 @@
 from django.utils import tree
-from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls
+from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls, out_knowing_data
 import datetime
 from typing import List
 from django.db.models import manager
@@ -469,6 +469,23 @@ class OutData(APIView):
         # return JsonResponse({})
         return at_all_out_xls(records)
 
+class knowingExcelOut(APIView):
+    API_PERMISSIONS = ['查寝当天数据导出']
+    def get(self, request, *args, **kwargs):
+        '''查寝当天数据导出
+        '''
+
+        time_get = datetime.date.today()
+
+        records = models.Record.objects.filter( Q(star_time__date=time_get))
+        if not records:
+            return JsonResponse(
+                {"state": "1", "msg": "当日无缺勤"}
+            )
+        ser_records = serializers.TaskRecordExcelSerializer(
+            instance=records, many=True).data
+            
+        return out_knowing_data(ser_records)
 
 class TaskExecutor(APIView):
     API_PERMISSIONS = ['工作者获取任务','*get']

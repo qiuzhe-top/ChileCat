@@ -123,21 +123,8 @@ class Knowing(object):
     def out_data(self):
         '''数据导出
         '''
-        req_list = self.request.query_params
-        time_get = req_list.get('date', -1)
-        if time_get == -1:
-            time_get = datetime.date.today()
+        pass
 
-        records = models.Record.objects.filter(Q(task_type="dorm") & Q(
-            manager=None) & Q(created_time__date=time_get))
-        if not records:
-            return JsonResponse(
-                {"state": "1", "msg": "当日无缺勤"}
-            )
-        ser_records = serializers.TaskRecordExcelSerializer(
-            instance=records, many=True).data
-            
-        return out_knowing_data(ser_records)
     # def get_task(self):
     #     '''执行人获取任务
     #     '''
@@ -214,7 +201,7 @@ class Knowing(object):
                 obj = {
                     'task':self.task,
                     'rule_str':rule_str,
-                    'room_str':room.name,
+                    'room_str':room.get_room(),
                     'grade_str':user.studentinfo.grade.name,
                     'student_approved':user,
                     'worker':worker_user,
