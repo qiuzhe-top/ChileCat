@@ -93,5 +93,4 @@ def out_knowing_data(ser_records):
             ws.save(output)
             output.seek(0)
             response.write(output.getvalue())
-            print("晚查寝当日数据导出")
         return response

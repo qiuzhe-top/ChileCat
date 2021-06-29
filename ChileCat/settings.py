@@ -31,7 +31,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = not True
+DEBUG =  True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -93,8 +93,8 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
 
 db_url = "ChileCat"
-# HOST = '47.102.215.230'
-HOST = '127.0.0.1'
+HOST = '47.102.215.230'
+# HOST = '127.0.0.1'
 print('DEBUG:',DEBUG,'当前数据库名称:',HOST+db_url)
 DATABASES = {
     'default': {

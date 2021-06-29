@@ -475,12 +475,19 @@ class knowingExcelOut(APIView):
         '''查寝当天数据导出
         '''
 
+        task_id = request.GET.get('task_id',False)
+        if not task_id:
+            return JsonResponse(
+                {"state": "5000", "msg": "no role"}
+            )
+        task = models.Task.objects.get(id=task_id)
+
         time_get = datetime.date.today()
 
-        records = models.Record.objects.filter( Q(star_time__date=time_get))
+        records = models.Record.objects.filter(Q(star_time__date=time_get),task=task)
         if not records:
             return JsonResponse(
-                {"state": "1", "msg": "当日无缺勤"}
+                {"state": "5000", "msg": "no data  bacak"}
             )
         ser_records = serializers.TaskRecordExcelSerializer(
             instance=records, many=True).data
