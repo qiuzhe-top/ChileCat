@@ -17,17 +17,11 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    # path('', Index.as_view()),
     path('admin/', admin.site.urls),
     path('api/user/', include(('Apps.User.urls', 'Apps.User'), namespace='User')),
-    path('api/career/', include(('Apps.Career.urls', 'Apps.Career'), namespace='Career')),
-    path('api/ask/', include(('Apps.Ask.urls', 'Apps.Ask'), namespace='Ask')),
-    # path('api/life/', include(('Apps.Life.urls', 'Apps.Life'), namespace='Life')),
     path('api/school_information/', include(('Apps.SchoolInformation.urls',
          'Apps.SchoolInformation'), namespace='SchoolInformation')),
     path('api/school_attendance/', include(('Apps.SchoolAttendance.urls',
          'Apps.SchoolAttendance'), namespace='SchoolAttendance')),
-    # path('api/activity/', include(('Apps.Activity.urls',
-    #      'Apps.Activity'), namespace='Activity')),
     path('api/manage/', include(('Manage.urls', 'Manage'), namespace='Manage')),
 ]

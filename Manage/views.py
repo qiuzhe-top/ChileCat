@@ -220,34 +220,39 @@ def user_room(request):
     message['flg-'] = []
     message['flg+'] = []
     message['update'] = []
+    message['error'] = []
     for row in rows:
-        room_ = row[0]
-        username_ = row[1]
-        flg = row[2] 
+        try:
+                room_ = row[0]
+                username_ = row[1]
+                flg = row[2] 
 
 
-        # 清空寝室内的学生
-        if username_ =="-":
-            room = search_room(room_)
-            room.stu_in_room.all().delete()
-            message['username-'].append(room_ + "：清空")
+                # 清空寝室内的学生
+                if username_ =="-":
+                    room = search_room(room_)
+                    room.stu_in_room.all().delete()
+                    message['username-'].append(room_ + "：清空")
 
-        # 学生寝室绑定/删除
-        elif flg == '+':
-            user = User.objects.get(username=username_)
-            room = search_room(room_)
-            st,flg = StuInRoom.objects.get_or_create(user=user,defaults={"room":room})
-            st.room = room
-            st.save()
-            if flg:
-                message['flg+'].append(room_ + " 添加 " +  username_)
-            else:
-                message['update'].append(username_ + " 更新为 " +  room_)
+                # 学生寝室绑定/删除
+                elif flg == '+':
+                    user = User.objects.get(username=username_)
+                    room = search_room(room_)
+                    st,flg = StuInRoom.objects.get_or_create(user=user,defaults={"room":room})
+                    st.room = room
+                    st.save()
+                    if flg:
+                        message['flg+'].append(room_ + " 添加 " +  username_)
+                    else:
+                        message['update'].append(username_ + " 更新为 " +  room_)
 
-        elif flg == '-':
-            user = User.objects.get(username=username_)
-            StuInRoom.objects.filter(user=user).delete()
-            message['flg-'].append(room_ + " 删除 " +  username_)
+                elif flg == '-':
+                    user = User.objects.get(username=username_)
+                    StuInRoom.objects.filter(user=user).delete()
+                    message['flg-'].append(room_ + " 删除 " +  username_)
+        except:
+            print(username_)
+            message['error'].append(username_)
 
     return message
 
@@ -275,6 +280,8 @@ def init_Attendance_group(request=None):
         '/api/school_attendance/condition:GET',
 
         '/api/school_attendance/undo_record:DELETE',
+        '/api/school_attendance/out_knowing_excel_data:GET'
+
     ]
 
     # 任务管理组

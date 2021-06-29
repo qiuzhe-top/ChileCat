@@ -128,7 +128,9 @@ class Room(models.Model):
         permissions = [
             ('operate-room_view', "operate-查询宿舍楼房间权限")
         ]
-
+    def get_room(self):
+        return self.floor.building.name + "#" + self.floor.name + self.name
+        
     def __str__(self):
         """返回房间号"""
         return self.floor.building.name + self.floor.name + self.name
