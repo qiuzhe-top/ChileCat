@@ -10,8 +10,7 @@ from openpyxl import load_workbook
 from rest_framework.views import APIView
 from Apps.Permission.utils import expand_permission
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
-# from Apps.Life.models import Building, Floor, Room, StuInRoom
-# from Apps.Activity.models import Manage
+
 from django.template import loader
 from django.contrib.auth.models import Group, Permission
 from Apps.Permission.models import *
