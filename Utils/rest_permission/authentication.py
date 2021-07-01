@@ -19,15 +19,3 @@ class AuthPermission(BaseAuthentication):
         if not token:
             return AnonymousUser, None
         return token.user, None
-
-
-class AuthPer(BaseAuthentication):
-    """
-        身份认证
-    """
-    def authenticate(self, request):
-        token = UserModel.Token.objects.filter(
-            token=request.META.get("HTTP_TOKEN")).first()
-        if not token:
-            raise exceptions.AuthenticationFailed('用户认证失败')
-        return token.user, None

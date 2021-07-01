@@ -2,7 +2,6 @@
 from django.db import models
 from django.contrib.auth.models import Permission
 
-
 # Create your models here.
 class ApiPermission(models.Model):
     """接口访问权限"""
@@ -71,20 +70,3 @@ class OperatePermission(models.Model):
     def __str__(self):
         """Unicode representation of OperatePermission."""
         return self.permission.name
-
-
-class WriteList(models.Model):
-    """白名单."""
-
-    name = models.CharField(max_length=150, verbose_name="内容")
-    flag = models.CharField(max_length=20, verbose_name="类型")
-
-    class Meta:
-        """Meta definition for WriteList."""
-
-        verbose_name = 'WriteList'
-        verbose_name_plural = 'WriteLists'
-
-    def __str__(self):
-        """Unicode representation of WriteList."""
-        return self.name

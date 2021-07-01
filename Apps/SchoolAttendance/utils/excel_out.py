@@ -4,7 +4,7 @@ import os
 from io import BytesIO
 import xlwt
 from django.utils.encoding import escape_uri_path
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 # 考勤汇总数据导出
 def at_all_out_xls(data):
         response = HttpResponse(content_type='application/vnd.ms-excel')

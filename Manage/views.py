@@ -1,27 +1,20 @@
 """管理视图"""
-from copy import error
-import Manage
+from Utils.models_utils import search_room
 from Apps.SchoolInformation.models import *
 import logging
 import os
-# import re
-from django.http import JsonResponse, HttpResponse
 from openpyxl import load_workbook
 from rest_framework.views import APIView
-from Apps.Permission.utils import expand_permission
-from Apps.User.models import UserInfo, Grade, College, User, StudentInfo, WholeGrade, TeacherForGrade
+from Utils.permission_group import user_group
+from Apps.User.models import UserInfo, Grade, College, User, StudentInfo
 
-from django.template import loader
-from django.contrib.auth.models import Group, Permission
-from Apps.Permission.models import *
+from Manage.models_extension.models_permission import *
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
 from .tests import *
-from django.contrib.contenttypes.models import ContentType
 import time,datetime
-# from rest_framework.authtoken.models import Token
-
+from Utils.excel_utils import excel_to_list
 logger = logging.getLogger(__name__)
-
+# https://www.jianshu.com/p/945c43b37624
 
 def put_stu_room(stu, room,ret):
     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
@@ -37,18 +30,7 @@ def put_stu_room(stu, room,ret):
     except:
         ret.append(str(stu)+"异常")
 
-def search_room(room_info):
-    """xx#xxx解析"""
-    try:
-        building_name = room_info.strip().split("#")[0].strip()
-        floor = room_info.strip().split("#")[1].strip()[0].strip()
-        room = room_info.strip().split("#")[1].strip()[1:3].strip()
-        building, flag = Building.objects.get_or_create(name=building_name)
-        floor, flag = Floor.objects.get_or_create(building=building, name=floor)
-        room, flag = Room.objects.get_or_create(name=room, floor=floor)
-        return room
-    except:
-        return None
+
 
 
 def create_class(class_name, college_name):
@@ -109,18 +91,6 @@ def import_stu_data(request):
 
     return ret
 # excel 转 列表 当第一个单元格为空是过滤这行数据
-def excel_to_list(request):
-    file = request.data['file']
-    data = []
-    wb = load_workbook(file,read_only=True)
-    for rows in wb:
-        for row in rows:#遍历行
-            if row[0].value:
-                l = []
-                for i in row:
-                    l.append(str(i.value))
-                data.append(l)
-    return data
 
 # 用户与组的管理
 def group_user(request):
@@ -137,15 +107,15 @@ def group_user(request):
             pass
         # 当 学号为'-'组有参 时 清空组内的用户
         elif username == '-' and group != None:
-            error = expand_permission.group_clean(group)
+            error = user_group.group_clean(group)
         # 根据flg的状态执行删除/添加
         elif group != None and username != None and flg != None:
             if flg == '+':
                 # 组里面添加学生
-                error = expand_permission.group_add_user(group,[username,])
+                error = user_group.group_add_user(group,[username,])
             elif flg == '-':
                 # pass
-                error = expand_permission.group_remove_user(group,[username,])
+                error = user_group.group_remove_user(group,[username,])
                 # 组里面删除学生
     ret['error'] = error
     return ret
@@ -203,7 +173,7 @@ def group_init(request=None):
         # 晚查寝
         'knowing_admin',
     ]
-    d = expand_permission.group_init(names)
+    d = user_group.group_init(names)
     ret = {
         "message":d,
         "names":names
@@ -294,8 +264,8 @@ def init_Attendance_group(request=None):
     # 数据汇总组
     name2 = 'task_data'
 
-    expand_permission.group_add_permission(name1,per1)
-    expand_permission.group_add_permission(name2,per2)
+    user_group.group_add_permission(name1,per1)
+    user_group.group_add_permission(name2,per2)
     return 2000
 
 def add_user():
@@ -304,74 +274,6 @@ def add_user():
         ['195303', '19530338'],
         ['195303', '19530345'],
     ]
-
-
-# 生成考勤相关权限
-def init_activity_permissions(request):
-    '''
-    初始化考勤权限管理模块
-    '''
-    ret = {'message': 'message', 'code': 2000}
-
-    colleges = College.objects.all()
-    # types =
-    l = ('dorm', 'health', 'evening_study')
-
-    for j in colleges:
-        for i in l:
-
-            # 初始化考勤任务管理表
-            Manage.objects.get_or_create(
-                types=i, college=j, code_name=j.code_name + "_" + i)
-
-            p = Permission.objects.get_or_create(
-                codename="manage-" + j.code_name + "_" + i,
-                content_type=ContentType.objects.get_for_model(Manage),
-                name=j.name+"_"+i
-            )[0]
-            g = Group.objects.get_or_create(
-                name="manage_" + j.code_name + "_" + i)[0]
-            g.permissions.clear()
-            g.permissions.add(p)
-
-            # 初始化考勤对应工作组
-            p = Permission.objects.get_or_create(
-                codename="work-" + j.code_name + "_" + i,
-                content_type=ContentType.objects.get_for_model(Manage),
-                name=j.name+"_"+i
-            )[0]
-            g = Group.objects.get_or_create(
-                name="work_" + j.code_name + "_" + i)[0]
-            g.permissions.clear()
-            g.permissions.add(p)
-
-        # 初始化晚自习工作组
-        p = Permission.objects.get_or_create(
-            codename=j.code_name+"_evening_study",
-            content_type=ContentType.objects.get_for_model(Manage),
-            name=j.name+"_"+i
-        )[0]
-        g = Group.objects.get_or_create(name=j.code_name+"_evening_study")[0]
-        g.permissions.clear()
-        g.permissions.add(p)
-
-    # 楼层权限
-    buildings = Building.objects.all()
-    for i in l[:2]:
-        for j in buildings:
-            p = Permission.objects.get_or_create(
-                codename="floor-"+i + "_" + j.name,
-                content_type=ContentType.objects.get_for_model(Building),
-                name=j.name+"号楼_"+i
-            )[0]
-            g = Group.objects.get_or_create(name=i + "_" + j.name)[0]
-            g.permissions.clear()
-            g.permissions.add(p)
-
-    # 考勤管理员组
-    expand_permission.group_init(['attendance_admin'])
-
-    return JsonResponse(ret)
 
 
 

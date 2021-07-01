@@ -9,7 +9,7 @@ from Apps.User.models import StudentInfo, TeacherForGrade
 from Apps.User.utils.user import UserExtraOperate
 from Apps.User.utils.exceptions import *
 from django.contrib.auth.models import Permission,AnonymousUser
-from Apps.Permission.models import OperatePermission,ApiPermission
+from Manage.models_extension.models_permission import ApiPermission
 
 from django.contrib.contenttypes.models import ContentType
 from Apps.User.utils import auth
@@ -125,6 +125,7 @@ class Information(APIView):
             content_type=ContentType.objects.get_for_model(ApiPermission)
         ).values()
 
+        # TODO 模型发生变化 operatepermission 将会失效
         for permission in p:
             if "operatepermission" not in permission['codename']:
                 data['permissions'].append(permission['codename'])

@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from openpyxl.reader.excel import load_workbook
+from Utils.models_utils import search_room
 
 # Create your views here.
 
@@ -166,20 +167,11 @@ def update_or_create_stu_in_room(request):
               models.StuInRoom.objects.filter(student = u).delete()
               continue
             
-            # 解析寝室字符串
-            room_str = room.split('#')
-            building = room_str[0]
-            floor = room_str[1][:1]
-            room = room_str[1][1:]
-
-            # 找到对应的寝室房间
-            bu,flg = models.Building.objects.get_or_create(name=building)
-            fl,flg = models.Floor.objects.get_or_create(building=bu,name=floor)
-            room,flg = models.Room.objects.get_or_create(floor=fl,name=room)
+            room_obj = search_room(room)
 
             try:
               models.StuInRoom.objects.filter(student = u).delete()
-              models.StuInRoom.objects.create(student = u,room=room)
+              models.StuInRoom.objects.create(student = u,room=room_obj)
             except:
               error_list.append({
                   'username':username,
