@@ -125,7 +125,7 @@ class Information(APIView):
             content_type=ContentType.objects.get_for_model(ApiPermission)
         ).values()
 
-        # TODO 模型发生变化 operatepermission 将会失效
+        # TODO 模型发生变化 operatepermission 失效
         for permission in p:
             if "operatepermission" not in permission['codename']:
                 data['permissions'].append(permission['codename'])
@@ -222,53 +222,3 @@ class BindVx(APIView):
             ret['code'] = 5000
             ret['message'] = str(bind_failed)
         return JsonResponse(ret)
-
-
-class MoodManage(APIView):
-    """心情监测"""
-    API_PERMISSIONS = ['心情监测', '*post']
-
-    def post(self, request):
-        """心情监测"""
-        ret = {}
-        mod_level = self.request.data.get('mod_level')
-        message = self.request.data.get('message')
-        print(mod_level, message)
-        user = self.request.user
-        grade = user.studentinfo.grade
-        print(mod_level, message, user, grade)
-        dic = {
-            'user': user,
-            'Grade': grade,
-            'message': message,
-            'mod_level': mod_level
-        }
-        models.UserMood.objects.create(**dic)
-        ret['message'] = '发送成功'
-        ret['code'] = 2000
-        print(ret)
-        return JsonResponse(ret)
-
-
-class Activeity(APIView):
-    API_PERMISSIONS = ['活动', 'get']
-
-    def get(self, request, *args, **kwargs):
-        ret = {}
-        id = request.GET.get('id', None)
-
-        if id:
-            obj = models.Activity.objects.get(id=id)
-            data = ser.ActiveitySerializer(instance=obj, many=False).data
-            ret['code'] = 2000
-            ret['data'] = data
-            return JsonResponse(ret)
-
-        act_list = models.Activity.objects.all()
-        datas = ser.ActiveitySerializer(instance=act_list, many=True).data
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = datas
-        return JsonResponse(ret)
-
-

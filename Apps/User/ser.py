@@ -7,7 +7,7 @@ class GradeSerializer(serializers.ModelSerializer):
         model = models.Grade
         fields = ('id', 'name')
 
-class ActiveitySerializer(serializers.ModelSerializer):
+class ActivitySerializer(serializers.ModelSerializer):
     """
     活动打卡
     """
