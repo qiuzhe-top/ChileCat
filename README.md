@@ -12,9 +12,7 @@ pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 npm config set registry https://registry.npm.taobao.org
 pip install -r requirement.txt
 
-python manage.py makemigrations Ask
-python manage.py makemigrations Career
-python manage.py makemigrations Permission
+
 python manage.py makemigrations SchoolAttendance
 python manage.py makemigrations SchoolInformation
 python manage.py makemigrations User
