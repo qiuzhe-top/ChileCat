@@ -1,3 +1,11 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors: OBKoro1
+LastEditTime: 2021-07-04 14:11:14
+Description: 常用数据序列化
+'''
 from Apps.SchoolInformation.models import Building,Floor,Room
 def search_room(room_info):
     """3#106解析返回Room对象"""

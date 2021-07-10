@@ -1,18 +1,25 @@
-"""
-models
-"""
+'''
+Author: 邹洋
+Date: 2021-05-19 23:35:55
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-06 21:28:01
+Description: 
+'''
+
 from django.db import models
 from django.contrib.auth.models import User
 from Apps.SchoolInformation.models import *
+from cool.admin import admin_register
 
 # 第三方账户绑定
-
-
 class OtherUser(models.Model):
     """第三方账户绑定"""
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     wx_openid = models.CharField(
-        max_length=128, verbose_name=u'微信标识', null=True, blank=True)
+        max_length=128, verbose_name=u'微信标识', null=True, blank=True
+    )
 
     def __str__(self):
         return self.user.username
@@ -24,13 +31,14 @@ class OtherUser(models.Model):
         verbose_name_plural = '第三方账户'
 
 
+@admin_register
 class Token(models.Model):
     """
     Token
     """
+
     token = models.CharField(max_length=100)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, verbose_name="用户")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户")
 
     def __str__(self):
         return self.user.username + "的token:" + self.token
@@ -42,20 +50,26 @@ class Token(models.Model):
         verbose_name_plural = '用户token'
 
 
+@admin_register
 class UserInfo(models.Model):
     """
     用户信息
     """
+
     name = models.CharField(max_length=20, verbose_name="姓名")
-    tel = models.CharField(
-        max_length=20, verbose_name="电话", blank=True, null=True)
-    gender = models.CharField(max_length=20, verbose_name="性别", choices=(("male", "男"), ("female", "女")), null=True,
-                              blank=True)
+    tel = models.CharField(max_length=20, verbose_name="电话", blank=True, null=True)
+    gender = models.CharField(
+        max_length=20,
+        verbose_name="性别",
+        choices=(("male", "男"), ("female", "女")),
+        null=True,
+        blank=True,
+    )
     # 头像 https://a.jgp
     photo = models.CharField(
-        max_length=2048, verbose_name="学生照片", null=True, blank=True)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, verbose_name="用户id")
+        max_length=2048, verbose_name="学生照片", null=True, blank=True
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户id")
 
     def __str__(self):
         return self.name
@@ -67,79 +81,22 @@ class UserInfo(models.Model):
         verbose_name_plural = '用户信息'
 
 
-# 心情监测
-class UserMood(models.Model):
-    """
-    心情监测
-    """
-    mod_level = models.CharField(max_length=2, verbose_name=u'心情等级')
-    message = models.CharField(max_length=9999, verbose_name=u'想说的话')
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'学生用户')
-    grade = models.ForeignKey(
-        Grade, on_delete=models.CASCADE, verbose_name=u'班级')
-    created_time = models.DateTimeField(
-        auto_now_add=True, verbose_name=u'创建日期')
-
-    # def date(self):
-    #     """日期"""
-    #     return '666'
-
-    # 设置方法字段在admin中显示的标题
-    # date.short_description = '发布日期'
-
-    class Meta:
-        verbose_name = "心情监测表"
-        verbose_name_plural = "心情监测表"
-
-
-class Activity(models.Model):
-    """
-    活动打卡
-    """
-    GENDER_CHOICES = (
-        (u'1', u'课外技能'),
-        (u'2', u'思想培养'),
-        (u'3', u'技能竞技'),
-    )
-    GENDER_CHOICES2 = (
-        (u'1', u'报名中'),
-        (u'2', u'进行中'),
-        (u'3', u'活动结束'),
-    )
-
-    title = models.CharField(max_length=128, verbose_name=u'活动名称')
-    url = models.CharField(max_length=1024, verbose_name=u'活动图片')
-    types = models.CharField(
-        max_length=10, choices=GENDER_CHOICES, verbose_name=u'活动类型')
-    state = models.CharField(
-        max_length=10, choices=GENDER_CHOICES2, verbose_name=u'活动状态')
-    phone = models.CharField(max_length=124, verbose_name=u'电话')
-    email = models.CharField(max_length=30, verbose_name=u'邮箱')
-    address = models.CharField(max_length=50, verbose_name=u'活动地址')
-    people_number = models.IntegerField(default=0, verbose_name=u'报名人数')
-    apply_number = models.IntegerField(default=0, verbose_name=u'活动人数')
-    message = models.TextField(verbose_name=u'活动简介')
-    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
-
-    class Meta:
-        verbose_name = "活动打卡"
-        verbose_name_plural = "活动打卡"
-
-
+@admin_register
 class StudentInfo(models.Model):
     """
     学生信息
     """
+
     grade = models.ForeignKey(
-        Grade, on_delete=models.CASCADE,
-        verbose_name="班级id", related_name="student_grade"
+        Grade,
+        on_delete=models.CASCADE,
+        verbose_name="班级id",
+        related_name="student_grade",
     )
-    user = models.OneToOneField(
-        User, verbose_name="用户", on_delete=models.CASCADE)
+    user = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
     photo = models.CharField(
-        max_length=2048, verbose_name="学生照片", null=True, blank=True)
+        max_length=2048, verbose_name="学生照片", null=True, blank=True
+    )
 
     def __str__(self):
         return self.user.username
@@ -155,9 +112,9 @@ class TeacherInfo(models.Model):
     """
     老师额外信息
     """
+
     teacher_extra_info = models.CharField(verbose_name="老师额外信息", max_length=50)
-    user = models.OneToOneField(
-        User, verbose_name="用户", on_delete=models.CASCADE)
+    user = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
 
     class Meta:
         db_table = ''
@@ -170,11 +127,19 @@ class TeacherForGrade(models.Model):
     """
     教师对应的班级
     """
+
     grade = models.OneToOneField(
-        Grade, on_delete=models.CASCADE, verbose_name="班级号", related_name="related_to_teacher"
+        Grade,
+        on_delete=models.CASCADE,
+        verbose_name="班级号",
+        related_name="related_to_teacher",
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="管理者账号",
-                                related_name="related_to_grade")
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="管理者账号",
+        related_name="related_to_grade",
+    )
 
     class Meta:
         verbose_name = "教师班级关系"
@@ -182,4 +147,3 @@ class TeacherForGrade(models.Model):
 
     def __str__(self):
         return self.user.userinfo.name + "->" + self.grade.name
- 

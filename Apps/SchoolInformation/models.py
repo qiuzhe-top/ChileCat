@@ -1,9 +1,18 @@
+'''
+Author: 邹洋
+Date: 2021-05-20 08:37:12
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-04 22:11:39
+Description: 
+'''
 from django.db import models
 from django.contrib.auth.models import User
+from cool.admin import admin_register
 
 # Create your models here.
 
-
+@admin_register
 class TeacherForCollege(models.Model):
     """
     领导对应的分院
@@ -17,7 +26,7 @@ class TeacherForCollege(models.Model):
         verbose_name = "老师院级关系"
         verbose_name_plural = "教师院级关系"
 
-
+@admin_register
 class Grade(models.Model):
     """
     班级
@@ -42,7 +51,7 @@ class Grade(models.Model):
     def __str__(self):
         return self.name
 
-
+@admin_register
 class WholeGrade(models.Model):
     """年级"""
     user = models.ForeignKey(
@@ -57,7 +66,7 @@ class WholeGrade(models.Model):
     def __str__(self):
         return self.name
 
-
+@admin_register
 class College(models.Model):
     """
     分院
@@ -72,7 +81,7 @@ class College(models.Model):
     def __str__(self):
         return self.name
 
-
+@admin_register
 class Building(models.Model):
     """楼"""
     name = models.CharField(max_length=50, verbose_name="楼号")
@@ -89,7 +98,7 @@ class Building(models.Model):
         """Unicode representation of building."""
         return self.name
 
-
+@admin_register
 class Floor(models.Model):
     """楼层."""
     building = models.ForeignKey(
@@ -110,7 +119,7 @@ class Floor(models.Model):
         """Unicode representation of floor."""
         return self.building.name + '-' + self.name
 
-
+@admin_register
 class Room(models.Model):
     """房间"""
     name = models.CharField(max_length=20, verbose_name="房间号")
@@ -135,7 +144,7 @@ class Room(models.Model):
         """返回房间号"""
         return self.floor.building.name + self.floor.name + self.name
 
-
+@admin_register
 class StuInRoom(models.Model):
     """房间里有哪些学生."""
     room = models.ForeignKey(

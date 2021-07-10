@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-from Utils.rest_permission.init_api_url import init_api_permissions
+from core.rest_permission.init_api_url import init_api_permissions
+
 # manage
 urlpatterns = [
     # 系统数据初始化

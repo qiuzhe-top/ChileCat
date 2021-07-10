@@ -1,6 +1,13 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors: OBKoro1
+LastEditTime: 2021-07-04 14:09:53
+Description: 权限认证错误时返回数据
+'''
 from rest_framework.views import exception_handler
 
-# 自定义认证错误时的返回格式
 def custom_exception_handler(exc, context):
     
     response = exception_handler(exc, context)
@@ -11,5 +18,5 @@ def custom_exception_handler(exc, context):
             response.status_code
         )
         response.data['message'] = response.data['detail']
-        del response.data['detail']  # 删除detail字段
+        del response.data['detail']
     return response

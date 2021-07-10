@@ -2,10 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 import datetime
 from Apps.SchoolInformation.models import *
+from cool.admin import admin_register
+
 # Create your models here.
 
 
-
+@admin_register
 class Rule(models.Model):
     name = models.CharField(
         max_length=30, verbose_name=u'名称', null=True, blank=True)
@@ -21,7 +23,7 @@ class Rule(models.Model):
     def __str__(self):
         return self.name
 
-
+@admin_register
 class RuleDetails(models.Model):
     name = models.CharField(max_length=20, verbose_name=u'名称')
     score = models.IntegerField(verbose_name=u'分值', null=True, blank=True)
@@ -38,7 +40,7 @@ class RuleDetails(models.Model):
     def __str__(self):
         return self.name
 
-
+@admin_register
 class Record(models.Model):
     """考勤记录"""
     task = models.ForeignKey(
@@ -75,7 +77,6 @@ class Record(models.Model):
     )
      
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
-
     star_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
@@ -87,7 +88,10 @@ class Record(models.Model):
         """查寝记录: """
         return "考勤记录: " + str(self.id)
 
-
+@admin_register(
+    raw_id_fields = ['user',],
+    filter_horizontal=['grades',]
+)
 class Task(models.Model):
     """考勤任务管理"""
     GENDER_CHOICES1 = (
@@ -119,7 +123,9 @@ class Task(models.Model):
         """Unicode representation of Manage."""
         return self.user.username + "-" + self.college.name + "-" + self.get_types_display()
 
-
+@admin_register(
+    raw_id_fields = ['user',]
+)
 class TaskPlayer(models.Model):
     '''任务-参与者
     '''
@@ -136,6 +142,7 @@ class TaskPlayer(models.Model):
 
 
 # TODO 后面3张表 考虑采用内存作为载体
+@admin_register
 class RoomHistory(models.Model):
     """考勤-房间
     记录房间是否被检查的状态，记录这个房间是否被点名和查卫生执行过
@@ -157,7 +164,7 @@ class RoomHistory(models.Model):
     def __str__(self):
         return self.room.floor.building.name + self.room.floor.name + self.room.name
 
-
+@admin_register
 class TaskFloorStudent(models.Model):
     '''考勤-房间-学生
     记录房间里面的学生检查状态 是   缺寝 还是 在寝
@@ -174,7 +181,7 @@ class TaskFloorStudent(models.Model):
     class Meta:
         verbose_name_plural = '学生在寝情况'
 
-
+@admin_register
 class UserCall(models.Model):
     '''点名-学生
     当学生在点名的时候被记录就变动点名类型

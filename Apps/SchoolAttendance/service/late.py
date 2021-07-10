@@ -1,5 +1,10 @@
 '''
-晚自修
+Author: 邹洋
+Date: 2021-05-20 08:37:12
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-04 14:58:53
+Description: 
 '''
 
 
@@ -55,6 +60,7 @@ class Late(object):
 
         self.task.roster = json.dumps(roster_new)
         self.task.save()
+        
         return '执行成功' + '更新' + str(len(roster_new)) + '个学生' 
 
     def condition(self):

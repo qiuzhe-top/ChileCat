@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'cool',
     'Apps.User',
     'Apps.SchoolInformation',
     'Apps.SchoolAttendance',
@@ -72,7 +73,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-print('DEBUG:',DEBUG,'数据库:',HOST)
+print('DEBUG:', DEBUG, '数据库:', HOST)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -81,7 +82,7 @@ DATABASES = {
         'PASSWORD': 'zhou24272592',
         'HOST': HOST,
         'PORT': '3306',
-        'OPTIONS': {'isolation_level': None}
+        'OPTIONS': {'isolation_level': None},
     }
 }
 
@@ -89,7 +90,7 @@ if DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
 
@@ -129,12 +130,21 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ORIGIN_WHITELIST = ('*')#跨域增加忽略
 # 跨域允许的请求方式(可选)
-CORS_ALLOW_METHODS = ('DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'VIEW',)
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
+)
 # 跨域允许的头部参数(可选)
 CORS_ALLOW_HEADERS = (
     'XMLHttpRequest',
@@ -159,10 +169,25 @@ SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 # 全局权限控制
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        "Utils.rest_permission.authentication.AuthPermission",
+        "core.rest_permission.authentication.AuthPermission",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "Utils.rest_permission.api_permission.ApiPublicPermission",
+        "core.rest_permission.api_permission.ApiPublicPermission",
     ],
-    'EXCEPTION_HANDLER': 'Utils.rest_permission.exception_handler.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.rest_permission.exception_handler.custom_exception_handler',
+}
+
+
+DJANGO_COOL = {
+    'API_ERROR_CODES': (
+        ('ERR_PER_NOLOGIN', (3001, '请先登陆')),
+        ('ERR_PER_PERMISSION', (3002, '权限错误')),
+        ('ERR_USER_NOTFOUND', (5001, '用户名或密码错误')),
+        ('ERR_USER_NO_PASSWORD', (5007, '密码错误')),
+        ('ERR_USER_DIFFERENT_PASSWORD', (5002, '两次密码不一致')),
+        ('ERR_USER_DUPLICATE_USERNAME', (5003, '用户名已存在')),
+        ('ERR_USER_DUPLICATE_MOBILE', (5004, '手机号已存在')),
+        ('ERR_USER_DUPLICATE_EMAIL', (5005, '邮箱已存在')),
+        ('ERR_USER_EMAIL_FORMAT_ERROR', (5006, '邮箱格式错误')),
+    )
 }

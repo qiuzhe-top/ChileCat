@@ -1,3 +1,11 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors: OBKoro1
+LastEditTime: 2021-07-04 14:08:36
+Description: 获取系统所有的URL拼接成权限字符保存到数据库
+'''
 from collections import OrderedDict
 from django.http.response import JsonResponse
 from django.utils.module_loading import import_string
@@ -7,9 +15,6 @@ from Manage.models_extension.models_permission import ApiPermission
 from django.conf import settings
 from django.contrib.auth.models import Permission
 
-'''
-    获取系统所有的URL拼接成权限字符保存到数据库
-'''
 def init_api_permissions(request=None):
     """
     根据当前URL路由自动初始化API权限

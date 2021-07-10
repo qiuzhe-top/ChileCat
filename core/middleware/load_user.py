@@ -1,6 +1,13 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors: OBKoro1
+LastEditTime: 2021-07-04 14:15:44
+Description: 中间件
+'''
 from django.utils.deprecation import MiddlewareMixin
 from Apps.User import models
-
 
 class LoadUserObject(MiddlewareMixin):
     """

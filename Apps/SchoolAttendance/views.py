@@ -1,5 +1,13 @@
+'''
+Author: 邹洋
+Date: 2021-05-20 08:37:12
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-06 20:54:59
+Description: 
+'''
 from django.utils import tree
-from Apps.SchoolAttendance.utils.excel_out import at_all_out_xls, out_knowing_data
+from core.excel_utils import at_all_out_xls, out_knowing_data
 import datetime
 from typing import List
 from django.db.models import manager
@@ -236,6 +244,7 @@ class TaskSwitch(APIView):
         except:
             print('参数获取错误')
             return JsonResponse(ret)
+            
         task = models.Task.objects.get(id=id)
 
         message = TaskManage(task).clear_task()

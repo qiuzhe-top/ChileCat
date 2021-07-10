@@ -1,20 +1,21 @@
-"""权限"""
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-05 19:29:22
+Description: 控制用户是否能访问URL地址
+'''
 from rest_framework.permissions import BasePermission
 from django.contrib.auth.models import AnonymousUser, Permission
 
 
-# 全局API接口权限
 class ApiPublicPermission(BasePermission):
-    """
-        api权限,用来验证用户是否有权限访问对应的api
-    """
     message = '没有权限'
 
     def has_permission(self, request, view):
-        """
-        只有拥有当前api权限的用户通过
-        """
-        # return True
+        
+        return True
         url = request.META['PATH_INFO']
         method = request.META['REQUEST_METHOD']
 

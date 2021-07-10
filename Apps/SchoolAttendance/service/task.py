@@ -9,9 +9,7 @@ from openpyxl.reader.excel import load_workbook
 from .. import models
 
 from . import knowing, health, late
-'''
-任务公共类
-'''
+
 task_factory = {
     '0': knowing.Knowing,
     '1': health.Health,
@@ -20,7 +18,9 @@ task_factory = {
 
 
 class TaskManage(object):
-
+    '''
+    任务公共类
+    '''
     def __init__(self,task_obj=None):
         self.task = task_obj
 
@@ -103,18 +103,6 @@ class TaskManage(object):
     def in_zaoqian_excel(self,request):
         """导入早签数据"""
         file = request.data['file']
-
-        # file_name = str(time.time())+ '__' +file.name
-        # file_path = os.path.join('upload', file_name)
-        
-        # f = open(file_path,'wb')
-        # for i in file.chunks():   #chunks方法是一点点获取上传的文件内容
-        #     f.write(i)
-        # f.close()
-
-        # file_name = 'upload//' + file_name
-
-        # return JsonResponse({})
         
         wb = load_workbook(file,read_only=True)
 

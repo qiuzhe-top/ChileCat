@@ -1,26 +1,26 @@
+'''
+Author: 邹洋
+Date: 2021-05-19 23:35:55
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-10 14:46:43
+Description: 
+'''
+
+from cool.views import view
 from . import models
+from rest_framework import fields, serializers
+from cool import views
 from rest_framework import serializers
+
+from . import models
+from .backend import BaseUserBackend
 
 
 class GradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Grade
         fields = ('id', 'name')
-
-class ActivitySerializer(serializers.ModelSerializer):
-    """
-    活动打卡
-    """
-    types = serializers.SerializerMethodField()
-    state = serializers.SerializerMethodField()
-    def get_types(self, obj):
-        return obj.get_types_display()
-    def get_state(self, obj):
-        return obj.get_state_display()
-    class Meta:
-        model = models.Activity
-        fields = "__all__"
-
 
 
 class TeacherForGradeSerializer(serializers.ModelSerializer):
@@ -50,3 +50,19 @@ class TeacherForCollegeSerializer(serializers.ModelSerializer):
             ret.append(dicts)
         return ret
 
+
+class TokenSerializer(views.BaseSerializer):
+    class Meta:
+        model = models.Token
+        fields = ('token',)
+
+
+class UserSerializer(views.BaseSerializer):
+    class Meta:
+        model = models.User
+        fields = ('id','username')
+
+class UserInformationSerializer(views.BaseSerializer):
+    class Meta:
+        models = models.User
+        fields =   ('id','username')

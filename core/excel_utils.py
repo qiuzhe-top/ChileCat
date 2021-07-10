@@ -1,3 +1,11 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors: OBKoro1
+LastEditTime: 2021-07-04 14:36:13
+Description: Excel 操作
+'''
 
 import datetime
 import os
@@ -5,6 +13,27 @@ from io import BytesIO
 import xlwt
 from django.utils.encoding import escape_uri_path
 from django.http import HttpResponse
+from openpyxl import load_workbook
+
+def excel_to_list(request):
+    '''
+        excel 转换为列表
+        当一行的第一列为空时忽略这一行数据
+    '''
+    file = request.data['file']
+    data = []
+    wb = load_workbook(file,read_only=True)
+    for rows in wb:
+        for row in rows:#遍历行
+            if row[0].value:
+                l = []
+                for i in row:
+                    l.append(str(i.value))
+                data.append(l)
+    return data
+
+
+
 # 考勤汇总数据导出
 def at_all_out_xls(data):
         response = HttpResponse(content_type='application/vnd.ms-excel')

@@ -1,10 +1,10 @@
-from Apps.SchoolAttendance.utils.excel_out import out_knowing_data
+from core.excel_utils import out_knowing_data
 import datetime
 import json
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 from . import task
-from .. import models,serializers
+from .. import models, serializers
 from Apps.SchoolInformation import models as SchoolInformationModels
 
 '''
@@ -13,35 +13,32 @@ from Apps.SchoolInformation import models as SchoolInformationModels
 
 
 def is_number(s):
-    '''判断字符串是否为数字
-    '''
+    '''判断字符串是否为数字'''
     try:
         float(s)
         return True
     except ValueError:
         pass
-    
+
     try:
         import unicodedata
+
         unicodedata.numeric(s)
         return True
     except (TypeError, ValueError):
         pass
- 
+
     return False
 
 
 class Knowing(object):
-
     def __init__(self, task_obj):
         if task_obj:
             self.task = task_obj
             self.user = self.task.user
 
-
-    def task_create(self,ids):
-        '''创建任务
-        '''
+    def task_create(self, ids):
+        '''创建任务'''
         self.task.buildings.set(ids)
         return True
 
@@ -58,24 +55,22 @@ class Knowing(object):
                     k.dorm_status = False
                     k.save()
 
-        models.RoomHistory.objects.filter(task=self.task).update(is_knowing = False)
-        models.TaskFloorStudent.objects.filter(task=self.task).update(flg = True)
+        models.RoomHistory.objects.filter(task=self.task).update(is_knowing=False)
+        models.TaskFloorStudent.objects.filter(task=self.task).update(flg=True)
         return '执行成功'
+
     def add_admin(self):
-        '''添加管理员
-        '''
+        '''添加管理员'''
 
         pass
 
     def switch(self):
-        '''任务开启
-        '''
+        '''任务开启'''
 
         pass
 
-    def scheduling(self,roster):
-        '''排班
-        '''
+    def scheduling(self, roster):
+        '''排班'''
         # 同类型的活动工作组
         user_list = []
         for item in roster:
@@ -83,30 +78,35 @@ class Knowing(object):
                 for user in layer['user']:
                     if len(item['title'][:1]) != 0 and len(user['username']) != 0:
 
-
                         # 当前工作用户   # TODO 如果用户查找失败怎么处理
                         u = User.objects.get(username=user['username'])
                         user_list.append(u)
-        
+
         # 之前的班表记录清空
-        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
+        models.TaskPlayer.objects.filter(task=self.task, is_admin=False).delete()
 
         # 开始用户任务绑定
         for u in user_list:
-            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
+            models.TaskPlayer.objects.get_or_create(
+                task=self.task, user=u, is_admin=False
+            )
 
         self.task.roster = json.dumps(roster)
         self.task.save()
         return '保存班表成功'
 
     def condition(self):
-        '''查看考勤工作情况
-        '''
-        now = datetime.datetime.now() #
+        '''查看考勤工作情况'''
+        now = datetime.datetime.now()  #
 
-        records = models.Record.objects.filter(task=self.task,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
-        data = serializers.ConditionRecord(instance=records,many=True).data
+        records = models.Record.objects.filter(
+            task=self.task,
+            manager=None,
+            star_time__date=datetime.date(now.year, now.month, now.day),
+        )
+        data = serializers.ConditionRecord(instance=records, many=True).data
         return data
+
     # def progress(self):
     #     '''查看考勤进度
     #     '''
@@ -121,8 +121,7 @@ class Knowing(object):
     #     print("晚查寝提交记录", task_record, "销假人添加:", manager)
 
     def out_data(self):
-        '''数据导出
-        '''
+        '''数据导出'''
         pass
 
     # def get_task(self):
@@ -140,9 +139,8 @@ class Knowing(object):
     #     '''
     #     pass
 
-    def submit(self,data,worker_user):
-        '''考勤提交
-        '''
+    def submit(self, data, worker_user):
+        '''考勤提交'''
         if not self.task.is_open:
             return "活动未开始"
         room_id = data['room_id']
@@ -151,35 +149,35 @@ class Knowing(object):
         room = SchoolInformationModels.Room.objects.get(id=room_id)
 
         # 添加房间检查记录
-        obj,flg = models.RoomHistory.objects.get_or_create(room=room,task=self.task)
+        obj, flg = models.RoomHistory.objects.get_or_create(room=room, task=self.task)
         obj.is_knowing = True
         obj.room.dorm_status = True
         obj.room.save()
         obj.save()
 
-
-        
         rule_obj = models.Rule.objects.get(codename='0#001')
-        rule_obj,f = models.RuleDetails.objects.get_or_create(name='查寝自定义',defaults={'rule':rule_obj,'score':1})
-        
+        rule_obj, f = models.RuleDetails.objects.get_or_create(
+            name='查寝自定义', defaults={'rule': rule_obj, 'score': 1}
+        )
+
         for d in data['user_list']:
             # 获取用户
-            user = User.objects.get(id = d['user_id'])
+            user = User.objects.get(id=d['user_id'])
 
-            task_floor_student,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user=user)
+            task_floor_student, flg = models.TaskFloorStudent.objects.get_or_create(
+                task=self.task, user=user
+            )
             # 状态判断 1:撤销记录
             if d['status'] == '1':
                 task_floor_student.flg = True
                 task_floor_student.save()
                 t = datetime.datetime.now()
                 models.Record.objects.filter(
-                    star_time__date=t,
-                    worker=worker_user,
-                    student_approved=user
-                ).update(manager=worker_user,rule_str='查寝：误操作撤销')
-               
-            elif d['status'] == '0':              
-                
+                    star_time__date=t, worker=worker_user, student_approved=user
+                ).update(manager=worker_user, rule_str='查寝：误操作撤销')
+
+            elif d['status'] == '0':
+
                 reason = d['reason']
                 rule_str = ''
                 rule = None
@@ -199,13 +197,13 @@ class Knowing(object):
                     rule_str = reason
 
                 obj = {
-                    'task':self.task,
-                    'rule_str':rule_str,
-                    'room_str':room.get_room(),
-                    'grade_str':user.studentinfo.grade.name,
-                    'student_approved':user,
-                    'worker':worker_user,
-                    'score':1, # 默认夜不归扣一分
+                    'task': self.task,
+                    'rule_str': rule_str,
+                    'room_str': room.get_room(),
+                    'grade_str': user.studentinfo.grade.name,
+                    'student_approved': user,
+                    'worker': worker_user,
+                    'score': 1,  # 默认夜不归扣一分
                 }
 
                 if rule:
@@ -263,14 +261,12 @@ class Knowing(object):
     #     pass
 
     def storey(self):
-        '''晚查寝-楼工作数据
-        '''
+        '''晚查寝-楼工作数据'''
 
         buildings = self.task.buildings.all()
         buildings_info = []
         for building in buildings:
-            info = {"list": [], 'id': building.id,
-                    'name': building.name + "号楼"}
+            info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
             floors = building.floor.all()
             for floor in floors:
                 floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
@@ -278,30 +274,33 @@ class Knowing(object):
             buildings_info.append(info)
         return buildings_info
 
-    def room(self,floor_id):
-        '''晚查寝-层工作数据
-        '''
+    def room(self, floor_id):
+        '''晚查寝-层工作数据'''
         d = {"0": "dorm_status", "1": "health_status"}
         if floor_id:
             rooms = models.Room.objects.filter(floor_id=floor_id).values(
-                'id', 'name', 'health_status', 'dorm_status')
+                'id', 'name', 'health_status', 'dorm_status'
+            )
             for room in rooms:
                 room['status'] = room[d[self.task.types]]
                 del room['health_status']
                 del room['dorm_status']
             return list(rooms)
 
-    def room_students(self,room_id):
-        '''晚查寝-房间工作数据
-        '''
+    def room_students(self, room_id):
+        '''晚查寝-房间工作数据'''
         room_info = []
         room = models.Room.objects.get(id=room_id)
         room_data = room.stu_in_room.all()
         for i in room_data:
-            unit = {'id': i.user.id,
-                    'name': i.user.userinfo.name,
-                     'position': i.bed_position}
-            obj,flg = models.TaskFloorStudent.objects.get_or_create(task=self.task,user = i.user)
+            unit = {
+                'id': i.user.id,
+                'name': i.user.userinfo.name,
+                'position': i.bed_position,
+            }
+            obj, flg = models.TaskFloorStudent.objects.get_or_create(
+                task=self.task, user=i.user
+            )
             unit['status'] = obj.flg
             room_info.append(unit)
         return room_info
