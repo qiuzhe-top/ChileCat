@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-05 19:40:56
+LastEditTime: 2021-07-11 14:26:03
 Description: 
 '''
 """
@@ -34,11 +34,11 @@ def get_user(request):
     return request.user
 
 
-def get_groups(request):
+def get_groups(user):
     """
     获取用户身份组
     """
-    per = request.user.groups.all().values('name')
+    per = user.groups.all().values('name')
     groups = []
     for item in per:
         groups.append(item['name'])

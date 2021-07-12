@@ -3,10 +3,12 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-10 14:46:43
+LastEditTime: 2021-07-11 14:53:35
 Description: 
 '''
 
+from django.contrib.contenttypes.models import ContentType
+from Apps.User.utils.auth import get_groups
 from cool.views import view
 from . import models
 from rest_framework import fields, serializers
@@ -60,9 +62,39 @@ class TokenSerializer(views.BaseSerializer):
 class UserSerializer(views.BaseSerializer):
     class Meta:
         model = models.User
-        fields = ('id','username')
+        fields = ('id', 'username')
+
 
 class UserInformationSerializer(views.BaseSerializer):
+
+    permissions = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+    grade = serializers.SerializerMethodField()
+
+    def get_grade(self, obj):
+        st = models.StudentInfo.objects.filter(user=obj)
+        if st.exists():
+            return st[0].grade.name
+        else:
+            return '该用户无班级'
+
+    def get_avatar(self, obj):
+        return 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
+
+    def get_roles(self, obj):
+        return get_groups(obj)
+
+    def get_permissions(self, obj):
+        return obj.user_permissions.all().values_list('codename',flat=True)
     class Meta:
-        models = models.User
-        fields =   ('id','username')
+        model = models.User
+        fields = (
+            'username',
+            'permissions',
+            'roles',
+            'grade',
+            'avatar',
+            'is_staff',
+            'is_superuser',
+        )

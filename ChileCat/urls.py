@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-05 20:15:08
+LastEditTime: 2021-07-11 15:50:16
 Description: file information
 '''
 # from django.contrib import admin
@@ -28,6 +28,7 @@ from django.views.static import serve
 
 apipatterns = [
     path('user/', include('Apps.User.views')),
+    path('school/information/', include('Apps.SchoolInformation.views')),
 ]
 urlpatterns = [
     path('cool/', include('cool.urls')),

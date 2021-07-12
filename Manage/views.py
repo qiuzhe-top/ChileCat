@@ -1,4 +1,5 @@
 """管理视图"""
+import re
 from core.models_utils import search_room
 from Apps.SchoolInformation.models import *
 import logging

@@ -1,3 +1,11 @@
+'''
+Author: 邹洋
+Date: 2021-07-04 13:57:48
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-07-11 13:36:49
+Description: 
+'''
 """授权数据模型"""
 from django.db import models
 from django.contrib.auth.models import Permission

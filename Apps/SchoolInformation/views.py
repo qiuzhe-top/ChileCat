@@ -1,52 +1,51 @@
 import json
-import re
-from Apps.User.models import StudentInfo, UserInfo
-from Apps.SchoolAttendance import models
 import os
+import re
 import time
+
+from Apps.SchoolAttendance import models
+from Apps.User.models import StudentInfo, UserInfo
+from cool.views import (
+    CoolAPIException,
+    CoolBFFAPIView,
+    ErrorCode,
+    ViewSite,
+    param,
+    utils,
+)
+from core.models_utils import search_room
 from django.contrib.auth.models import User
 from django.core.checks import messages
-from django.shortcuts import render
 from django.http import JsonResponse
-from rest_framework.views import APIView
+from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from openpyxl.reader.excel import load_workbook
-from core.models_utils import search_room
+from rest_framework import fields
+from rest_framework.views import APIView
+
+from . import serializers
 
 # Create your views here.
 
+site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
-class StudentInformation(APIView):
-    API_PERMISSIONS = ['考勤搜索用户信息', '*get']
 
-    def get(self, request, *args, **kwargs):
-        '''
-        request:
-          username: 19510146 # 学号
-        response:
-          {
-            id:1 # 学生ID
-            name: 张三 # 学生姓名
-            phone: 19101245412 #电话
-          }
-        '''
-        # TODO 添加搜索多个用户
-        ret = {}
-        try:
-            username = request.GET['username']
-            user = User.objects.get(username=username)
-            ret['data'] = {
-                "username": username,
-                "name": user.userinfo.name,
-                "tel": user.userinfo.tel,
-                "grade": user.studentinfo.grade.name,
-            }
-            ret['message'] = '搜索成功'
-            ret['code'] = 2000
-            return JsonResponse(ret)
-        except:
-            ret['code'] = 4000
-            ret['message'] = '没有用户' + username + '或用户信息不完整'
-        return JsonResponse(ret)
+
+@site
+class StudentInformation(CoolBFFAPIView):
+
+    name = _('考勤 获取用户基本信息')
+    response_info_serializer_class = serializers.UserSerializer
+
+    def get_context(self, request, *args, **kwargs):
+        username = request.params.username
+        user = User.objects.filter(username=username)
+        if not user.exists():
+            raise CoolAPIException(ErrorCode.ERR_USER_UNABLE_TO_SEARCH_FOR_USERR)
+        return serializers.UserSerializer(user[0], request=request).json()
+
+    class Math:
+        param_fields = ('username', fields.CharField(label=_('用户名')))
 
 
 class AddUser(APIView):
@@ -57,7 +56,6 @@ class AddUser(APIView):
         elif type_ == '1':
             ret = update_or_create_stu_in_room(request)
         return JsonResponse(ret)
-
 
 # 添加学生
 def update_or_create_user(request):
@@ -180,3 +178,7 @@ def update_or_create_stu_in_room(request):
     ret['code'] = 2000
     ret['data'] = error_list
     return ret
+
+
+urls = site.urls
+urlpatterns = site.urlpatterns

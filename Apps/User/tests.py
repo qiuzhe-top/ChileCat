@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-10 14:43:14
+LastEditTime: 2021-07-11 15:22:32
 Description: 
 '''
 from django.contrib import auth
@@ -18,6 +18,7 @@ from .views import Login
 from rest_framework.test import APITransactionTestCase, RequestsClient
 
 class AuthTest(TestCase):
+    # 用户测试类
     def setUp(self):
         self.name = '张三'
         self.username = '195101'
@@ -36,14 +37,6 @@ class AuthTest(TestCase):
         self.set_token()
 
 
-    def test_login(self):
-        print('登录：成功登录')
-        data = {}
-        data['username'] = self.username
-        data['password'] = self.password
-        response = Client().post(self.api + 'login', data).json()
-        print(response)
-        self.assertEqual(response['code'], 0)
 
     def get_reg_data(self):
         data = {}
@@ -55,6 +48,21 @@ class AuthTest(TestCase):
 
     def get_user(self):
         return User.objects.get(username=self.username)
+
+    def test_login(self):
+        print('登录：成功登录')
+        data = {}
+        data['username'] = self.username
+        data['password'] = self.password
+        response = Client().post(self.api + 'login', data).json()
+        print(response)
+        self.assertEqual(response['code'], 0)
+
+    def test_get_infomation(self):
+        print('用户信息：获取用户信息')
+        response = self.client.post(self.http_api+'information').json()
+        print(response)
+        self.assertEqual(response['code'], 0)
 
     def set_token(self):
         user = self.get_user()

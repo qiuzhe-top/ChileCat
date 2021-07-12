@@ -189,5 +189,6 @@ DJANGO_COOL = {
         ('ERR_USER_DUPLICATE_MOBILE', (5004, '手机号已存在')),
         ('ERR_USER_DUPLICATE_EMAIL', (5005, '邮箱已存在')),
         ('ERR_USER_EMAIL_FORMAT_ERROR', (5006, '邮箱格式错误')),
+        ('ERR_USER_UNABLE_TO_SEARCH_FOR_USERR', (5008, '搜索的用户不存在')),
     )
 }
