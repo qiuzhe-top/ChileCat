@@ -126,8 +126,8 @@ class Room(models.Model):
     floor = models.ForeignKey(
         'Floor', on_delete=models.CASCADE, verbose_name="层", related_name="room"
     )
-    health_status = models.BooleanField(verbose_name="卫生检查状态", default=False)
-    dorm_status = models.BooleanField(verbose_name="晚查寝状态", default=False)
+    health_status = models.BooleanField(verbose_name="卫生检查状态")
+    dorm_status = models.BooleanField(verbose_name="晚查寝状态")
 
     class Meta:
         """Meta definition for Room."""
@@ -155,7 +155,7 @@ class StuInRoom(models.Model):
         on_delete=models.CASCADE, verbose_name="学生"
     )
     bed_position = models.CharField(
-        max_length=150, verbose_name="床铺位置", default="1")
+        max_length=150, verbose_name="床铺位置",null=True,blank=True)
 
     class Meta:
         verbose_name = '寝室信息'

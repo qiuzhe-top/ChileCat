@@ -105,13 +105,13 @@ class Task(models.Model):
     roster = models.TextField(
         verbose_name=u'班表', null=True, blank=True, default=u'[]')
     college = models.ForeignKey(
-        College, on_delete=models.CASCADE, verbose_name=u'分院')
+        College, null=True, on_delete=models.CASCADE, verbose_name=u'分院')
     admin = models.ManyToManyField(
-        User, null=True, blank=True, verbose_name=u'管理员')
+        User, null=True,  verbose_name=u'管理员')
     buildings = models.ManyToManyField(
-        Building, null=True, blank=True, verbose_name=u'关联楼')
+        Building, null=True, verbose_name=u'关联楼')
     grades = models.ManyToManyField(
-        Grade, null=True, blank=True, verbose_name=u'关联班级')
+        Grade, null=True, verbose_name=u'关联班级')
 
     class Meta:
         """Meta definition for Manage."""

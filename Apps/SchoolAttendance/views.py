@@ -107,32 +107,9 @@ class TaskObtain(CoolBFFAPIView):
     response_info_serializer_class = serializers.TaskAdmin
 
     def get_context(self, request, *args, **kwargs):
-        '''获取任务
-            request:
-                type: # 获取任务的类型
-                    0 # 晚查寝
-                    1 # 查卫生
-                    2 # 晚自修
-            response:
-                [{
-                    id:1 # 任务id
-                    name: 智慧学院 晚查寝 
-                    is_open:true # 任务开启状态
-                    is_builder:true #是否是本任务创建者
-                }]
-        '''
-        ret = {}
-
-        is_type = request.GET['type']
-
-        user = request.user
-
-        task = models.Task.objects.filter(
-            types=is_type, user=user)
-
-        return serializers.TaskAdmin(instance=task, many=True).json
-
-
+        is_type = request.params.type
+        task = models.Task.objects.all()#filter(types=is_type)
+        return serializers.TaskAdmin(task, request=request).data
     class Meta:
         param_fields = (
             ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),

@@ -37,11 +37,11 @@ urlpatterns = [
     path('api/', include(apipatterns)),
     path('api_doc.html', get_api_doc_html),
 ]
-if settings.DEBUG:
-    urlpatterns.append(
-        path(
-            '%s/<path:path>' % settings.MEDIA_URL.strip('/'),
-            serve,
-            {'document_root': settings.MEDIA_ROOT},
-        )
-    )
+# if settings.DEBUG:
+#     urlpatterns.append(
+#         path(
+#             '%s/<path:path>' % settings.MEDIA_URL.strip('/'),
+#             serve,
+#             {'document_root': settings.MEDIA_ROOT},
+#         )
+#     )
