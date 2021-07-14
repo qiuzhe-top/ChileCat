@@ -89,7 +89,7 @@ class Record(models.Model):
         return "考勤记录: " + str(self.id)
 
 @admin_register(
-    raw_id_fields = ['user',],
+    raw_id_fields = ['admin',],
     filter_horizontal=['grades',]
 )
 class Task(models.Model):
@@ -99,8 +99,6 @@ class Task(models.Model):
         (u'1', u'查卫生'),
         (u'2', u'晚自修')
     )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'创建者')
     is_open = models.BooleanField(verbose_name='是否开启')
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
@@ -108,6 +106,8 @@ class Task(models.Model):
         verbose_name=u'班表', null=True, blank=True, default=u'[]')
     college = models.ForeignKey(
         College, on_delete=models.CASCADE, verbose_name=u'分院')
+    admin = models.ManyToManyField(
+        User, null=True, blank=True, verbose_name=u'管理员')
     buildings = models.ManyToManyField(
         Building, null=True, blank=True, verbose_name=u'关联楼')
     grades = models.ManyToManyField(

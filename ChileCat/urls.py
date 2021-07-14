@@ -29,6 +29,7 @@ from django.views.static import serve
 apipatterns = [
     path('user/', include('Apps.User.views')),
     path('school/information/', include('Apps.SchoolInformation.views')),
+    path('school/attendance/', include('Apps.SchoolAttendance.views')),
 ]
 urlpatterns = [
     path('cool/', include('cool.urls')),

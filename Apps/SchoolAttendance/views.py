@@ -6,6 +6,7 @@ LastEditors:
 LastEditTime: 2021-07-06 20:54:59
 Description: 
 '''
+from os import name
 from django.utils import tree
 from core.excel_utils import at_all_out_xls, out_knowing_data
 import datetime
@@ -20,6 +21,15 @@ from Apps.SchoolInformation import models as SchoolInformationModels
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.pagination import PageNumberPagination
+from cool.views import (
+    CoolAPIException,
+    CoolBFFAPIView,
+    ErrorCode,
+    ViewSite,
+    param,
+    utils,
+)
+from django.utils.translation import gettext_lazy as _
 
 # Create your views here.
 from rest_framework.views import APIView
@@ -29,15 +39,74 @@ from . import models, serializers
 from .service import knowing, health, late
 from itertools import chain
 import json
+from rest_framework import fields
+
 
 '''
 SchoolAttendance
 
-'''
-class Task(APIView):
-    API_PERMISSIONS = ['考勤任务管理']
+类型 任务
 
-    def get(self, request, *args, **kwargs):
+TaskSwitch
+任务开启
+
+TaskLateClear
+清除晚自习任务状态
+TaskKnowingClear
+清除查寝任务状态
+
+LateScheduling
+scheduling
+排班
+
+task_roomInfo
+获取任务数据
+
+submit
+任务提交
+
+condition
+查看考勤工作情况
+
+undo_record
+销假
+
+Rule
+获取规则
+
+in_zaoqian_excel
+导入早签数据
+
+progress
+查看考勤进度
+
+out_data
+数据导出
+
+storey
+晚查寝-楼工作数据
+
+room
+晚查寝-层工作数据
+
+room_students
+晚查寝-房间工作数据
+
+StudentDisciplinary
+考勤公告
+
+LateClass
+晚自修-管理的班级  班级内的学生
+'''
+
+site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
+
+@site
+class TaskObtain(CoolBFFAPIView):
+    name = _('获取任务')
+    response_info_serializer_class = serializers.TaskAdmin
+
+    def get_context(self, request, *args, **kwargs):
         '''获取任务
             request:
                 type: # 获取任务的类型
@@ -61,309 +130,196 @@ class Task(APIView):
         task = models.Task.objects.filter(
             types=is_type, user=user)
 
-        ser1 = serializers.TaskBuilder(instance=task, many=True).data
-
-        task_admin = models.TaskPlayer.objects.filter(
-            user=user, is_admin=True, task__types=is_type)
-
-        ser2 = serializers.TaskAdmin(instance=task_admin, many=True).data
-
-        # FIXME(zouyang): 会产生重复任务数据 因为 创建者会把自己设置为管理员
-        datas = list(chain(ser1, ser2))
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = datas
-        return JsonResponse(ret)
-
-    def post(self, request, *args, **kwargs):
-        '''创建任务
-            request:
-                {
-                    type: # 任务类型 参考models设计
-                        0 # 晚查寝
-                        1 # 查卫生
-                        2 # 晚自修
-                    ids:[1,5,2] # if type == 0/1 => 宿舍楼ID else 班级ID
-                }
-            创建任务需要判断有没有对应权限
-        '''
-        ret = {}
-        user = request.user
-
-        try:
-            is_type = str(request.data['type'])
-            ids = request.data['ids']
-        except:
-            ret['message'] = '请求参数异常'
-            ret['code'] = 5000
-            return JsonResponse(ret)
-
-        try:
-            college = user.studentinfo.grade.college
-        except:
-            ret['message'] = '用户没有班级'
-            ret['code'] = 5000
-            return JsonResponse(ret)
-
-        dic = {
-            'user': user,
-            'is_open': True,
-            'types': is_type,
-            'college': college,
-        }
-
-        task = models.Task.objects.create(**dic)
-
-        TaskManage().create_task(task,ids)
-
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
+        return serializers.TaskAdmin(instance=task, many=True).json
 
 
-class TaskAdmin(APIView):
-    API_PERMISSIONS = ['任务分配管理']
+    class Meta:
+        param_fields = (
+            ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),
+        )
+# @site
+# class TaskSwitch(CoolBFFAPIView):
+#     name = _('开启/关闭任务')
+#     response_info_serializer_class = serializers
 
-    def get(self, request, *args, **kwargs):
-        '''获取任务管理员
-            request:
-                id:1 # 任务id
-            response:
-                [{
-                    user_id:2 #用户id
-                    uese_name: 张三 # 姓名
-                }]
-        '''
-
-        id = int(request.GET['id'])
-        task_player = models.TaskPlayer.objects.filter(
-            task=id, is_admin=True)
-        ser = serializers.TaskPlayerGetAdmin(instance=task_player,many=True).data
-        ret = {}
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = ser
-        return JsonResponse(ret)
-
-    def post(self, request, *args, **kwargs):
-        '''添加管理员
-            request:
-                {
-                    id:2 #任务ID
-                    user_id_list: [1,2,3] # 用户id 前端通过用户查询接口获取
-                }
-        '''
-        ret = {}
-
-        try:
-            id = int(request.data.get('id'))
-            user_id_list = request.data['user_id_list']
-        except:
-            print('参数获取错误')
-            return JsonResponse(ret)
-
-        try:
-            task = models.Task.objects.get(id=id)
-        except:
-            print('未找到对应活动')
-            return JsonResponse(ret)
-
-        for user_id in user_id_list:
-            user = User.objects.get(id=user_id)
-            #TODO 已经存在的情况就不添加
-            models.TaskPlayer.objects.create(task=task,user=user,is_admin = True)
-
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
-
-    def delete(self, request, *args, **kwargs):
-        '''删除管理员
-            request:
-                {
-                    id:2 # 任务ID
-                    user_id:3 # 用户ID
-                }
-        '''
-        ret = {}
-
-        try:
-            id = int(request.data.get('id'))
-            user_id = request.data['user_id']
-        except:
-            print('参数获取错误')
-            return JsonResponse(ret)
-
-        try:
-            task = models.Task.objects.get(id = id)
-        except:
-            print('未找到对应活动')
-            return JsonResponse(ret)
-
-        user = User.objects.get(id=user_id)        
-        models.TaskPlayer.objects.filter(task=task,user=user).delete()
-
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = 'data'
-        return JsonResponse(ret)
+#     def get_context(self, request, *args, **kwargs):
+#         id = request.data['id']
+#         task = models.Task.objects.get(id=id)
+#         task.is_open = not task.is_open
+#         flg = task.is_open
+#         task.save()
+#         return serializers.XX.json()
 
 
-class TaskSwitch(APIView):
-    API_PERMISSIONS = ['任务状态修改']
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+# @site
+# class TaskRest(CoolBFFAPIView):
+#     name = _('重置任务状态')
+#     response_info_serializer_class = serializers
 
-    def put(self, request, *args, **kwargs):
-        '''修改任务状态
-            request:
-                id：任务ID
-            response:
-                true / false 修改后任务状态
-        '''
-        #TODO 权限判断
-        ret = {}
-        id = request.data['id']
-        task = models.Task.objects.get(id=id)
-        task.is_open = not task.is_open
-        flg = task.is_open
-        task.save()
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = flg
-        return JsonResponse(ret)
-
-    def delete(self, request, *args, **kwargs):
-        '''清除任务状态
-            request:
-                id:1 # 任务ID
-        '''
-        ret = {}
-        try:
-            id = int(request.data.get('task_id'))
-        except:
-            print('参数获取错误')
-            return JsonResponse(ret)
+#     def get_context(self, request, *args, **kwargs):
+#         '''清除任务状态
+#             request:
+#                 id:1 # 任务ID
+#         '''
+#         ret = {}
+#         try:
+#             id = int(request.data.get('task_id'))
+#         except:
+#             print('参数获取错误')
+#             return JsonResponse(ret)
             
-        task = models.Task.objects.get(id=id)
+#         task = models.Task.objects.get(id=id)
 
-        message = TaskManage(task).clear_task()
+#         message = TaskManage(task).clear_task()
 
-        ret['message'] = message
-        ret['code'] = 2000
-        return JsonResponse(ret)
-
-
-class Scheduling(APIView):
-    API_PERMISSIONS = ['任务班表']
-
-    def get(self, request, *args, **kwargs):
-        '''
-            获取班表
-            request:
-                id:1 # 任务id
-            response:
-                roster: 对应班表
-        '''
-        ret = {}
-        try:
-            id = request.GET['id']
-        except:
-            print('参数获取错误')
-            return JsonResponse(ret)
-        roster = models.Task.objects.get(id=int(id)).roster
-        
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = json.loads(roster)
-        return JsonResponse(ret)
-
-    def post(self, request, *args, **kwargs):
-        '''更改班表
-            request：
-                id: 任务id
-                roster: 对应班表
-        '''
-        ret = {}
-        roster = request.data['roster']
-        id = request.data['id']
-        task = models.Task.objects.get(id=id)
-
-        message = TaskManage(task).scheduling(roster)
-        ret['message'] = message
-        ret['code'] = 2000
-        ret['data'] = roster
-        return JsonResponse(ret)
+#         ret['message'] = message
+#         ret['code'] = 2000
+#         return serializers.XX.json()
 
 
-class Condition(APIView):
-    API_PERMISSIONS = ['考勤工作情况']
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+# @site
+# class Scheduling(CoolBFFAPIView):
+#     name = _('获取班表')
+#     response_info_serializer_class = serializers
 
-    def get(self, request, *args, **kwargs):
-        '''查看当天考勤工作情况
-            request:
-                task_id:2 # 任务id
-            response:
-                [
-                    {
-                        user_id:2 # 用户ID
-                        name: 张三 
-                    }
-                ]
-        权限判断
-        '''
-        ret = {}
-        task_id = request.GET['task_id']
-        task = models.Task.objects.get(id=task_id)
-
-        data = TaskManage(task).condition()
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = data
-        return JsonResponse(ret)
+#     def get_context(self, request, *args, **kwargs):
+#         id = request.GET['id']
+#         roster = models.Task.objects.get(id=int(id)).roster
+#         return serializers.XX.json()
 
 
-class UndoRecord(APIView):
-    API_PERMISSIONS = ['任务模块销假']
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
 
-    def delete(self, request, *args, **kwargs):
-        '''销假
-            request：
-               record_id:213 # 考勤记录id
-        '''
-        ret = {}
-        record_id = request.data['record_id']
-        task_id = request.data['task_id']
-        task = models.Task.objects.get(id=task_id)
-        data = TaskManage(task).undo_record(record_id,request.user)
-        ret['message'] = data
-        ret['code'] = 2000
-        return JsonResponse(ret)
+# @site
+# class SchedulingUpdate(CoolBFFAPIView):
+#     name = _('修改班表')
+#     response_info_serializer_class = serializers
 
-class UndoRecordAdmin(APIView):
+#     def get_context(self, request, *args, **kwargs):
+#         '''更改班表
+#             request：
+#                 id: 任务id
+#                 roster: 对应班表
+#         '''
+#         ret = {}
+#         roster = request.data['roster']
+#         id = request.data['id']
+#         task = models.Task.objects.get(id=id)
 
-    def delete(self, request, *args, **kwargs):
-        '''考勤汇总销假
-            request：
-               record_id:213 # 考勤记录id
-        '''
-        ret = {}
-        # TODO 进行身份验证
-        record_id = request.data['record_id']
-        record = models.Record.objects.get(id=record_id)
-        record.manager=request.user
-        record.save()
-        ret['message'] = '操作成功'
-        ret['code'] = 2000
-        return JsonResponse(ret)
+#         message = TaskManage(task).scheduling(roster)
+#         ret['message'] = message
+#         ret['code'] = 2000
+#         ret['data'] = roster
+#         return serializers.XX.json()
 
 
-# 导入早签数据
-class InZaoqianExcel(APIView):
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
 
-    def post(slef,request):
-        ret = TaskManage().in_zaoqian_excel(request)
-        return JsonResponse(ret)
+# @site
+# class Condition(CoolBFFAPIView):
+#     name = _('考勤工作情况')
+#     response_info_serializer_class = serializers
+
+#     def get_context(self, request, *args, **kwargs):
+#         '''查看当天考勤工作情况
+#             request:
+#                 task_id:2 # 任务id
+#             response:
+#                 [
+#                     {
+#                         user_id:2 # 用户ID
+#                         name: 张三 
+#                     }
+#                 ]
+#         权限判断
+#         '''
+#         ret = {}
+#         task_id = request.GET['task_id']
+#         task = models.Task.objects.get(id=task_id)
+
+#         data = TaskManage(task).condition()
+#         ret['message'] = 'message'
+#         ret['code'] = 2000
+#         ret['data'] = data
+#         return serializers.XX.json()
+
+
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+# @site
+# class UndoRecord(CoolBFFAPIView):
+#     name = _('销假')
+#     response_info_serializer_class = serializers
+
+#     def get_context(self, request, *args, **kwargs):
+#         '''销假
+#             request：
+#                record_id:213 # 考勤记录id
+#         '''
+#         ret = {}
+#         record_id = request.data['record_id']
+#         task_id = request.data['task_id']
+#         task = models.Task.objects.get(id=task_id)
+#         data = TaskManage(task).undo_record(record_id,request.user)
+#         ret['message'] = data
+#         ret['code'] = 2000
+#         return serializers.XX.json()
+
+
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+# @site
+# class UndoRecordAdmin(APIView):
+#     name = _('考勤汇总销假')
+#     response_info_serializer_class = serializers
+
+#     def get_context(self, request, *args, **kwargs):
+#         '''考勤汇总销假
+#             request：
+#                record_id:213 # 考勤记录id
+#         '''
+#         ret = {}
+#         # TODO 进行身份验证
+#         record_id = request.data['record_id']
+#         record = models.Record.objects.get(id=record_id)
+#         record.manager=request.user
+#         record.save()
+#         ret['message'] = '操作成功'
+#         ret['code'] = 2000
+#         return JsonResponse(ret)
+# @site
+# class InZaoqianExcel(CoolBFFAPIView):
+#     name = _('导入早签数据')
+#     response_info_serializer_class = serializers
+
+#     def get_context(self, request, *args, **kwargs):
+#         ret = TaskManage().in_zaoqian_excel(request)
+#         return serializers.XX.json()
+
+
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+
+# @site
+# class TaskObtain(CoolBFFAPIView):
+#     name = _('获取任务')
+#     response_info_serializer_class = serializers
+
+#     def get_context(self, request, *args, **kwargs):
+
+#         return serializers.XX.json()
+
+
+#     class Math:
+#         param_fields = ('username', fields.CharField(label=_('用户名')))
+
+
 from django.db.models import Aggregate
 
 class Msum(Aggregate):
@@ -786,3 +742,7 @@ class RecordQuery(APIView):
 #             response.write(output.getvalue())
 #             print("导出excel")
 #             return response
+
+
+urls = site.urls
+urlpatterns = site.urlpatterns
