@@ -108,8 +108,9 @@ class TaskObtain(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         is_type = request.params.type
-        task = models.Task.objects.all()#filter(types=is_type)
-        return serializers.TaskAdmin(task, request=request).data
+        task = models.Task.objects.filter(types=is_type)
+        if task.exists():
+            return serializers.TaskAdmin(task, request=request).data
     class Meta:
         param_fields = (
             ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),

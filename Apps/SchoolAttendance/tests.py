@@ -32,6 +32,6 @@ class Task(TestCase):
 
     def test_task_obtain(self):
         data = {'type1':'0'}
-        response =1#self.client.post(self.http_api+'task/obtain',data).json()
+        response =self.client.post(self.http_api+'task/obtain',data).json()
         print(response)
         # self.assertEqual(response['code'],5007)
