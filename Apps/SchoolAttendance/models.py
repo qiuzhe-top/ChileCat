@@ -121,7 +121,7 @@ class Task(models.Model):
 
     def __str__(self):
         """Unicode representation of Manage."""
-        return self.user.username + "-" + self.college.name + "-" + self.get_types_display()
+        return  self.college.name + "-" + self.get_types_display()
 
 @admin_register(
     raw_id_fields = ['user',]

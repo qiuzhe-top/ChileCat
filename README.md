@@ -1,3 +1,11 @@
+<!--
+ * @Author: 邹洋
+ * @Date: 2021-07-04 13:27:27
+ * @Email: 2810201146@qq.com
+ * @LastEditors:  
+ * @LastEditTime: 2021-07-14 15:20:56
+ * @Description: 
+-->
 ## 分配考勤管理员
 分配权限实现后台登陆，和相对应考勤页面的进入
  - 设置用户 勾选 《工作人员状态》 确保能够登录后台
@@ -20,5 +28,6 @@ python manage.py makemigrations SchoolAttendance
 python manage.py migrate
 
 python manage.py createsuperuser
+
 qiuzhe
 zhou24272592

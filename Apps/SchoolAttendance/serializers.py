@@ -25,7 +25,7 @@ class TaskAdmin(views.BaseSerializer):
 
     class Meta:
         model = models.Task
-        fields = ('id', 'is_open')  # 包含
+        fields = '__all__'#('id', 'types')  # 包含
 
 
 class TaskBuilder(serializers.ModelSerializer):

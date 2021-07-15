@@ -3,108 +3,45 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-06 20:54:59
+LastEditTime: 2021-07-14 15:17:33
 Description: 
 '''
-from os import name
-from django.utils import tree
-from core.excel_utils import at_all_out_xls, out_knowing_data
 import datetime
+import json
+from itertools import chain
+from os import name
 from typing import List
-from django.db.models import manager
-from django.db.models.aggregates import Count, Sum
 
-from django.db.models.manager import Manager
-from django.db.models.query_utils import Q
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
-from django.http import JsonResponse
-from django.shortcuts import render
-from rest_framework.pagination import PageNumberPagination
-from cool.views import (
-    CoolAPIException,
-    CoolBFFAPIView,
-    ErrorCode,
-    ViewSite,
-    param,
-    utils,
-)
-from django.utils.translation import gettext_lazy as _
-
-# Create your views here.
-from rest_framework.views import APIView
+from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
+                        param, utils)
+from core.excel_utils import at_all_out_xls, out_knowing_data
 # from .service.knowing import knowing
 from django.contrib.auth.models import User
-from . import models, serializers
-from .service import knowing, health, late
-from itertools import chain
-import json
+from django.db.models import manager
+from django.db.models.aggregates import Count, Sum
+from django.db.models.manager import Manager
+from django.db.models.query_utils import Q
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import tree
+from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
+from rest_framework.pagination import PageNumberPagination
+# Create your views here.
+from rest_framework.views import APIView
 
-
-'''
-SchoolAttendance
-
-类型 任务
-
-TaskSwitch
-任务开启
-
-TaskLateClear
-清除晚自习任务状态
-TaskKnowingClear
-清除查寝任务状态
-
-LateScheduling
-scheduling
-排班
-
-task_roomInfo
-获取任务数据
-
-submit
-任务提交
-
-condition
-查看考勤工作情况
-
-undo_record
-销假
-
-Rule
-获取规则
-
-in_zaoqian_excel
-导入早签数据
-
-progress
-查看考勤进度
-
-out_data
-数据导出
-
-storey
-晚查寝-楼工作数据
-
-room
-晚查寝-层工作数据
-
-room_students
-晚查寝-房间工作数据
-
-StudentDisciplinary
-考勤公告
-
-LateClass
-晚自修-管理的班级  班级内的学生
-'''
+from . import models, serializers
+from .service import health, knowing, late
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
+
 
 @site
 class TaskObtain(CoolBFFAPIView):
     name = _('获取任务')
-    response_info_serializer_class = serializers.TaskAdmin
+    # response_info_serializer_class = serializers.TaskAdmin
 
     def get_context(self, request, *args, **kwargs):
         is_type = request.params.type
@@ -115,6 +52,8 @@ class TaskObtain(CoolBFFAPIView):
         param_fields = (
             ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),
         )
+
+
 # @site
 # class TaskSwitch(CoolBFFAPIView):
 #     name = _('开启/关闭任务')
@@ -147,7 +86,7 @@ class TaskObtain(CoolBFFAPIView):
 #         except:
 #             print('参数获取错误')
 #             return JsonResponse(ret)
-            
+
 #         task = models.Task.objects.get(id=id)
 
 #         message = TaskManage(task).clear_task()
@@ -212,7 +151,7 @@ class TaskObtain(CoolBFFAPIView):
 #                 [
 #                     {
 #                         user_id:2 # 用户ID
-#                         name: 张三 
+#                         name: 张三
 #                     }
 #                 ]
 #         权限判断
@@ -300,6 +239,7 @@ class TaskObtain(CoolBFFAPIView):
 
 from django.db.models import Aggregate
 
+
 class Msum(Aggregate):
     # Supports SUM(ALL field).
     function = 'SUM'
@@ -308,13 +248,12 @@ class Msum(Aggregate):
 
     def __init__(self, expression, all_values=False, **extra):
         # print(self, expression, all_values, **extra)
-        super().__init__(
-            expression,
-            all_values='ALL ' if all_values else '',
-            **extra
-        )
+        super().__init__(expression, all_values='ALL ' if all_values else '', **extra)
         # return "123"
+
+
 from django.db.models import Aggregate, CharField
+
 
 # 自定义聚合函数的名字
 class Concat(Aggregate):  # 写一个类继承Aggregate，
@@ -327,53 +266,70 @@ class Concat(Aggregate):  # 写一个类继承Aggregate，
             distinct='DISTINCT ' if distinct else '',
             output_field=CharField(),
             arg_joiner="-",
-            **extra)
+            **extra
+        )
+
+
 from django.db.models import F
+
+
 class OutData(APIView):
-    API_PERMISSIONS = ['进入结果','get']
+    API_PERMISSIONS = ['进入结果', 'get']
+
     def get(self, request, *args, **kwargs):
         '''导出今日记录情况
-            request:
-                id:任务ID
+        request:
+            id:任务ID
         '''
         ret = {}
         # 获取用户所属分院
         # TODO 优化时间查询默认值
         now = datetime.datetime.now()
-        t = datetime.datetime(now.year,now.month,now.day)
-        t = datetime.datetime.strftime(t,"%Y-%m-%d")
-        start_date = request.GET.get('start_date',t)
-        end_date = request.GET.get('end_date',t)
-        username = request.GET.get('username','')
+        t = datetime.datetime(now.year, now.month, now.day)
+        t = datetime.datetime.strftime(t, "%Y-%m-%d")
+        start_date = request.GET.get('start_date', t)
+        end_date = request.GET.get('end_date', t)
+        username = request.GET.get('username', '')
 
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
+        end_date = datetime.datetime(
+            end_date.year, end_date.month, end_date.day, 23, 59, 59
+        )
         q1 = Q(manager__isnull=True)
         q2 = Q(star_time__range=(start_date, end_date))
-        q3 = Q(student_approved = User.objects.get(username=username)) if len(username) > 0 else q1
-     
-        records = models.Record.objects.filter(q2 & q1 & q3).values(
-                    grade=F('grade_str'),
-                    name=F('student_approved__userinfo__name'),
-                    # rule_=F('rule__rule__name'),
-                ).annotate(
-                    rule=Concat('rule_str'),
-                    score_onn=Concat('score'),
-                    score=Sum('score'),
-                    time=Concat('star_time'),
-                    rule_type=Concat('rule__rule__codename'),
-                ).values(
-                    'grade',
-                    'name',
-                    'rule_type',
-                    'rule',
-                    'score_onn',
-                    'score',
-                    'time',
-                    usernames=F('student_approved__username'),
-                )
-        
+        q3 = (
+            Q(student_approved=User.objects.get(username=username))
+            if len(username) > 0
+            else q1
+        )
+
+        records = (
+            models.Record.objects.filter(q2 & q1 & q3)
+            .values(
+                grade=F('grade_str'),
+                name=F('student_approved__userinfo__name'),
+                # rule_=F('rule__rule__name'),
+            )
+            .annotate(
+                rule=Concat('rule_str'),
+                score_onn=Concat('score'),
+                score=Sum('score'),
+                time=Concat('star_time'),
+                rule_type=Concat('rule__rule__codename'),
+            )
+            .values(
+                'grade',
+                'name',
+                'rule_type',
+                'rule',
+                'score_onn',
+                'score',
+                'time',
+                usernames=F('student_approved__username'),
+            )
+        )
+
         for record in records:
             rule_type = record['rule_type'].split(',')
             rule = record['rule'].split(',')
@@ -381,16 +337,16 @@ class OutData(APIView):
             time = record['time'].split(',')
 
             # 根据rule_type 把违纪情况拆分合并为 分数1 分数1 分数1 原因1 原因1 原因1
-            for index in range(0,len(rule_type)):
+            for index in range(0, len(rule_type)):
                 type_ = rule_type[index]
 
-                if not type_+'score' in record:
+                if not type_ + 'score' in record:
                     record['0#001score'] = 0
                     record['0#002score'] = 0
                     record['0#003score'] = 0
                     record['0#004score'] = 0
                     record['0#005score'] = 0
-                if not type_+'rule' in record:
+                if not type_ + 'rule' in record:
                     record['0#001rule'] = ''
                     record['0#002rule'] = ''
                     record['0#003rule'] = ''
@@ -398,12 +354,12 @@ class OutData(APIView):
                     record['0#005rule'] = ''
 
                 # 分数累加
-                record[type_+'score'] += int(score_onn[index])
+                record[type_ + 'score'] += int(score_onn[index])
 
                 # 规则拼接
                 t = time[index][5:10]
-                record[type_+'rule'] += t + ":" + str(rule[index]) + ','
-         
+                record[type_ + 'rule'] += t + ":" + str(rule[index]) + ','
+
             del record['time']
             del record['rule_type']
             del record['rule']
@@ -412,48 +368,49 @@ class OutData(APIView):
         # return JsonResponse({})
         return at_all_out_xls(records)
 
+
 class knowingExcelOut(APIView):
     API_PERMISSIONS = ['查寝当天数据导出']
-    def get(self, request, *args, **kwargs):
-        '''查寝当天数据导出
-        '''
 
-        task_id = request.GET.get('task_id',False)
+    def get(self, request, *args, **kwargs):
+        '''查寝当天数据导出'''
+
+        task_id = request.GET.get('task_id', False)
         if not task_id:
-            return JsonResponse(
-                {"state": "5000", "msg": "no role"}
-            )
+            return JsonResponse({"state": "5000", "msg": "no role"})
         task = models.Task.objects.get(id=task_id)
 
         time_get = datetime.date.today()
 
-        records = models.Record.objects.filter(Q(star_time__date=time_get),task=task)
+        records = models.Record.objects.filter(Q(star_time__date=time_get), task=task)
         if not records:
-            return JsonResponse(
-                {"state": "5000", "msg": "no data  bacak"}
-            )
+            return JsonResponse({"state": "5000", "msg": "no data  bacak"})
         ser_records = serializers.TaskRecordExcelSerializer(
-            instance=records, many=True).data
-            
+            instance=records, many=True
+        ).data
+
         return out_knowing_data(ser_records)
 
+
 class TaskExecutor(APIView):
-    API_PERMISSIONS = ['工作者获取任务','*get']
-    
+    API_PERMISSIONS = ['工作者获取任务', '*get']
+
     def get(self, request, *args, **kwargs):
-        '''工作人员获取任务 
-            response:
-                [{
-                    id:2                    # 任务ID
-                    title:智慧彩云 晚查寝    # 名称
-                    builder_name:张三       # 创建者姓名
-                    is_finish:true          # 是否完成任务
-                    type:'0'                # 任务类型
-                },]
+        '''工作人员获取任务
+        response:
+            [{
+                id:2                    # 任务ID
+                title:智慧彩云 晚查寝    # 名称
+                builder_name:张三       # 创建者姓名
+                is_finish:true          # 是否完成任务
+                type:'0'                # 任务类型
+            },]
         '''
         ret = {}
-        tasks = models.TaskPlayer.objects.filter(user=request.user,is_admin=False,task__is_open=True)
-        ser = serializers.TaskExecutor(instance=tasks,many=True).data
+        tasks = models.TaskPlayer.objects.filter(
+            user=request.user, is_admin=False, task__is_open=True
+        )
+        ser = serializers.TaskExecutor(instance=tasks, many=True).data
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = ser
@@ -461,23 +418,23 @@ class TaskExecutor(APIView):
 
 
 class Rule(APIView):
-    API_PERMISSIONS = ['规则','*get']
+    API_PERMISSIONS = ['规则', '*get']
 
     def get(self, request, *args, **kwargs):
         '''获取规则
-            request:
-                codename: 规则编号
-            response:
-                list:[{
-                    id:规则ID
-                    name:规则名称
-                    parent_id:父级ID
-                }]
+        request:
+            codename: 规则编号
+        response:
+            list:[{
+                id:规则ID
+                name:规则名称
+                parent_id:父级ID
+            }]
         '''
         ret = {}
         codename = request.GET['codename']
         rule = models.Rule.objects.get(codename=codename)
-        data = rule.ruledetails_set.all().values('id','name','parent_id','score')
+        data = rule.ruledetails_set.all().values('id', 'name', 'parent_id', 'score')
         ret['message'] = 'message'
         ret['code'] = 2000
         ret['data'] = list(data)
@@ -485,17 +442,18 @@ class Rule(APIView):
 
 
 class Submit(APIView):
-    API_PERMISSIONS=['考勤提交','*post']
+    API_PERMISSIONS = ['考勤提交', '*post']
+
     def post(self, request, *args, **kwargs):
         '''考勤提交
-            request:
-                task_id: 2               # 任务ID
-                type: 0/1           # 提交类型 0=> 考勤提交 1=>执行人确认任务完成
-                data:
-                    rule_id:[1,2,3]     # 规则的ID列表
-                    user_id:2           # 用户ID
-                    flg :               # 点名状态
-                    room_id:20          # 寝室ID
+        request:
+            task_id: 2               # 任务ID
+            type: 0/1           # 提交类型 0=> 考勤提交 1=>执行人确认任务完成
+            data:
+                rule_id:[1,2,3]     # 规则的ID列表
+                user_id:2           # 用户ID
+                flg :               # 点名状态
+                room_id:20          # 寝室ID
         '''
         ret = {'message': '', 'code': 2000, 'data': 'data'}
         # 获取参数
@@ -504,7 +462,9 @@ class Submit(APIView):
         type_ = request.data['type']
         # 获取任务
         task = models.Task.objects.get(id=task_id)
-        n = models.TaskPlayer.objects.filter(task=task,user=request.user,is_admin=False).count()
+        n = models.TaskPlayer.objects.filter(
+            task=task, user=request.user, is_admin=False
+        ).count()
 
         if n <= 0:
             ret['code'] = 4000
@@ -512,7 +472,7 @@ class Submit(APIView):
             return JsonResponse(ret)
 
         if type_ == 0:
-            code =  TaskManage(task).submit(data,request.user)
+            code = TaskManage(task).submit(data, request.user)
             if code == 4001:
                 ret['code'] = code
                 ret['message'] = '活动未开启'
@@ -520,24 +480,27 @@ class Submit(APIView):
             pass
         return JsonResponse(ret)
 
+
 class SubmitPublic(APIView):
     def post(self, request, *args, **kwargs):
         '''通用考勤规则提交
-            user_username_list:[]
-            rule_id_list:[]
+        user_username_list:[]
+        rule_id_list:[]
         '''
 
         pass
 
+
 class TaskRoomInfo(APIView):
-    API_PERMISSIONS = ['晚查寝数据','*get']
+    API_PERMISSIONS = ['晚查寝数据', '*get']
+
     def get(self, request, *args, **kwargs):
         '''宿舍 相关任务信息
             request:
                 task_id: 1 # 任务ID
                 floor_id：1 # 楼层ID
                 room_id:1 # 房间ID
-                type: 
+                type:
                     0 # 获取楼层
                     1 # 获取房间
                     2 # 获取房间内学生状态
@@ -546,33 +509,44 @@ class TaskRoomInfo(APIView):
         ret = {'message': 'message', 'code': 2000, 'data': 'data'}
         task_id = request.GET['task_id']
         types = request.GET['type']
-        floor_id = request.GET.get('floor_id',-1)
-        room_id = request.GET.get('room_id',-1)
+        floor_id = request.GET.get('floor_id', -1)
+        room_id = request.GET.get('room_id', -1)
         task = models.Task.objects.get(id=task_id)
 
-        data = TaskManage(task).task_roomInfo(int(types),request.user,floor_id,room_id)
+        data = TaskManage(task).task_roomInfo(
+            int(types), request.user, floor_id, room_id
+        )
         ret['data'] = data
         return JsonResponse(ret)
 
 
 # 学生查看公告
 class StudentDisciplinary(APIView):
-    API_PERMISSIONS=['考勤公告','get']
-    def get(self,request):
+    API_PERMISSIONS = ['考勤公告', 'get']
+
+    def get(self, request):
         '''
         request：
-        
-        response 
+
+        response
             room_name
             student
             reason
         '''
         # TODO 支持查看本学院的情况
-        task_id_list = models.Task.objects.filter(types='0').values_list('id',flat=True)
-        now = datetime.datetime.now() #,star_time__date=datetime.date(now.year, now.month,now.day))
-        records = models.Record.objects.filter(task__in=task_id_list,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
-        ser = serializers.StudentDisciplinary(instance=records,many=True).data
-        ret = {}   
+        task_id_list = models.Task.objects.filter(types='0').values_list(
+            'id', flat=True
+        )
+        now = (
+            datetime.datetime.now()
+        )  # ,star_time__date=datetime.date(now.year, now.month,now.day))
+        records = models.Record.objects.filter(
+            task__in=task_id_list,
+            manager=None,
+            star_time__date=datetime.date(now.year, now.month, now.day),
+        )
+        ser = serializers.StudentDisciplinary(instance=records, many=True).data
+        ret = {}
         ret['code'] = 2000
         ret['message'] = '查询成功'
         ret['data'] = ser
@@ -584,20 +558,22 @@ class LateClass(APIView):
 
     def get(self, request, *args, **kwargs):
         '''晚自修 相关数据
-            request:
-                task_id:任务ID
-                rule_id:规则ID
-                class_id:班级ID
-                type: 
-                    0 # 获取任务绑定的班级
-                    1 # 获取班级名单附带学生多次点名情况
+        request:
+            task_id:任务ID
+            rule_id:规则ID
+            class_id:班级ID
+            type:
+                0 # 获取任务绑定的班级
+                1 # 获取班级名单附带学生多次点名情况
         '''
         ret = {}
         type_ = int(request.GET['type'])
         task_id = request.GET['task_id']
         task = models.Task.objects.get(id=task_id)
         if type_ == 0:
-            grades = models.Task.objects.get(id=task_id).grades.all().values('id','name')
+            grades = (
+                models.Task.objects.get(id=task_id).grades.all().values('id', 'name')
+            )
             ret['code'] = 2000
             ret['data'] = list(grades)
             return JsonResponse(ret)
@@ -606,10 +582,12 @@ class LateClass(APIView):
             rule_id = request.GET['rule_id']
             users = SchoolInformationModels.Grade.objects.get(id=class_id).get_users()
             rule = models.RuleDetails.objects.get(id=rule_id)
-            l = [] #TODO 性能影响
+            l = []  # TODO 性能影响
             for u in users:
-                call,flg = models.UserCall.objects.get_or_create(task=task,user=u,rule=rule)
-                d={}
+                call, flg = models.UserCall.objects.get_or_create(
+                    task=task, user=u, rule=rule
+                )
+                d = {}
                 d['username'] = u.username
                 d['name'] = u.userinfo.name
                 d['flg'] = call.flg
@@ -618,19 +596,23 @@ class LateClass(APIView):
             ret['code'] = 2000
             ret['data'] = l
             return JsonResponse(ret)
+
+
 class RecordQueryrPagination(PageNumberPagination):
-    #每页显示多少个
+    # 每页显示多少个
     page_size = 30
-    #默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
+    # 默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
     page_size_query_param = "size"
-    #最大页数不超过10
-    #max_page_size = 10
-    #获取页码数的
+    # 最大页数不超过10
+    # max_page_size = 10
+    # 获取页码数的
     page_query_param = "page"
 
+
 class RecordQuery(APIView):
-    API_PERMISSIONS = ['考勤查询','get']
-    def get(self,request):
+    API_PERMISSIONS = ['考勤查询', 'get']
+
+    def get(self, request):
         '''考勤记录查询接口
         request：
             start_date：2005-1-1
@@ -639,7 +621,7 @@ class RecordQuery(APIView):
         '''
         ret = {}
 
-        username = request.GET.get('username',None)
+        username = request.GET.get('username', None)
         start_date = request.GET['start_date']
         end_date = request.GET['end_date']
 
@@ -647,29 +629,34 @@ class RecordQuery(APIView):
         # end_date = datetime.date(*json.loads(end_date))
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day,23,59,59)
+        end_date = datetime.datetime(
+            end_date.year, end_date.month, end_date.day, 23, 59, 59
+        )
         Data = models.Record.objects.filter(
-                star_time__range=(start_date, end_date),
-                manager__isnull=True
-            )
-        # 警告:过滤具有日期的DateTimeField不会包含最后一天，因为边界被解释为“给定日期的0am”。   
+            star_time__range=(start_date, end_date), manager__isnull=True
+        )
+        # 警告:过滤具有日期的DateTimeField不会包含最后一天，因为边界被解释为“给定日期的0am”。
         if username:
             try:
-                user = User.objects.get(Q(username=username)|Q(userinfo__name=username))
+                user = User.objects.get(
+                    Q(username=username) | Q(userinfo__name=username)
+                )
                 Data = Data.filter(student_approved=user)
             except:
                 Data = []
 
         pg = RecordQueryrPagination()
-        page_roles = pg.paginate_queryset(queryset=Data,request=request,view=self)
-        #对数据进行序列化
-        ser = serializers.RecordQuery(instance=page_roles,many=True).data
+        page_roles = pg.paginate_queryset(queryset=Data, request=request, view=self)
+        # 对数据进行序列化
+        ser = serializers.RecordQuery(instance=page_roles, many=True).data
         # print(len(ser))
         ret['message'] = "获取成功"
         ret['code'] = 2000
         # page = round(len(Data) / pg.page_size)
-        ret['data'] =  {"total":len(Data),"results":ser,"page_size":pg.page_size} 
+        ret['data'] = {"total": len(Data), "results": ser, "page_size": pg.page_size}
         return JsonResponse(ret)
+
+
 # ----------------------------------------------------------------
 # class ExportExcel(APIView):
 #     """导出excel """
