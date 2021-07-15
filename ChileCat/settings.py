@@ -93,6 +93,7 @@ if DEBUG:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+   
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -190,5 +191,6 @@ DJANGO_COOL = {
         ('ERR_USER_DUPLICATE_EMAIL', (5005, '邮箱已存在')),
         ('ERR_USER_EMAIL_FORMAT_ERROR', (5006, '邮箱格式错误')),
         ('ERR_USER_UNABLE_TO_SEARCH_FOR_USERR', (5008, '搜索的用户不存在')),
+        ('ERR_TAKS_USER_HAS_NO_TASK', (5021, '没有对应任务')),
     )
 }

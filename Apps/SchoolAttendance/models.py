@@ -105,13 +105,13 @@ class Task(models.Model):
     roster = models.TextField(
         verbose_name=u'班表', null=True, blank=True, default=u'[]')
     college = models.ForeignKey(
-        College, null=True, on_delete=models.CASCADE, verbose_name=u'分院')
+        College, null=True, blank=True, on_delete=models.CASCADE, verbose_name=u'分院')
     admin = models.ManyToManyField(
-        User, null=True,  verbose_name=u'管理员')
+        User, null=True, blank=True,  verbose_name=u'管理员')
     buildings = models.ManyToManyField(
-        Building, null=True, verbose_name=u'关联楼')
+        Building, null=True, blank=True, verbose_name=u'关联楼')
     grades = models.ManyToManyField(
-        Grade, null=True, verbose_name=u'关联班级')
+        Grade, null=True, blank=True, verbose_name=u'关联班级')
 
     class Meta:
         """Meta definition for Manage."""
@@ -119,9 +119,15 @@ class Task(models.Model):
         verbose_name = '任务'
         verbose_name_plural = '任务'
 
+    def get_name(self):
+        if self.college != None:
+            return self.college.name + " " + self.get_types_display()
+        else:
+            return self.get_types_display()
+
     def __str__(self):
         """Unicode representation of Manage."""
-        return  self.college.name + "-" + self.get_types_display()
+        return  self.get_name()
 
 @admin_register(
     raw_id_fields = ['user',]

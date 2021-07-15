@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-14 15:17:33
+LastEditTime: 2021-07-15 13:22:16
 Description: 
 '''
 import datetime
@@ -54,16 +54,26 @@ class TaskObtain(CoolBFFAPIView):
 
 class TaskBase(CoolBFFAPIView):
     
-
-    need_permissions = ()
-
-    def __init__(self,request, **kwargs: Any) -> None:
-        print(request.params)
-        super().__init__(**kwargs)
-
     def get_context(self, request, *args, **kwargs):
         raise NotImplementedError
+    
+    def get_task(self, request, *args, **kwargs):
+        '''通过任务id获取任务'''
+        try:
+            id = request.params.task_id
+            return models.Task.objects.get(id=id)
+        except:
+            raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
 
+    def get_task_by_user(self, request, *args, **kwargs):
+        '''通过用户和任务id获取任务'''
+        try:
+            id = request.params.task_id
+            user = request.user
+            return models.Task.objects.get(id=id,admin=user)
+        except:
+            raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
+              
     class Meta:
         path = '/'
 
@@ -73,11 +83,7 @@ class TaskSwitch(TaskBase):
     response_info_serializer_class = serializers.TaskSwitch
 
     def get_context(self, request, *args, **kwargs):
-        id = request.params.id
-        # try:
-        task = models.Task.objects.get(id=id,admin=request.user)
-        # except:
-        #     raise CoolAPIException(ErrorCode.)
+        task =self.get_task_by_user()
         task.is_open = not task.is_open
         task.save()
         return serializers.TaskSwitch(task,request=request).data
