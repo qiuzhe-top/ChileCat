@@ -7,13 +7,11 @@ LastEditTime: 2021-07-11 14:53:35
 Description: 
 '''
 
-from django.contrib.contenttypes.models import ContentType
 from Apps.User.utils.auth import get_groups
-from cool.views import view
-from . import models
-from rest_framework import fields, serializers
 from cool import views
-from rest_framework import serializers
+from cool.views import view
+from django.contrib.contenttypes.models import ContentType
+from rest_framework import fields, serializers
 
 from . import models
 from .backend import BaseUserBackend

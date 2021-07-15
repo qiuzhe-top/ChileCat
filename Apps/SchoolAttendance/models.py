@@ -99,7 +99,7 @@ class Task(models.Model):
         (u'1', u'查卫生'),
         (u'2', u'晚自修')
     )
-    is_open = models.BooleanField(verbose_name='是否开启')
+    is_open = models.BooleanField(verbose_name='是否开启',default=False)
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
     roster = models.TextField(

@@ -20,13 +20,16 @@ class Task(TestCase):
     def setUp(self) -> None:
         self.username = '195101'
 
-        self.api = '/api/attendance/'
+        self.api = '/api/school/attendance/'
         self.http_api = 'http://127.0.0.1:8000' + self.api
 
-        task = models.Task.objects.create(is_open=True, types='0')
         u = User.objects.create_user(username=self.username)
-        u.save()
 
+        u.save()
+        task = models.Task.objects.create(is_open=True, types='0')
+        task.admin.add(u)
+        task.save()
+        self.task_id = task.id
         self.client = RequestsClient()
         self.set_token()
 
@@ -40,7 +43,13 @@ class Task(TestCase):
         self.client.headers.update({'TOKEN': token})
 
     def test_task_obtain(self):
-        data = {'type1':'0'}
+        data = {'type':'0'}
         response =self.client.post(self.http_api+'task/obtain',data).json()
-        print(response)
-        # self.assertEqual(response['code'],5007)
+        print('任务：获取任务',response)
+        self.assertEqual(response['code'],0)
+
+    def test_TaskSwitch(self):
+        data = {'id':self.task_id}
+
+        response =self.client.post(self.http_api+'task/switch',data).json()
+        print('任务：开启/关闭任务',response,data)

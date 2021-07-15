@@ -10,7 +10,7 @@ import datetime
 import json
 from itertools import chain
 from os import name
-from typing import List
+from typing import Any, List
 
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
@@ -27,7 +27,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import tree
 from django.utils.translation import gettext_lazy as _
-from rest_framework import fields
+from rest_framework import fields, request
 from rest_framework.pagination import PageNumberPagination
 # Create your views here.
 from rest_framework.views import APIView
@@ -40,36 +40,53 @@ site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 @site
 class TaskObtain(CoolBFFAPIView):
+
     name = _('获取任务')
-    # response_info_serializer_class = serializers.TaskAdmin
+    response_info_serializer_class = serializers.TaskObtain
 
     def get_context(self, request, *args, **kwargs):
-        is_type = request.params.type
-        task = models.Task.objects.filter(types=is_type)
-        if task.exists():
-            return serializers.TaskAdmin(task, request=request).data
+        task = models.Task.objects.filter(admin=request.user,types=request.params.type)
+        return serializers.TaskObtain(task,many=True, request=request).data
     class Meta:
         param_fields = (
             ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),
         )
 
+class TaskBase(CoolBFFAPIView):
+    
 
-# @site
-# class TaskSwitch(CoolBFFAPIView):
-#     name = _('开启/关闭任务')
-#     response_info_serializer_class = serializers
+    need_permissions = ()
 
-#     def get_context(self, request, *args, **kwargs):
-#         id = request.data['id']
-#         task = models.Task.objects.get(id=id)
-#         task.is_open = not task.is_open
-#         flg = task.is_open
-#         task.save()
-#         return serializers.XX.json()
+    def __init__(self,request, **kwargs: Any) -> None:
+        print(request.params)
+        super().__init__(**kwargs)
+
+    def get_context(self, request, *args, **kwargs):
+        raise NotImplementedError
+
+    class Meta:
+        path = '/'
+
+@site
+class TaskSwitch(TaskBase):
+    name = _('开启/关闭任务')
+    response_info_serializer_class = serializers.TaskSwitch
+
+    def get_context(self, request, *args, **kwargs):
+        id = request.params.id
+        # try:
+        task = models.Task.objects.get(id=id,admin=request.user)
+        # except:
+        #     raise CoolAPIException(ErrorCode.)
+        task.is_open = not task.is_open
+        task.save()
+        return serializers.TaskSwitch(task,request=request).data
 
 
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
+    class Meta:
+        param_fields = (
+            ('id', fields.CharField(label=_('任务类型id'), max_length=8)),
+        )
 # @site
 # class TaskRest(CoolBFFAPIView):
 #     name = _('重置任务状态')
