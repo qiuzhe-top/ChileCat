@@ -31,6 +31,14 @@ class TaskSwitch(views.BaseSerializer):
         model = models.Task
         fields =('is_open',)  # 包含
 
+class ConditionRecord(views.BaseSerializer):
+    '''获取考勤执行记录 晚查寝 晚自修'''
+    student_approved = serializers.CharField(source='student_approved.userinfo.name')
+    student_approved_number = serializers.CharField(source='student_approved.username')
+    worker = serializers.CharField(source='worker.userinfo.name')
+    class Meta:
+        model = models.Record
+        fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
 
 
 
@@ -76,14 +84,6 @@ class TaskExecutor(serializers.ModelSerializer):
         model = models.TaskPlayer
         fields = ('id', 'title','builder_name','is_finish','type')  # 包含
 
-class ConditionRecord(serializers.ModelSerializer):
-    '''获取考勤执行记录 晚查寝 晚自修'''
-    student_approved = serializers.CharField(source='student_approved.userinfo.name')
-    student_approved_number = serializers.CharField(source='student_approved.username')
-    worker = serializers.CharField(source='worker.userinfo.name')
-    class Meta:
-        model = models.Record
-        fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
 
 class RecordQuery(serializers.ModelSerializer):
     '''考勤结果查询'''

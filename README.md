@@ -31,3 +31,5 @@ python manage.py createsuperuser
 
 qiuzhe
 zhou24272592
+
+python manage.py test Apps.SchoolAttendance.tests.

@@ -12,6 +12,8 @@ from itertools import chain
 from os import name
 from typing import Any, List
 
+from openpyxl.reader.excel import load_workbook
+
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
@@ -53,28 +55,47 @@ class TaskObtain(CoolBFFAPIView):
         )
 
 class TaskBase(CoolBFFAPIView):
-    
+
     def get_context(self, request, *args, **kwargs):
         raise NotImplementedError
     
-    def get_task(self, request, *args, **kwargs):
+    def get_task(self):
         '''通过任务id获取任务'''
         try:
-            id = request.params.task_id
-            return models.Task.objects.get(id=id)
+            id = self.request.params.task_id
+            self.task = models.Task.objects.get(id=id)
+            return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
 
-    def get_task_by_user(self, request, *args, **kwargs):
+    def get_task_by_user(self):
         '''通过用户和任务id获取任务'''
         try:
-            id = request.params.task_id
-            user = request.user
-            return models.Task.objects.get(id=id,admin=user)
+            id = self.request.params.task_id
+            user = self.request.user
+            self.task = models.Task.objects.get(id=id,admin=user)
+            return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
-              
+    
+    def init_scheduling(self,users,roster):
+        '''初始化班表'''
+        self.get_task_by_user()
+
+        # 历史班表清空
+        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
+
+        # 新用户进行任务绑定
+        for u in users:
+            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
+
+        roster = json.dumps(roster)
+        self.task.save()
+
     class Meta:
+        param_fields = (
+            ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
+        )
         path = '/'
 
 @site
@@ -88,163 +109,212 @@ class TaskSwitch(TaskBase):
         task.save()
         return serializers.TaskSwitch(task,request=request).data
 
+@site
+class TaskRestKnowing(TaskBase):
+    name = _('重置查寝任务状态')
+
+    def get_context(self, request, *args, **kwargs):
+        task = self.get_task_by_user()
+        # TODO 请简化循环
+        b = task.buildings.all()
+        for i in b:
+            for j in i.floor.all():
+                for k in j.room.all():
+                    k.dorm_status = False
+                    k.save()
+
+        models.RoomHistory.objects.filter(task=task).update(is_knowing=False)
+        models.TaskFloorStudent.objects.filter(task=task).update(flg=True)
+
+
+@site
+class TaskRestLate(TaskBase):
+    name = _('重置晚自习任务状态')
+
+    def get_context(self, request, *args, **kwargs):
+        task = self.get_task_by_user()
+        models.UserCall.objects.filter(task=task).update(flg=None)
+
+
+
+@site
+class Scheduling(TaskBase):
+    name = _('获取班表')
+
+    def get_context(self, request, *args, **kwargs):
+        return self.get_task_by_user().roster
+
+
+@site
+class SchedulingUpdateKnowing(TaskBase):
+    name = _('修改查寝班表')
+
+    def get_context(self, request, *args, **kwargs):
+    
+        roster = request.params.roster
+        user_list = []
+        for item in roster:
+            for layer in item['layer_list']:
+                for user in layer['user']:
+                    if len(item['title'][:1]) != 0 and len(user['username']) != 0:
+                        # 当前工作用户   # TODO 如果用户查找失败怎么处理
+                        u = User.objects.get(username=user['username'])
+                        user_list.append(u)
+
+        self.init_scheduling(user_list,roster)
+
 
     class Meta:
         param_fields = (
-            ('id', fields.CharField(label=_('任务类型id'), max_length=8)),
+            ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
+            ('roster', fields.CharField(label=_('班表'), max_length=8)),
         )
-# @site
-# class TaskRest(CoolBFFAPIView):
-#     name = _('重置任务状态')
-#     response_info_serializer_class = serializers
-
-#     def get_context(self, request, *args, **kwargs):
-#         '''清除任务状态
-#             request:
-#                 id:1 # 任务ID
-#         '''
-#         ret = {}
-#         try:
-#             id = int(request.data.get('task_id'))
-#         except:
-#             print('参数获取错误')
-#             return JsonResponse(ret)
-
-#         task = models.Task.objects.get(id=id)
-
-#         message = TaskManage(task).clear_task()
-
-#         ret['message'] = message
-#         ret['code'] = 2000
-#         return serializers.XX.json()
 
 
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
-# @site
-# class Scheduling(CoolBFFAPIView):
-#     name = _('获取班表')
-#     response_info_serializer_class = serializers
+@site
+class SchedulingUpdateLate(TaskBase):
+    name = _('修改晚自习班表')
 
-#     def get_context(self, request, *args, **kwargs):
-#         id = request.GET['id']
-#         roster = models.Task.objects.get(id=int(id)).roster
-#         return serializers.XX.json()
+    def get_context(self, request, *args, **kwargs):
+    
+        roster = request.params.roster
+        user_list = []
+        roster_new = []
+        # 从班表里面获取用户
+        for item in roster:
+            u = User.objects.filter(username=item['username'])
+            if len(u) == 1:
+                user_list.append(u[0])
+                roster_new.append(item)
 
-
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
-
-# @site
-# class SchedulingUpdate(CoolBFFAPIView):
-#     name = _('修改班表')
-#     response_info_serializer_class = serializers
-
-#     def get_context(self, request, *args, **kwargs):
-#         '''更改班表
-#             request：
-#                 id: 任务id
-#                 roster: 对应班表
-#         '''
-#         ret = {}
-#         roster = request.data['roster']
-#         id = request.data['id']
-#         task = models.Task.objects.get(id=id)
-
-#         message = TaskManage(task).scheduling(roster)
-#         ret['message'] = message
-#         ret['code'] = 2000
-#         ret['data'] = roster
-#         return serializers.XX.json()
+        self.init_scheduling(user_list,roster_new)
+        
+        return '执行成功' + '更新' + str(len(roster_new)) + '个学生' 
 
 
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
+    class Meta:
+        param_fields = (
+            ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
+            ('roster', fields.CharField(label=_('班表'), max_length=8)),
+        )
+@site
+class Condition(TaskBase):
 
-# @site
-# class Condition(CoolBFFAPIView):
-#     name = _('考勤工作情况')
-#     response_info_serializer_class = serializers
+    name = _('考勤学生记录情况')
+    response_info_serializer_class = serializers.ConditionRecord
 
-#     def get_context(self, request, *args, **kwargs):
-#         '''查看当天考勤工作情况
-#             request:
-#                 task_id:2 # 任务id
-#             response:
-#                 [
-#                     {
-#                         user_id:2 # 用户ID
-#                         name: 张三
-#                     }
-#                 ]
-#         权限判断
-#         '''
-#         ret = {}
-#         task_id = request.GET['task_id']
-#         task = models.Task.objects.get(id=task_id)
+    def get_context(self, request, *args, **kwargs):
+        task = self.get_task_by_user()
+        now = datetime.datetime.now() 
+        records = models.Record.objects.filter(
+            task=task,
+            manager=None,
+            star_time__date=datetime.date(now.year, now.month, now.day),
+        )
+        return serializers.ConditionRecord(records, request=request).data
+        
 
-#         data = TaskManage(task).condition()
-#         ret['message'] = 'message'
-#         ret['code'] = 2000
-#         ret['data'] = data
-#         return serializers.XX.json()
+@site
+class UndoRecord(TaskBase):
+    name = _('销假(必须为任务管理员)')
 
+    def get_context(self, request, *args, **kwargs):
+        task = self.get_task_by_user()
+        record_id = request.params.record_id
+        record = models.Record.objects.get(task=task,id=record_id)
+        record.manager=request.user
+        record.save()
 
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
-# @site
-# class UndoRecord(CoolBFFAPIView):
-#     name = _('销假')
-#     response_info_serializer_class = serializers
+    class Meta:
+        param_fields = (
+            ('record_id', fields.CharField(label=_('考勤记录ID'), max_length=8)),
+            ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
+        )
+        
+@site
+class UndoRecordAdmin(TaskBase):
+    name = _('销假(任意任务)')
 
-#     def get_context(self, request, *args, **kwargs):
-#         '''销假
-#             request：
-#                record_id:213 # 考勤记录id
-#         '''
-#         ret = {}
-#         record_id = request.data['record_id']
-#         task_id = request.data['task_id']
-#         task = models.Task.objects.get(id=task_id)
-#         data = TaskManage(task).undo_record(record_id,request.user)
-#         ret['message'] = data
-#         ret['code'] = 2000
-#         return serializers.XX.json()
+    def get_context(self, request, *args, **kwargs):
+        # TODO 需要进行管理员身份验证
+        record_id = request.params.record_id
+        record = models.Record.objects.get(id=record_id)
+        record.manager=request.user
+        record.save()
 
-
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
-# @site
-# class UndoRecordAdmin(APIView):
-#     name = _('考勤汇总销假')
-#     response_info_serializer_class = serializers
-
-#     def get_context(self, request, *args, **kwargs):
-#         '''考勤汇总销假
-#             request：
-#                record_id:213 # 考勤记录id
-#         '''
-#         ret = {}
-#         # TODO 进行身份验证
-#         record_id = request.data['record_id']
-#         record = models.Record.objects.get(id=record_id)
-#         record.manager=request.user
-#         record.save()
-#         ret['message'] = '操作成功'
-#         ret['code'] = 2000
-#         return JsonResponse(ret)
-# @site
-# class InZaoqianExcel(CoolBFFAPIView):
-#     name = _('导入早签数据')
-#     response_info_serializer_class = serializers
-
-#     def get_context(self, request, *args, **kwargs):
-#         ret = TaskManage().in_zaoqian_excel(request)
-#         return serializers.XX.json()
+    class Meta:
+        param_fields = (
+            ('record_id', fields.CharField(label=_('考勤记录ID'), max_length=8)),
+        )
 
 
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
+@site
+class InZaoqianExcel(CoolBFFAPIView):
+    name = _('导入早签数据')
+
+    def get_context(self, request, *args, **kwargs):
+        file = request.pamas.file
+        
+        wb = load_workbook(file,read_only=True)
+
+        error_list=[]
+        for rows in wb:
+            for row in rows:#遍历行
+                username = row[0].internal_value
+                name = row[1].internal_value
+                str_time = row[3].internal_value
+                if username == None or str_time == None:
+                    continue
+                
+                is_header = username.find('考勤') != -1 or username.find('统计') != -1 or username.find('员工号') != -1 or username.find('考勤') != -1
+                if not (username == None or name == None or str_time == None) and not is_header:
+                    try:
+                        u = User.objects.get(username=username)
+                        try:
+                            str_time = datetime.datetime.strptime(str_time,'%Y/%m/%d')
+                            
+                            d = {
+                                'rule_str':'早签',
+                                'student_approved':u,
+                                'score':1,
+                                'grade_str':u.studentinfo.grade.name,
+                                'star_time':str_time
+                            }
+                            try:
+                                d['rule'] = models.RuleDetails.objects.get(name='早签')
+                            except:
+                                pass
+                            
+                            sa,flg = models.Record.objects.get_or_create(**d)
+                            sa.worker =  request.user
+                            sa.save()
+                        except:
+                            error_list.append({
+                                'username':username,
+                                'name':name,
+                                'str_time':str_time,
+                                'message':'导入记录失败'
+                            })
+                    except:
+                        error_list.append({
+                            'username':username,
+                            'name':name,
+                            'str_time':str_time,
+                            'message':'用户不存在'
+                        })
+
+        ret = {
+            'message': '请查看结果',
+            'code':'2000',
+            'data':error_list
+        }
+
+        return ret
+
+    class Meta:
+        param_fields = (
+            ('file',fields.FileField(label=_('Excel文件'))),
+        )
 
 # @site
 # class TaskObtain(CoolBFFAPIView):

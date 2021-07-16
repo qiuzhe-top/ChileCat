@@ -42,33 +42,10 @@ class Late(object):
             {username:'19510144',name:'张三'}
         ]
         '''
-        user_list = []
-        roster_new = []
-        # 从班表里面获取用户
-        for item in roster:
-            u = User.objects.filter(username=item['username'])
-            if len(u) == 1:
-                user_list.append(u[0])
-                roster_new.append(item)
-
-        # 历史班表清空
-        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
-
-        # 新用户进行任务绑定
-        for u in user_list:
-            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
-
-        self.task.roster = json.dumps(roster_new)
-        self.task.save()
-        
-        return '执行成功' + '更新' + str(len(roster_new)) + '个学生' 
 
     def condition(self):
         '''查看考勤工作情况      
         '''
-        now = datetime.datetime.now()
-        data = models.Record.objects.filter(task=self.task,manager=None,star_time__date=datetime.date(now.year, now.month,now.day))
-        ser = serializers.ConditionRecord(instance=data,many=True).data
         
         return ser
 

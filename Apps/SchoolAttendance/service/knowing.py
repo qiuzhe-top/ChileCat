@@ -47,16 +47,7 @@ class Knowing(object):
         清空房间记录信息
         清空学生记录信息
         '''
-        # TODO 请简化循环
-        b = self.task.buildings.all()
-        for i in b:
-            for j in i.floor.all():
-                for k in j.room.all():
-                    k.dorm_status = False
-                    k.save()
 
-        models.RoomHistory.objects.filter(task=self.task).update(is_knowing=False)
-        models.TaskFloorStudent.objects.filter(task=self.task).update(flg=True)
         return '执行成功'
 
     def add_admin(self):
@@ -97,15 +88,6 @@ class Knowing(object):
 
     def condition(self):
         '''查看考勤工作情况'''
-        now = datetime.datetime.now()  #
-
-        records = models.Record.objects.filter(
-            task=self.task,
-            manager=None,
-            star_time__date=datetime.date(now.year, now.month, now.day),
-        )
-        data = serializers.ConditionRecord(instance=records, many=True).data
-        return data
 
     # def progress(self):
     #     '''查看考勤进度

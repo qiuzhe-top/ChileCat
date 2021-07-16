@@ -49,7 +49,13 @@ class Task(TestCase):
         self.assertEqual(response['code'],0)
 
     def test_TaskSwitch(self):
-        data = {'id':self.task_id}
-
+        data = {'task_id':self.task_id}
         response =self.client.post(self.http_api+'task/switch',data).json()
         print('任务：开启/关闭任务',response,data)
+
+    def test_Scheduling(self):
+        data = {'task_id':self.task_id}
+        response =self.client.post(self.http_api+'scheduling',data).json()
+        print('任务：获取班表',response,data)
+        self.assertEqual(response['code'],0)
+
