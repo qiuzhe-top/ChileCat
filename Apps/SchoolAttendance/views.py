@@ -11,6 +11,7 @@ import json
 from itertools import chain
 from os import name
 from typing import Any, List
+from openpyxl.descriptors.base import Default
 
 from openpyxl.reader.excel import load_workbook
 
@@ -253,7 +254,7 @@ class InZaoqianExcel(CoolBFFAPIView):
     name = _('导入早签数据')
 
     def get_context(self, request, *args, **kwargs):
-        file = request.pamas.file
+        file = request.params.file
         
         wb = load_workbook(file,read_only=True)
 
@@ -316,23 +317,37 @@ class InZaoqianExcel(CoolBFFAPIView):
             ('file',fields.FileField(label=_('Excel文件'))),
         )
 
-# @site
-# class TaskObtain(CoolBFFAPIView):
-#     name = _('获取任务')
-#     response_info_serializer_class = serializers
+@site
+class TaskExecutor(CoolBFFAPIView):
+    name = _('工作者获取任务')
+    response_info_serializer_class = serializers.TaskExecutor
 
-#     def get_context(self, request, *args, **kwargs):
+    def get_context(self, request, *args, **kwargs):
+        tasks = models.TaskPlayer.objects.filter(
+            user=request.user, is_admin=False, task__is_open=True
+        )
+        return serializers.TaskExecutor(tasks,many=True, request=request).data
 
-#         return serializers.XX.json()
+@site
+class knowingExcelOut(TaskBase):
+    name = _('查寝当天数据导出')
+    response_info_serializer_class = serializers.TaskRecordExcelSerializer
 
-
-#     class Math:
-#         param_fields = ('username', fields.CharField(label=_('用户名')))
+    def get_context(self, request, *args, **kwargs):
+        task = self.get_task_by_user()
+        time_get = datetime.date.today()
+        records = models.Record.objects.filter(Q(star_time__date=time_get), task=task)
+        if not records:
+            return JsonResponse({"state": "5000", "msg": "no data  bacak"})
+        ser_records = serializers.TaskRecordExcelSerializer(
+            instance=records, many=True
+        ).data
+        return out_knowing_data(ser_records)
 
 
 from django.db.models import Aggregate
-
-
+from django.db.models import Aggregate, CharField
+from django.db.models import F
 class Msum(Aggregate):
     # Supports SUM(ALL field).
     function = 'SUM'
@@ -343,11 +358,6 @@ class Msum(Aggregate):
         # print(self, expression, all_values, **extra)
         super().__init__(expression, all_values='ALL ' if all_values else '', **extra)
         # return "123"
-
-
-from django.db.models import Aggregate, CharField
-
-
 # 自定义聚合函数的名字
 class Concat(Aggregate):  # 写一个类继承Aggregate，
     function = 'GROUP_CONCAT'
@@ -361,22 +371,15 @@ class Concat(Aggregate):  # 写一个类继承Aggregate，
             arg_joiner="-",
             **extra
         )
+@site
+class OutData(CoolBFFAPIView):
+    name = _('导出今日记录情况')
 
-
-from django.db.models import F
-
-
-class OutData(APIView):
-    API_PERMISSIONS = ['进入结果', 'get']
-
-    def get(self, request, *args, **kwargs):
-        '''导出今日记录情况
-        request:
-            id:任务ID
-        '''
+    def get_context(self, request, *args, **kwargs):
         ret = {}
         # 获取用户所属分院
         # TODO 优化时间查询默认值
+        # TODO 联调测试
         now = datetime.datetime.now()
         t = datetime.datetime(now.year, now.month, now.day)
         t = datetime.datetime.strftime(t, "%Y-%m-%d")
@@ -389,6 +392,8 @@ class OutData(APIView):
         end_date = datetime.datetime(
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
+
+        # 筛选条件
         q1 = Q(manager__isnull=True)
         q2 = Q(star_time__range=(start_date, end_date))
         q3 = (
@@ -461,87 +466,33 @@ class OutData(APIView):
         # return JsonResponse({})
         return at_all_out_xls(records)
 
-
-class knowingExcelOut(APIView):
-    API_PERMISSIONS = ['查寝当天数据导出']
-
-    def get(self, request, *args, **kwargs):
-        '''查寝当天数据导出'''
-
-        task_id = request.GET.get('task_id', False)
-        if not task_id:
-            return JsonResponse({"state": "5000", "msg": "no role"})
-        task = models.Task.objects.get(id=task_id)
-
-        time_get = datetime.date.today()
-
-        records = models.Record.objects.filter(Q(star_time__date=time_get), task=task)
-        if not records:
-            return JsonResponse({"state": "5000", "msg": "no data  bacak"})
-        ser_records = serializers.TaskRecordExcelSerializer(
-            instance=records, many=True
-        ).data
-
-        return out_knowing_data(ser_records)
-
-
-class TaskExecutor(APIView):
-    API_PERMISSIONS = ['工作者获取任务', '*get']
-
-    def get(self, request, *args, **kwargs):
-        '''工作人员获取任务
-        response:
-            [{
-                id:2                    # 任务ID
-                title:智慧彩云 晚查寝    # 名称
-                builder_name:张三       # 创建者姓名
-                is_finish:true          # 是否完成任务
-                type:'0'                # 任务类型
-            },]
-        '''
-        ret = {}
-        tasks = models.TaskPlayer.objects.filter(
-            user=request.user, is_admin=False, task__is_open=True
+    class Meta:
+        param_fields = (
+            ('username',fields.CharField(label=_('用户名'),default=None)),
+            ('start_date',fields.DateField(label=_('开始日期'),default=None)),
+            ('end_date',fields.DateField(label=_('结束日期'),default=None)),
         )
-        ser = serializers.TaskExecutor(instance=tasks, many=True).data
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = ser
-        return JsonResponse(ret)
+@site
+class Rule(CoolBFFAPIView):
+    name = _('获取规则')
 
-
-class Rule(APIView):
-    API_PERMISSIONS = ['规则', '*get']
-
-    def get(self, request, *args, **kwargs):
-        '''获取规则
-        request:
-            codename: 规则编号
-        response:
-            list:[{
-                id:规则ID
-                name:规则名称
-                parent_id:父级ID
-            }]
-        '''
-        ret = {}
-        codename = request.GET['codename']
+    def get_context(self, request, *args, **kwargs):
+        codename = request.params.codename
         rule = models.Rule.objects.get(codename=codename)
         data = rule.ruledetails_set.all().values('id', 'name', 'parent_id', 'score')
-        ret['message'] = 'message'
-        ret['code'] = 2000
-        ret['data'] = list(data)
-        return JsonResponse(ret)
+        return list(data)
+    class Meta:
+        param_fields = (
+            ('codename',fields.CharField(label=_('规则编号'))),
+        )
 
+@site
+class Submit(TaskBase):
+    name = _('考勤提交')
 
-class Submit(APIView):
-    API_PERMISSIONS = ['考勤提交', '*post']
-
-    def post(self, request, *args, **kwargs):
-        '''考勤提交
+    def get_context(self, request, *args, **kwargs):
+        '''
         request:
-            task_id: 2               # 任务ID
-            type: 0/1           # 提交类型 0=> 考勤提交 1=>执行人确认任务完成
             data:
                 rule_id:[1,2,3]     # 规则的ID列表
                 user_id:2           # 用户ID
@@ -550,11 +501,10 @@ class Submit(APIView):
         '''
         ret = {'message': '', 'code': 2000, 'data': 'data'}
         # 获取参数
-        task_id = request.data['task_id']
-        data = request.data['data']
-        type_ = request.data['type']
+        data = request.parmas.data
+        type_ = request.parmas.type
         # 获取任务
-        task = models.Task.objects.get(id=task_id)
+        task = self.get_task()
         n = models.TaskPlayer.objects.filter(
             task=task, user=request.user, is_admin=False
         ).count()
@@ -562,7 +512,7 @@ class Submit(APIView):
         if n <= 0:
             ret['code'] = 4000
             ret['message'] = '未知考勤'
-            return JsonResponse(ret)
+            return ret
 
         if type_ == 0:
             code = TaskManage(task).submit(data, request.user)
@@ -571,47 +521,87 @@ class Submit(APIView):
                 ret['message'] = '活动未开启'
         elif type_ == 1:
             pass
-        return JsonResponse(ret)
+        return ret
 
-
-class SubmitPublic(APIView):
-    def post(self, request, *args, **kwargs):
-        '''通用考勤规则提交
-        user_username_list:[]
-        rule_id_list:[]
-        '''
-
-        pass
-
-
-class TaskRoomInfo(APIView):
-    API_PERMISSIONS = ['晚查寝数据', '*get']
-
-    def get(self, request, *args, **kwargs):
-        '''宿舍 相关任务信息
-            request:
-                task_id: 1 # 任务ID
-                floor_id：1 # 楼层ID
-                room_id:1 # 房间ID
-                type:
-                    0 # 获取楼层
-                    1 # 获取房间
-                    2 # 获取房间内学生状态
-        根据任务ID判断是查寝还是查卫生然后返回对应处理的数据
-        '''
-        ret = {'message': 'message', 'code': 2000, 'data': 'data'}
-        task_id = request.GET['task_id']
-        types = request.GET['type']
-        floor_id = request.GET.get('floor_id', -1)
-        room_id = request.GET.get('room_id', -1)
-        task = models.Task.objects.get(id=task_id)
-
-        data = TaskManage(task).task_roomInfo(
-            int(types), request.user, floor_id, room_id
+    class Meta:
+        param_fields = (
+            ('task_id',fields.CharField(label=_('任务ID'))),
+            ('type',fields.CharField(label=_('提交类型 0=> 考勤提交 1=>执行人确认任务完成'))),
+            ('data',fields.CharField(label=_('任务ID'))),
         )
-        ret['data'] = data
-        return JsonResponse(ret)
 
+
+
+@site
+class KnowingStoreyInfo(TaskBase):
+    name = _('晚查寝-楼工作数据')
+
+    def get_context(self, request, *args, **kwargs):
+        self.get_task()
+        buildings = self.task.buildings.all()
+        buildings_info = []
+        for building in buildings:
+            info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
+            floors = building.floor.all()
+            for floor in floors:
+                floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
+                info['list'].append(floor)
+            buildings_info.append(info)
+        return buildings_info
+
+
+@site
+class KnowingRoomInfo(TaskBase):
+    name = _('晚查寝-层工作数据')
+
+    def get_context(self, request, *args, **kwargs):
+        self.get_task()
+        d = {"0": "dorm_status", "1": "health_status"}
+        floor_id = request.parmas.floor_id
+        if floor_id:
+            rooms = models.Room.objects.filter(floor_id=floor_id).values(
+                'id', 'name', 'health_status', 'dorm_status'
+            )
+            for room in rooms:
+                room['status'] = room[d[self.task.types]]
+                del room['health_status']
+                del room['dorm_status']
+            return list(rooms)
+
+    class Meta:
+        param_fields = (
+            ('task_id',fields.CharField(label=_('任务ID'))),
+            ('floor_id',fields.CharField(label=_('楼层ID'))),
+        )
+@site
+class KnowingStudentRoomInfo(TaskBase):
+    name = _('晚查寝-房间工作数据')
+
+    def get_context(self, request, *args, **kwargs):
+        self.get_task()
+        room_id = request.parmas.room_id
+
+        room_info = []
+        room = models.Room.objects.get(id=room_id)
+        room_data = room.stu_in_room.all()
+        for i in room_data:
+            unit = {
+                'id': i.user.id,
+                'name': i.user.userinfo.name,
+                'position': i.bed_position,
+            }
+            obj, flg = models.TaskFloorStudent.objects.get_or_create(
+                task=self.task, user=i.user
+            )
+            unit['status'] = obj.flg
+            room_info.append(unit)
+        return room_info
+
+    class Meta:
+        param_fields = (
+            ('task_id',fields.CharField(label=_('任务ID'))),
+            ('room_id',fields.CharField(label=_('房间ID'))),
+        )
 
 # 学生查看公告
 class StudentDisciplinary(APIView):
