@@ -181,7 +181,7 @@ REST_FRAMEWORK = {
 
 DJANGO_COOL = {
     'API_ERROR_CODES': (
-        ('ERR_PER_NOLOGIN', (3001, '请先登陆')),
+        ('ERR_DEMO_NOLOGIN', (3001, '请先登陆')),
         ('ERR_PER_PERMISSION', (3002, '权限错误')),
         ('ERR_USER_NOTFOUND', (5001, '用户名或密码错误')),
         ('ERR_USER_NO_PASSWORD', (5007, '密码错误')),

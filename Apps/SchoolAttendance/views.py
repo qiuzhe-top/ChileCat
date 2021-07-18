@@ -11,38 +11,29 @@ import json
 from itertools import chain
 from os import name
 from typing import Any, List
-from openpyxl.descriptors.base import Default
-
-from openpyxl.reader.excel import load_workbook
 
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
                         param, utils)
 from core.excel_utils import at_all_out_xls, out_knowing_data
-# from .service.knowing import knowing
+from core.views import *
 from django.contrib.auth.models import User
-from django.db.models import manager
 from django.db.models.aggregates import Count, Sum
-from django.db.models.manager import Manager
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.utils import tree
 from django.utils.translation import gettext_lazy as _
-from rest_framework import fields, request
+from openpyxl.reader.excel import load_workbook
+from rest_framework import fields
 from rest_framework.pagination import PageNumberPagination
-# Create your views here.
-from rest_framework.views import APIView
 
 from . import models, serializers
-from .service import health, knowing, late
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
-
 @site
-class TaskObtain(CoolBFFAPIView):
+class TaskObtain(TaskBase):
 
     name = _('获取任务')
     response_info_serializer_class = serializers.TaskObtain
@@ -52,52 +43,9 @@ class TaskObtain(CoolBFFAPIView):
         return serializers.TaskObtain(task,many=True, request=request).data
     class Meta:
         param_fields = (
-            ('type', fields.CharField(label=_('任务类型 0晚查寝/1查卫生/2晚自修'), max_length=1)),
+            ('type', fields.CharField(label=_('任务类型'), max_length=1,help_text=' 0晚查寝 1查卫生 2晚自修')),
         )
 
-class TaskBase(CoolBFFAPIView):
-
-    def get_context(self, request, *args, **kwargs):
-        raise NotImplementedError
-    
-    def get_task(self):
-        '''通过任务id获取任务'''
-        try:
-            id = self.request.params.task_id
-            self.task = models.Task.objects.get(id=id)
-            return self.task
-        except:
-            raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
-
-    def get_task_by_user(self):
-        '''通过用户和任务id获取任务'''
-        try:
-            id = self.request.params.task_id
-            user = self.request.user
-            self.task = models.Task.objects.get(id=id,admin=user)
-            return self.task
-        except:
-            raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
-    
-    def init_scheduling(self,users,roster):
-        '''初始化班表'''
-        self.get_task_by_user()
-
-        # 历史班表清空
-        models.TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
-
-        # 新用户进行任务绑定
-        for u in users:
-            models.TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
-
-        roster = json.dumps(roster)
-        self.task.save()
-
-    class Meta:
-        param_fields = (
-            ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
-        )
-        path = '/'
 
 @site
 class TaskSwitch(TaskBase):
@@ -345,9 +293,9 @@ class knowingExcelOut(TaskBase):
         return out_knowing_data(ser_records)
 
 
-from django.db.models import Aggregate
-from django.db.models import Aggregate, CharField
-from django.db.models import F
+from django.db.models import Aggregate, CharField, F
+
+
 class Msum(Aggregate):
     # Supports SUM(ALL field).
     function = 'SUM'
@@ -602,20 +550,11 @@ class KnowingStudentRoomInfo(TaskBase):
             ('task_id',fields.CharField(label=_('任务ID'))),
             ('room_id',fields.CharField(label=_('房间ID'))),
         )
-
-# 学生查看公告
-class StudentDisciplinary(APIView):
-    API_PERMISSIONS = ['考勤公告', 'get']
-
-    def get(self, request):
-        '''
-        request：
-
-        response
-            room_name
-            student
-            reason
-        '''
+@site
+class StudentDisciplinary(CoolBFFAPIView):
+    name = _('学生查看公告')
+    response_info_serializer_class = serializers.StudentDisciplinary
+    def get_context(self, request):
         # TODO 支持查看本学院的情况
         task_id_list = models.Task.objects.filter(types='0').values_list(
             'id', flat=True
@@ -628,18 +567,13 @@ class StudentDisciplinary(APIView):
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
         )
-        ser = serializers.StudentDisciplinary(instance=records, many=True).data
-        ret = {}
-        ret['code'] = 2000
-        ret['message'] = '查询成功'
-        ret['data'] = ser
-        return JsonResponse(ret)
+        return  serializers.StudentDisciplinary(records, many=True,request=request).data
 
+@site
+class LateClass(TaskBase):
+    name =_('晚自修数据')
 
-class LateClass(APIView):
-    API_PERMISSIONS = ['晚自修数据', '*get']
-
-    def get(self, request, *args, **kwargs):
+    def get_context(self, request, *args, **kwargs):
         '''晚自修 相关数据
         request:
             task_id:任务ID
@@ -659,7 +593,7 @@ class LateClass(APIView):
             )
             ret['code'] = 2000
             ret['data'] = list(grades)
-            return JsonResponse(ret)
+            return ret
         elif type_ == 1:
             class_id = request.GET['class_id']
             rule_id = request.GET['rule_id']
@@ -678,8 +612,15 @@ class LateClass(APIView):
             ret['message'] = 'message'
             ret['code'] = 2000
             ret['data'] = l
-            return JsonResponse(ret)
+            return ret
 
+    class Meta:
+        param_fields = (
+            ('task_id',fields.CharField(label=_('任务ID'))),
+            ('rule_id',fields.CharField(label=_('规则ID'))),
+            ('class_id',fields.CharField(label=_('班级ID'))),
+            ('type',fields.CharField(label=_('0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况'))),
+        )
 
 class RecordQueryrPagination(PageNumberPagination):
     # 每页显示多少个
@@ -692,10 +633,10 @@ class RecordQueryrPagination(PageNumberPagination):
     page_query_param = "page"
 
 
-class RecordQuery(APIView):
-    API_PERMISSIONS = ['考勤查询', 'get']
+class RecordQuery(CoolBFFAPIView):
+    name = _('考勤查询')
 
-    def get(self, request):
+    def get_context(self, request):
         '''考勤记录查询接口
         request：
             start_date：2005-1-1
@@ -739,6 +680,12 @@ class RecordQuery(APIView):
         ret['data'] = {"total": len(Data), "results": ser, "page_size": pg.page_size}
         return JsonResponse(ret)
 
+    class Meta:
+        param_fields = (
+            ('username',fields.CharField(label=_('用户名'))),
+            ('start_date',fields.CharField(label=_('开始时间'))),
+            ('end_date',fields.CharField(label=_('结束时间'))),
+        )
 
 # ----------------------------------------------------------------
 # class ExportExcel(APIView):
