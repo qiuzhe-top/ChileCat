@@ -44,7 +44,7 @@ class Login(CoolBFFAPIView):
         password = request.params.password
         user = authenticate(username=username, password=password)
         if user is None:
-            raise CoolAPIException(ErrorCode.ERR_DEMO_NOTFOUND)
+            raise CoolAPIException(ErrorCode.ERR_USER_NOTFOUND)
         token = auth.update_token(user)
         return serializers.TokenSerializer(token, request=request).data
 
@@ -53,6 +53,15 @@ class Login(CoolBFFAPIView):
             ('username', fields.CharField(label=_('用户名'), max_length=25)),
             ('password', fields.CharField(label=_('密码'))),
         )
+
+@site
+class Logout(CoolBFFAPIView):
+
+    name = _('退出登录')
+
+    def get_context(self, request, *args, **kwargs):
+      
+        return None
 
 
 @site

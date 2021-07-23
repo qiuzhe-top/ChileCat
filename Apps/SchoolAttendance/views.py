@@ -7,19 +7,17 @@ LastEditTime: 2021-07-15 13:22:16
 Description: 
 '''
 import datetime
-import json
-from itertools import chain
-from os import name
-from typing import Any, List
 
+from Apps.SchoolAttendance.pagination import RecordQueryrPagination
 from Apps.SchoolAttendance.service.task import TaskManage
 from Apps.SchoolInformation import models as SchoolInformationModels
-from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
-                        param, utils)
+from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from core.excel_utils import at_all_out_xls, out_knowing_data
+from core.query_methods import Concat
 from core.views import *
 from django.contrib.auth.models import User
-from django.db.models.aggregates import Count, Sum
+from django.db.models import F
+from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -33,7 +31,7 @@ from . import models, serializers
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 @site
-class TaskObtain(TaskBase):
+class TaskObtain(CoolBFFAPIView):
 
     name = _('获取任务')
     response_info_serializer_class = serializers.TaskObtain
@@ -229,14 +227,15 @@ class InZaoqianExcel(CoolBFFAPIView):
                                 'grade_str':u.studentinfo.grade.name,
                                 'star_time':str_time
                             }
+
                             try:
                                 d['rule'] = models.RuleDetails.objects.get(name='早签')
                             except:
                                 pass
                             
-                            sa,flg = models.Record.objects.get_or_create(**d)
-                            sa.worker =  request.user
-                            sa.save()
+                            record,flg = models.Record.objects.get_or_create(**d)
+                            record.worker =  request.user
+                            record.save()
                         except:
                             error_list.append({
                                 'username':username,
@@ -252,13 +251,8 @@ class InZaoqianExcel(CoolBFFAPIView):
                             'message':'用户不存在'
                         })
 
-        ret = {
-            'message': '请查看结果',
-            'code':'2000',
-            'data':error_list
-        }
 
-        return ret
+        return error_list
 
     class Meta:
         param_fields = (
@@ -272,7 +266,7 @@ class TaskExecutor(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         tasks = models.TaskPlayer.objects.filter(
-            user=request.user, is_admin=False, task__is_open=True
+            user=request.user, task__is_open=True
         )
         return serializers.TaskExecutor(tasks,many=True, request=request).data
 
@@ -293,32 +287,6 @@ class knowingExcelOut(TaskBase):
         return out_knowing_data(ser_records)
 
 
-from django.db.models import Aggregate, CharField, F
-
-
-class Msum(Aggregate):
-    # Supports SUM(ALL field).
-    function = 'SUM'
-    template = '%(function)s(%(all_values)s%(expressions)s)'
-    allow_distinct = False
-
-    def __init__(self, expression, all_values=False, **extra):
-        # print(self, expression, all_values, **extra)
-        super().__init__(expression, all_values='ALL ' if all_values else '', **extra)
-        # return "123"
-# 自定义聚合函数的名字
-class Concat(Aggregate):  # 写一个类继承Aggregate，
-    function = 'GROUP_CONCAT'
-    template = '%(function)s(%(distinct)s%(expressions)s)'
-
-    def __init__(self, expression, distinct=False, **extra):
-        super(Concat, self).__init__(
-            expression,
-            distinct='DISTINCT ' if distinct else '',
-            output_field=CharField(),
-            arg_joiner="-",
-            **extra
-        )
 @site
 class OutData(CoolBFFAPIView):
     name = _('导出今日记录情况')
@@ -622,16 +590,6 @@ class LateClass(TaskBase):
             ('type',fields.CharField(label=_('0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况'))),
         )
 
-class RecordQueryrPagination(PageNumberPagination):
-    # 每页显示多少个
-    page_size = 30
-    # 默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数
-    page_size_query_param = "size"
-    # 最大页数不超过10
-    # max_page_size = 10
-    # 获取页码数的
-    page_query_param = "page"
-
 
 class RecordQuery(CoolBFFAPIView):
     name = _('考勤查询')
@@ -673,7 +631,6 @@ class RecordQuery(CoolBFFAPIView):
         page_roles = pg.paginate_queryset(queryset=Data, request=request, view=self)
         # 对数据进行序列化
         ser = serializers.RecordQuery(instance=page_roles, many=True).data
-        # print(len(ser))
         ret['message'] = "获取成功"
         ret['code'] = 2000
         # page = round(len(Data) / pg.page_size)
