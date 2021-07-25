@@ -21,7 +21,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import AnonymousUser, Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError, transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, response
 from django.utils.translation import gettext_lazy as _
 from Manage.models_extension.models_permission import ApiPermission
 from rest_framework import fields
@@ -104,6 +104,7 @@ class EditPassword(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         password_old = request.params.password_old
+        
         password_new = request.params.password_new
         password_new_repaet = request.params.password_new_repaet
         if password_new != password_new_repaet:
