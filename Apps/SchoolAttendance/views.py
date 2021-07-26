@@ -28,6 +28,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from . import models, serializers
 
+
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 @site
@@ -89,7 +90,7 @@ class Scheduling(TaskBase):
     name = _('获取班表')
 
     def get_context(self, request, *args, **kwargs):
-        return self.get_task_by_user().roster
+        return json.loads(self.get_task_by_user().roster)
 
 
 @site

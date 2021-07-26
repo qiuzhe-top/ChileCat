@@ -30,6 +30,7 @@ apipatterns = [
     path('user/', include('Apps.User.views')),
     path('school_information/', include('Apps.SchoolInformation.views')),
     path('school_attendance/', include('Apps.SchoolAttendance.views')),
+    path('manage/', include('Manage.views')),
 ]
 urlpatterns = [
     path('cool/', include('cool.urls')),

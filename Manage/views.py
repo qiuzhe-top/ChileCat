@@ -1,8 +1,13 @@
 """管理视图"""
 import re
+from cool.views import sites
+
+from cool.views.view import CoolBFFAPIView
 from core.models_utils import search_room
 from Apps.SchoolInformation.models import *
 import logging
+from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
+
 import os
 from openpyxl import load_workbook
 from rest_framework.views import APIView
@@ -18,6 +23,8 @@ from core.excel_utils import excel_to_list
 logger = logging.getLogger(__name__)
 # https://www.jianshu.com/p/945c43b37624
 
+
+site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 def put_stu_room(stu, room, ret):
     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
@@ -448,11 +455,11 @@ class In_zaoqian_excel(APIView):
         ret = {'message': '添加成功 请检查添加结果', 'code': '2000', 'data': error_list}
         return JsonResponse(ret)
 
-
-class DataInit(APIView):
-    """系统数据初始化"""
-
-    def post(self, request):
+@site
+class DataInit(CoolBFFAPIView):
+    name = "系统数据初始化"
+    
+    def get_context(self, request):
         init_dict = {
             # 用户组初始化
             "group_init": group_init,
@@ -471,4 +478,8 @@ class DataInit(APIView):
         }
         type_ = request.data['type']
         data = init_dict[type_](request)
-        return JsonResponse(data, safe=False)
+        return data
+
+        
+urls = site.urls
+urlpatterns = site.urlpatterns
