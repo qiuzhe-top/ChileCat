@@ -91,7 +91,6 @@ class StudentInfo(models.Model):
         Grade,
         on_delete=models.CASCADE,
         verbose_name="班级id",
-        related_name="student_grade",
     )
     user = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
     photo = models.CharField(

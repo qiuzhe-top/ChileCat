@@ -6,6 +6,8 @@ LastEditors:
 LastEditTime: 2021-07-15 13:22:16
 Description: 
 '''
+from openpyxl.descriptors.base import Default
+from Apps.User.utils.auth import get_token_by_user
 import datetime
 
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
@@ -115,7 +117,7 @@ class SchedulingUpdateKnowing(TaskBase):
     class Meta:
         param_fields = (
             ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
-            ('roster', fields.CharField(label=_('班表'), max_length=8)),
+            ('roster', fields.JSONField(label=_('班表'))),
         )
 
 
@@ -138,13 +140,12 @@ class SchedulingUpdateLate(TaskBase):
         self.init_scheduling(user_list,roster_new)
         
         return '执行成功' + '更新' + str(len(roster_new)) + '个学生' 
-
-
     class Meta:
         param_fields = (
             ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
-            ('roster', fields.CharField(label=_('班表'), max_length=8)),
+            ('roster', fields.JSONField(label=_('班表'))),
         )
+
 @site
 class Condition(TaskBase):
 
@@ -159,7 +160,7 @@ class Condition(TaskBase):
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
         )
-        return serializers.ConditionRecord(records, request=request).data
+        return serializers.ConditionRecord(records, request=request,many=True).data
         
 
 @site
@@ -197,7 +198,7 @@ class UndoRecordAdmin(TaskBase):
 
 
 @site
-class InZaoqianExcel(CoolBFFAPIView):
+class InzaoqianExcel(CoolBFFAPIView):
     name = _('导入早签数据')
 
     def get_context(self, request, *args, **kwargs):
@@ -276,7 +277,11 @@ class knowingExcelOut(TaskBase):
     name = _('查寝当天数据导出')
     response_info_serializer_class = serializers.TaskRecordExcelSerializer
 
+    def check_api_permissions(self, request, *args, **kwargs):
+        pass
+
     def get_context(self, request, *args, **kwargs):
+        get_token_by_user(request)
         task = self.get_task_by_user()
         time_get = datetime.date.today()
         records = models.Record.objects.filter(Q(star_time__date=time_get), task=task)
@@ -286,8 +291,10 @@ class knowingExcelOut(TaskBase):
             instance=records, many=True
         ).data
         return out_knowing_data(ser_records)
-
-
+    class Meta:
+        param_fields = (
+            ('token', fields.CharField(label=_('token'))),
+        )
 @site
 class OutData(CoolBFFAPIView):
     name = _('导出今日记录情况')
@@ -297,15 +304,13 @@ class OutData(CoolBFFAPIView):
         # 获取用户所属分院
         # TODO 优化时间查询默认值
         # TODO 联调测试
-        now = datetime.datetime.now()
-        t = datetime.datetime(now.year, now.month, now.day)
-        t = datetime.datetime.strftime(t, "%Y-%m-%d")
-        start_date = request.GET.get('start_date', t)
-        end_date = request.GET.get('end_date', t)
-        username = request.GET.get('username', '')
 
-        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        username = request.params.username
+        start_date = request.params.start_date
+        end_date = request.params.end_date
+
+        # start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        # end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         end_date = datetime.datetime(
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
@@ -315,7 +320,7 @@ class OutData(CoolBFFAPIView):
         q2 = Q(star_time__range=(start_date, end_date))
         q3 = (
             Q(student_approved=User.objects.get(username=username))
-            if len(username) > 0
+            if username != None
             else q1
         )
 
@@ -373,7 +378,9 @@ class OutData(CoolBFFAPIView):
 
                 # 规则拼接
                 t = time[index][5:10]
-                record[type_ + 'rule'] += t + ":" + str(rule[index]) + ','
+                record[type_ + 'rule'] += t + "：" + str(rule[index]) + '\r\n'
+            rule_str = record[type_ + 'rule']
+            record[type_ + 'rule'] = rule_str[0:len(rule_str)-2]
 
             del record['time']
             del record['rule_type']
@@ -383,11 +390,15 @@ class OutData(CoolBFFAPIView):
         # return JsonResponse({})
         return at_all_out_xls(records)
 
+
     class Meta:
+        now = datetime.datetime.now()
+        t = datetime.datetime(now.year, now.month, now.day)
+        t = datetime.datetime.strftime(t, "%Y-%m-%d")
         param_fields = (
             ('username',fields.CharField(label=_('用户名'),default=None)),
-            ('start_date',fields.DateField(label=_('开始日期'),default=None)),
-            ('end_date',fields.DateField(label=_('结束日期'),default=None)),
+            ('start_date',fields.DateField(label=_('开始日期'),default=t)),
+            ('end_date',fields.DateField(label=_('结束日期'),default=t)),
         )
 @site
 class Rule(CoolBFFAPIView):
@@ -403,9 +414,11 @@ class Rule(CoolBFFAPIView):
             ('codename',fields.CharField(label=_('规则编号'))),
         )
 
+
+
 @site
-class Submit(TaskBase):
-    name = _('考勤提交')
+class SubmitLate(TaskBase):
+    name = _('晚自习考勤提交')
 
     def get_context(self, request, *args, **kwargs):
         '''
@@ -416,35 +429,39 @@ class Submit(TaskBase):
                 flg :               # 点名状态
                 room_id:20          # 寝室ID
         '''
-        ret = {'message': '', 'code': 2000, 'data': 'data'}
         # 获取参数
-        data = request.parmas.data
-        type_ = request.parmas.type
-        # 获取任务
-        task = self.get_task()
-        n = models.TaskPlayer.objects.filter(
-            task=task, user=request.user, is_admin=False
-        ).count()
-
-        if n <= 0:
-            ret['code'] = 4000
-            ret['message'] = '未知考勤'
-            return ret
-
-        if type_ == 0:
-            code = TaskManage(task).submit(data, request.user)
-            if code == 4001:
-                ret['code'] = code
-                ret['message'] = '活动未开启'
-        elif type_ == 1:
-            pass
-        return ret
+        self.get_task_by_user()
+        flg = request.parmas.flg
+        rule_id = request.parmas.rule_id
+        user_list = request.parmas.user_list
+        # 获取规则
+        rule = models.RuleDetails.objects.get(id=int(rule_id))
+        for u in user_list:
+            user = User.objects.get(username=u)
+            call,status = models.UserCall.objects.get_or_create(task=self.task,user=user,rule=rule)
+            # 判断是不是本次任务第一次点名
+            if call.flg == None:
+                call.flg = flg
+                call.save()
+                # 写入考勤记录
+                if not flg:
+                    d = {
+                        'task':self.task,
+                        'rule_str':rule.name,
+                        'score':rule.score,
+                        'rule':rule,
+                        'grade_str':user.studentinfo.grade.name,
+                        'student_approved':user,
+                        'worker':request.user,
+                    }
+                    models.Record.objects.create(**d)
 
     class Meta:
         param_fields = (
             ('task_id',fields.CharField(label=_('任务ID'))),
-            ('type',fields.CharField(label=_('提交类型 0=> 考勤提交 1=>执行人确认任务完成'))),
-            ('data',fields.CharField(label=_('任务ID'))),
+            ('flg',fields.CharField(label=_('第一次点名标识'))),
+            ('rule_id',fields.CharField(label=_('规则ID'))),
+            ('user_list',fields.CharField(label=_('被记录用户列表'))),
         )
 
 
@@ -543,29 +560,17 @@ class LateClass(TaskBase):
     name =_('晚自修数据')
 
     def get_context(self, request, *args, **kwargs):
-        '''晚自修 相关数据
-        request:
-            task_id:任务ID
-            rule_id:规则ID
-            class_id:班级ID
-            type:
-                0 # 获取任务绑定的班级
-                1 # 获取班级名单附带学生多次点名情况
-        '''
-        ret = {}
-        type_ = int(request.GET['type'])
-        task_id = request.GET['task_id']
+        type_ = int(request.params.type)
+        task_id = request.params.task_id
         task = models.Task.objects.get(id=task_id)
         if type_ == 0:
             grades = (
                 models.Task.objects.get(id=task_id).grades.all().values('id', 'name')
             )
-            ret['code'] = 2000
-            ret['data'] = list(grades)
-            return ret
+            return list(grades)
         elif type_ == 1:
-            class_id = request.GET['class_id']
-            rule_id = request.GET['rule_id']
+            class_id = request.params.class_id
+            rule_id = request.params.rule_id
             users = SchoolInformationModels.Grade.objects.get(id=class_id).get_users()
             rule = models.RuleDetails.objects.get(id=rule_id)
             l = []  # TODO 性能影响
@@ -578,35 +583,25 @@ class LateClass(TaskBase):
                 d['name'] = u.userinfo.name
                 d['flg'] = call.flg
                 l.append(d)
-            ret['message'] = 'message'
-            ret['code'] = 2000
-            ret['data'] = l
-            return ret
+            return l
 
     class Meta:
         param_fields = (
             ('task_id',fields.CharField(label=_('任务ID'))),
-            ('rule_id',fields.CharField(label=_('规则ID'))),
-            ('class_id',fields.CharField(label=_('班级ID'))),
+            ('rule_id',fields.CharField(label=_('规则ID'),default=None)),
+            ('class_id',fields.CharField(label=_('班级ID'),default=None)),
             ('type',fields.CharField(label=_('0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况'))),
         )
 
-
+@site
 class RecordQuery(CoolBFFAPIView):
     name = _('考勤查询')
 
-    def get_context(self, request):
-        '''考勤记录查询接口
-        request：
-            start_date：2005-1-1
-            end_date:2005-1-1
-            username
-        '''
+    def get_context(self, request, *args, **kwargs):
         ret = {}
-
-        username = request.GET.get('username', None)
-        start_date = request.GET['start_date']
-        end_date = request.GET['end_date']
+        username = request.params.username
+        start_date = request.params.start_date
+        end_date =request.params.end_date
 
         # start_date = datetime.date(*json.loads(start_date))  # [2005,1,1]
         # end_date = datetime.date(*json.loads(end_date))
@@ -640,7 +635,7 @@ class RecordQuery(CoolBFFAPIView):
 
     class Meta:
         param_fields = (
-            ('username',fields.CharField(label=_('用户名'))),
+            ('username',fields.CharField(label=_('用户名'),default=None)),
             ('start_date',fields.CharField(label=_('开始时间'))),
             ('end_date',fields.CharField(label=_('结束时间'))),
         )

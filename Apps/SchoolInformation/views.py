@@ -42,11 +42,13 @@ class StudentInformation(CoolBFFAPIView):
         user = User.objects.filter(username=username)
         if not user.exists():
             raise CoolAPIException(ErrorCode.ERR_USER_UNABLE_TO_SEARCH_FOR_USERR)
-        return serializers.UserSerializer(user[0], request=request).json()
+        return serializers.UserSerializer(user[0], request=request).data
 
-    class Math:
-        param_fields = ('username', fields.CharField(label=_('用户名')))
+    class Meta:
+        param_fields = (
+            ('username', fields.CharField(label=_('用户名'), max_length=25)),
 
+        )
 
 class AddUser(APIView):
     def post(self, request, *args, **kwargs):

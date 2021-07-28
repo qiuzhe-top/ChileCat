@@ -17,7 +17,7 @@ from cool import views
 class UserSerializer(views.BaseSerializer):
     name = serializers.CharField(source='userinfo.name')
     tel = serializers.CharField(source='userinfo.tel')
-    grade = serializers.CharField(source='userinfo.grade.name')
+    grade = serializers.CharField(source='studentinfo.grade.name')
     class Meta:
         model = models.User
         fields = ('id', 'username','name','grade','tel')

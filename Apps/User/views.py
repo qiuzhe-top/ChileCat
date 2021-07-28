@@ -141,51 +141,54 @@ class BindGrade(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         return 1
 
-    class Meth:
-        param_fields = ('grade_id', fields.CharField(label=_('班级ID')))
-
-
-@site
-class Bindwechat(CoolBFFAPIView):
-    name = '绑定微信'
-
-    def get_context(self, request, *args, **kwargs):
-        # js_code = self.__request.data['js_code']
-        # username = self.__request.data['username']
-        # password = self.__request.data['password']
-        # if user:
-        #     __token = auth.update_token(user)
-        # else:
-        #     return LoginExcept("用户不存在")
-        # try:
-        #     tpost = OtherUser.objects.get(user=user)
-        #     old_openid = tpost.wx_openid
-        # except OtherUser.DoesNotExist:
-        #     old_openid = None
-        # if old_openid:
-        #     # print(old_openid)
-        #     raise VxBindException("请勿重新绑定")
-        # openid = get_openid(js_code)
-        # if openid is None:
-        #     raise VxBindException("微信用户异常")
-
-        # tpost, b = OtherUser.objects.get_or_create(user=user)
-
-        # if tpost.wx_openid:
-        #     return VxBindException("请勿重新绑定")
-        # tpost.wx_openid = openid
-        # tpost.save()
-        return -1
-
-    class Meth:
+    class Meta:
         param_fields = (
-            'js_code',
-            fields.CharField(label=_('班级ID')),
-            'username',
-            fields.CharField(label=_('班级ID')),
-            'password',
-            fields.CharField(label=_('班级ID')),
+            ('grade_id', fields.CharField(label=_('班级ID'))),
+
         )
+
+
+# @site
+# class Bindwechat(CoolBFFAPIView):
+#     name = '绑定微信'
+
+#     def get_context(self, request, *args, **kwargs):
+#         js_code = self.__request.data['js_code']
+#         username = self.__request.data['username']
+#         password = self.__request.data['password']
+#         if user:
+#             __token = auth.update_token(user)
+#         else:
+#             return LoginExcept("用户不存在")
+#         try:
+#             tpost = OtherUser.objects.get(user=user)
+#             old_openid = tpost.wx_openid
+#         except OtherUser.DoesNotExist:
+#             old_openid = None
+#         if old_openid:
+#             # print(old_openid)
+#             raise VxBindException("请勿重新绑定")
+#         openid = get_openid(js_code)
+#         if openid is None:
+#             raise VxBindException("微信用户异常")
+
+#         tpost, b = OtherUser.objects.get_or_create(user=user)
+
+#         if tpost.wx_openid:
+#             return VxBindException("请勿重新绑定")
+#         tpost.wx_openid = openid
+#         tpost.save()
+#         return -1
+
+#     class Meta:
+#         param_fields = (
+#             'js_code',
+#             fields.CharField(label=_('班级ID')),
+#             'username',
+#             fields.CharField(label=_('班级ID')),
+#             'password',
+#             fields.CharField(label=_('班级ID')),
+#         )
 
 
 def get_openid(js_code):

@@ -10,6 +10,7 @@ Description: Excel 操作
 import datetime
 import os
 from io import BytesIO
+from typing import Pattern
 import xlwt
 from django.utils.encoding import escape_uri_path
 from django.http import HttpResponse
@@ -31,62 +32,55 @@ def excel_to_list(request):
                     l.append(str(i.value))
                 data.append(l)
     return data
-
-
-
-# 考勤汇总数据导出
+import datetime
+from random import choice
+from time import time
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 def at_all_out_xls(data):
-        response = HttpResponse(content_type='application/vnd.ms-excel')
-        filename = datetime.date.today().strftime("%Y-%m-%d") + ' 学生缺勤表.xls'
-        response['Content-Disposition'] = (
-            'attachment; filename={}'.format(escape_uri_path(filename))
-        )
-        ws = xlwt.Workbook(encoding='utf-8')
-        w = ws.add_sheet('sheet1')
-        w.write(0, 0, u'班级')
-        w.write(0, 1, u'学号')
-        w.write(0, 2, u'姓名')
-
-        w.write(0, 3, u'查寝')
-        w.write(0, 4, u'晚签')
-        w.write(0, 5, u'晚自修违纪')
-        w.write(0, 6, u'早签')
-        w.write(0, 7, u'课堂')
-        w.write(0, 8, u'总分')
-
-        w.write(0, 9, u'查寝')
-        w.write(0, 10, u'晚签')
-        w.write(0, 11, u'晚自修违纪')
-        w.write(0, 12, u'早签')
-        w.write(0, 13, u'课堂')
-        row = 1
+        addr = os.getcwd()+ "\\core\\file\\学生考勤信息记录.xlsx"
+        # 设置文件 mingc
+        # 打开文件
+        wb = load_workbook(addr)
+        # 创建一张新表
+        ws = wb[wb.sheetnames[0]]
+        # 第一行输入
+        # ws.append(['TIME', 'TITLE', 'A-Z','TIME', 'TITLE', 'A-Z'])
         for i in data:
             k = dict(i)
-            column = 0
-            try:
-                w.write(row, 0, k.get('grade',None))
-                w.write(row, 1, k.get('usernames',None))
-                w.write(row, 2, k.get('name',None))
-                w.write(row, 3, k.get('0#001score',None))
-                w.write(row, 4, k.get('0#002score',None))
-                w.write(row, 5, k.get('0#003score',None))
-                w.write(row, 6, k.get('0#004score',None))
-                w.write(row, 7, k.get('0#005score',None))
-                w.write(row, 8, k.get('score',None))
-                w.write(row, 9, k.get('0#001rule',None))
-                w.write(row, 10,k.get('0#002rule',None))
-                w.write(row, 11, k.get('0#003rule',None))
-                w.write(row, 12, k.get('0#004rule',None))
-                w.write(row, 13, k.get('0#005rule',None))
-            except:
-                w.write(row, 0, k.get('usernames',None))
-                w.write(row, 1, k['导出异常'])
-            row += 1
-        # 循环完成
-        path = os.getcwd()
-        # ws.save(path + "/leaksfile/{}".format(filename))
+            ws.append([
+                k.get('grade',''),
+                k.get('usernames',''),
+                k.get('name',''),
+
+                k.get('0#001score',0),
+                k.get('0#001rule',''),
+
+                k.get('0#002score',0),
+                k.get('0#002rule',''),
+
+                k.get('0#003score',0),
+                k.get('0#003rule',0),
+
+                k.get('0#004score',0),
+                k.get('0#004rule',''),
+
+                k.get('0#005score',0),
+                k.get('0#005rule',''),
+                0,
+                '',
+                k.get('score','')
+            ])
+        TIME = datetime.datetime.now()#.strftime("%H:%M:%S")
+        ws.append(['统计时间:',TIME])
+        # wb.save(addr)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = (
+            'attachment; filename={}'.format(escape_uri_path("学生缺勤表.xls"))
+        )
         output = BytesIO()
-        ws.save(output)
+        wb.save(output)
         output.seek(0)
         response.write(output.getvalue())
         return response

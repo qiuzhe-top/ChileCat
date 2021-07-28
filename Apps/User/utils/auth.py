@@ -26,6 +26,11 @@ def get_token(request):
     except KeyError as identifier:
         print(identifier, 'no token')
 
+def get_token_by_user(request):
+    token = request.params.token
+    user = models.Token.objects.get(token=token).user
+    request.user = user
+    return user
 
 def get_user(request):
     """

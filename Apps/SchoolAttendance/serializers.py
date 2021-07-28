@@ -43,20 +43,21 @@ class ConditionRecord(views.BaseSerializer):
 
 class TaskExecutor(views.BaseSerializer):
     """执行人获取任务"""
-    builder_name = serializers.CharField(source="task.user.userinfo.name")
+    # builder_name = serializers.CharField(source="task.user.userinfo.name")
     id = serializers.CharField(source="task.id")
     title = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
 
     def get_title(self, obj):
-        return obj.task.get_types_display() + "-" + obj.task.college.name
+        # return obj.task.get_types_display() + "-" + obj.task.college.name
+        return obj.task.get_name()
 
     def get_type(self, obj):
         return obj.task.types
 
     class Meta:
         model = models.TaskPlayer
-        fields = ('id', 'title','builder_name','is_finish','type')  # 包含
+        fields = ('id', 'title','is_finish','type')  # 包含
 
 
 class TaskBuilder(serializers.ModelSerializer):
@@ -96,8 +97,8 @@ class RecordQuery(serializers.ModelSerializer):
     class Meta:
 
         model = models.Record
-        # fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
-        fields = "__all__"
+        fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+        # fields = "__all__"
 
 
 class UserCallGrader(serializers.ModelSerializer):
