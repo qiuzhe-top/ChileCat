@@ -79,6 +79,7 @@ class AuthApi(CoolBFFAPIView):
 
     class Meta:
         path = '/'
+
 class TaskBase(AuthApi):
 
     def get_context(self, request, *args, **kwargs):
@@ -108,13 +109,13 @@ class TaskBase(AuthApi):
         self.get_task_by_user()
 
         # 历史班表清空
-        TaskPlayer.objects.filter(task=self.task,is_admin=False).delete()
+        TaskPlayer.objects.filter(task=self.task).delete()
 
         # 新用户进行任务绑定
         for u in users:
-            TaskPlayer.objects.get_or_create(task=self.task,user=u,is_admin=False)
+            TaskPlayer.objects.get_or_create(task=self.task,user=u)
 
-        roster = json.dumps(roster)
+        self.task.roster=json.dumps(roster)
         self.task.save()
 
     class Meta:
