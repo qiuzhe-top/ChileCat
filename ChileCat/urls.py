@@ -20,7 +20,7 @@ Description: file information
 # ]
 
 
-from cool.views import get_api_doc_html
+from cool.views import get_api_doc_html,get_api_info
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(apipatterns)),
     path('api_doc.html', get_api_doc_html),
+    path('get_api_info/', get_api_info),
 ]
 # if settings.DEBUG:
 #     urlpatterns.append(

@@ -2,8 +2,8 @@
 Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
-LastEditors:  
-LastEditTime: 2021-07-11 14:53:35
+LastEditors: Please set LastEditors
+LastEditTime: 2021-08-01 13:25:48
 Description: 
 '''
 
@@ -69,7 +69,15 @@ class UserInformationSerializer(views.BaseSerializer):
     roles = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     grade = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+    
 
+    def get_username(self,obj):
+        try:
+            return obj.userinfo.name
+        except:
+            return obj.username
+            
     def get_grade(self, obj):
         st = models.StudentInfo.objects.filter(user=obj)
         if st.exists():

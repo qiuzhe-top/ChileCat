@@ -182,7 +182,7 @@ REST_FRAMEWORK = {
 DJANGO_COOL = {
     'API_ERROR_CODES': (
         ('ERR_DEMO_NOLOGIN', (3001, '请先登陆')),
-        ('ERR_PER_PERMISSION', (3002, '权限错误')),
+        ('ERR_DEMO_PERMISSION', (3002, '权限错误')),
         ('ERR_USER_NOTFOUND', (5001, '用户名或密码错误')),
         ('ERR_USER_NO_PASSWORD', (5007, '密码错误')),
         ('ERR_USER_DIFFERENT_PASSWORD', (5002, '两次密码不一致')),
@@ -192,5 +192,6 @@ DJANGO_COOL = {
         ('ERR_USER_EMAIL_FORMAT_ERROR', (5006, '邮箱格式错误')),
         ('ERR_USER_UNABLE_TO_SEARCH_FOR_USERR', (5008, '搜索的用户不存在')),
         ('ERR_TAKS_USER_HAS_NO_TASK', (5021, '没有对应任务')),
+        ('ERR_TASK_ISOPEN_FALSE', (5022, '任务未开启')),
     )
 }

@@ -254,7 +254,7 @@ def user_room(request):
                 StuInRoom.objects.filter(user=user).delete()
                 message['flg-'].append(room_ + " 删除 " + username_)
         except:
-            print(username_)
+            # print(username_)
             message['error'].append(username_)
 
     return message

@@ -2,11 +2,13 @@
 Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
-LastEditors:  
-LastEditTime: 2021-07-06 20:59:31
+LastEditors: Please set LastEditors
+LastEditTime: 2021-08-01 21:40:19
 Description: 父类
 '''
 import json
+
+from django.db.models.query_utils import Q
 
 from Apps.SchoolAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
@@ -63,7 +65,7 @@ class EditMixin:
         return self.serializer_response(obj, request=request)
 
 
-class AuthApi(CoolBFFAPIView):
+class Permission(CoolBFFAPIView):
 
     need_permissions = ()
 
@@ -76,20 +78,25 @@ class AuthApi(CoolBFFAPIView):
         for permission in self.need_permissions:
             if not request.user.has_perm(permission):
                 raise CoolAPIException(ErrorCode.ERR_DEMO_PERMISSION)
-
     class Meta:
         path = '/'
 
-class TaskBase(AuthApi):
+
+class TaskBase(Permission):
 
     def get_context(self, request, *args, **kwargs):
         raise NotImplementedError
     
+
+    def is_open(self):
+        if not self.task.is_open:
+            raise CoolAPIException(ErrorCode.ERR_TASK_ISOPEN_FALSE)
+ 
     def get_task(self):
         '''通过任务id获取任务'''
         try:
             id = self.request.params.task_id
-            self.task = Task.objects.get(id=id)
+            self.task = Task.objects.get(id=int(id))
             return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
@@ -99,7 +106,17 @@ class TaskBase(AuthApi):
         try:
             id = self.request.params.task_id
             user = self.request.user
-            self.task = Task.objects.get(id=id,admin=user)
+            self.task = Task.objects.get(id=int(id),admin=user)
+            return self.task
+        except:
+            raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
+    
+    def get_task_player_by_user(self):
+        '''通过用户和任务id获取任务'''
+        try:
+            id = self.request.params.task_id
+            user = self.request.user
+            self.task = TaskPlayer.objects.get(task=int(id),user=user).task
             return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)

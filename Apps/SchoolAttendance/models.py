@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 import datetime
 from Apps.SchoolInformation.models import *
 from cool.admin import admin_register
+from cool.model import BaseModel
 
 # Create your models here.
 
@@ -17,8 +18,8 @@ class Rule(models.Model):
     is_person = models.BooleanField(verbose_name=u'是否个人有效')
     class Meta:
 
-        verbose_name = '规则一级分类'
-        verbose_name_plural = '规则一级分类'
+        verbose_name = '一级规则'
+        verbose_name_plural = '一级规则'
 
     def __str__(self):
         return self.name
@@ -34,8 +35,8 @@ class RuleDetails(models.Model):
 
     class Meta:
 
-        verbose_name = '扣分详情'
-        verbose_name_plural = '扣分详情'
+        verbose_name = '二级规则'
+        verbose_name_plural = '二级规则'
 
     def __str__(self):
         return self.name
@@ -81,18 +82,18 @@ class Record(models.Model):
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
     class Meta:
-        verbose_name = '考勤记录'
-        verbose_name_plural = '考勤记录'
+        verbose_name = '任务-考勤记录'
+        verbose_name_plural = '任务-考勤记录'
 
     def __str__(self):
         """查寝记录: """
         return "考勤记录: " + str(self.id)
 
 @admin_register(
-    raw_id_fields = ['admin',],
-    filter_horizontal=['grades',]
+    list_display=['college', 'types','is_open']
+    # change_view_readonly_fields=['college','types'],
 )
-class Task(models.Model):
+class Task(BaseModel):
     """考勤任务管理"""
     GENDER_CHOICES1 = (
         (u'0', u'查寝'),
@@ -114,11 +115,11 @@ class Task(models.Model):
         Grade, null=True, blank=True, verbose_name=u'关联班级')
 
     class Meta:
-        """Meta definition for Manage."""
-
         verbose_name = '任务'
         verbose_name_plural = '任务'
-
+        permissions  = (
+            ('undo_record_admin', "管理员销假"),
+        )
     def get_name(self):
         if self.college != None:
             return self.college.name + " " + self.get_types_display()
@@ -144,6 +145,8 @@ class TaskPlayer(models.Model):
 
     class Meta:
         verbose_name = '任务-参与者'
+        verbose_name_plural = '任务-参与者'
+
 
 
 # TODO 后面3张表 考虑采用内存作为载体
