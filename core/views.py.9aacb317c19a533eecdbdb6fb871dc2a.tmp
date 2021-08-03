@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors: Please set LastEditors
-LastEditTime: 2021-08-01 21:40:19
+LastEditTime: 2021-08-03 20:36:32
 Description: 父类
 '''
 import json
@@ -67,17 +67,17 @@ class EditMixin:
 
 class PermissionView(CoolBFFAPIView):
 
-    need_permissions = ()
+    need_PermissionViews = ()
 
     def get_context(self, request, *args, **kwargs):
         raise NotImplementedError
 
-    def check_api_permissions(self, request, *args, **kwargs):
+    def check_api_PermissionViews(self, request, *args, **kwargs):
         if not isinstance(request.user, User):
             raise CoolAPIException(ErrorCode.ERR_DEMO_NOLOGIN)
-        for permission in self.need_permissions:
-            if not request.user.has_perm(permission):
-                raise CoolAPIException(ErrorCode.ERR_DEMO_PERMISSION)
+        for PermissionView in self.need_PermissionViews:
+            if not request.user.has_perm(PermissionView):
+                raise CoolAPIException(ErrorCode.ERR_DEMO_PermissionView)
     class Meta:
         path = '/'
 

@@ -1,10 +1,17 @@
+'''
+Author: your name
+Date: 2021-07-13 17:37:04
+LastEditTime: 2021-08-03 08:28:19
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: \ChileCat\Manage\admin.py
+'''
 
 '''把数据注册到admin网站'''
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ApiPermission,ElementPermission,OperatePermission
 
-admin.site.site_header = "智服喵管理平台" 
 # @admin.register(ApiPermission)
 # class ApiPermissionTeleAdmin(admin.ModelAdmin):
 #     '''接口访问'''

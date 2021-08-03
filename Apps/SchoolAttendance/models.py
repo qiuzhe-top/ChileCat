@@ -41,11 +41,53 @@ class RuleDetails(models.Model):
     def __str__(self):
         return self.name
 
+
+@admin_register(
+    list_display=['college', 'types','is_open']
+    # change_view_readonly_fields=['college','types'],
+)
+class Task(BaseModel):
+    """考勤任务管理"""
+    GENDER_CHOICES1 = (
+        (u'0', u'查寝'),
+        (u'1', u'查卫生'),
+        (u'2', u'晚自修')
+    )
+    is_open = models.BooleanField(verbose_name='是否开启',default=False)
+    types = models.CharField(
+        max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
+    roster = models.TextField(
+        verbose_name=u'班表', null=True, blank=True, default=u'[]')
+    college = models.ForeignKey(
+        College, null=True, blank=True, on_delete=models.CASCADE, verbose_name=u'分院')
+    admin = models.ManyToManyField(
+        User, null=True, blank=True,  verbose_name=u'管理员')
+    buildings = models.ManyToManyField(
+        Building, null=True, blank=True, verbose_name=u'关联楼')
+    grades = models.ManyToManyField(
+        Grade, null=True, blank=True, verbose_name=u'关联班级')
+
+    class Meta:
+        verbose_name = '任务'
+        verbose_name_plural = '任务'
+        permissions  = (
+            ('undo_record_admin', "管理员销假"),
+        )
+    def get_name(self):
+        if self.college != None:
+            return self.college.name + " " + self.get_types_display()
+        else:
+            return self.get_types_display()
+
+    def __str__(self):
+        """Unicode representation of Manage."""
+        return  self.get_name()
+
 @admin_register
 class Record(models.Model):
     """考勤记录"""
     task = models.ForeignKey(
-        'Task', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="任务")
+        Task, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="任务")
     rule_str = models.CharField(
         max_length=150, verbose_name="原因", null=True, blank=True)
     score = models.IntegerField(null=True, blank=True, verbose_name="分值") 
@@ -88,47 +130,6 @@ class Record(models.Model):
     def __str__(self):
         """查寝记录: """
         return "考勤记录: " + str(self.id)
-
-@admin_register(
-    list_display=['college', 'types','is_open']
-    # change_view_readonly_fields=['college','types'],
-)
-class Task(BaseModel):
-    """考勤任务管理"""
-    GENDER_CHOICES1 = (
-        (u'0', u'查寝'),
-        (u'1', u'查卫生'),
-        (u'2', u'晚自修')
-    )
-    is_open = models.BooleanField(verbose_name='是否开启',default=False)
-    types = models.CharField(
-        max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')
-    roster = models.TextField(
-        verbose_name=u'班表', null=True, blank=True, default=u'[]')
-    college = models.ForeignKey(
-        College, null=True, blank=True, on_delete=models.CASCADE, verbose_name=u'分院')
-    admin = models.ManyToManyField(
-        User, null=True, blank=True,  verbose_name=u'管理员')
-    buildings = models.ManyToManyField(
-        Building, null=True, blank=True, verbose_name=u'关联楼')
-    grades = models.ManyToManyField(
-        Grade, null=True, blank=True, verbose_name=u'关联班级')
-
-    class Meta:
-        verbose_name = '任务'
-        verbose_name_plural = '任务'
-        permissions  = (
-            ('undo_record_admin', "管理员销假"),
-        )
-    def get_name(self):
-        if self.college != None:
-            return self.college.name + " " + self.get_types_display()
-        else:
-            return self.get_types_display()
-
-    def __str__(self):
-        """Unicode representation of Manage."""
-        return  self.get_name()
 
 @admin_register(
     raw_id_fields = ['user',]
