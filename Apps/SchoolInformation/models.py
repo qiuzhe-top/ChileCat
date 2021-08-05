@@ -2,8 +2,8 @@
 Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
-LastEditors: Please set LastEditors
-LastEditTime: 2021-08-03 16:11:30
+LastEditors:  
+LastEditTime: 2021-08-04 20:51:22
 Description: 
 '''
 from django.db import models
@@ -156,7 +156,7 @@ class StuInRoom(models.Model):
         on_delete=models.CASCADE, verbose_name="学生"
     )
     bed_position = models.IntegerField(
-        verbose_name="床铺位置",null=True,blank=True)
+        verbose_name="床铺位置")
 
     class Meta:
         verbose_name = '宿舍入住信息'

@@ -24,14 +24,23 @@ class TaskObtain(views.BaseSerializer):
         fields =('id','is_open','name')  # 包含
 class PersonalDisciplineQuery(views.BaseSerializer):
     '''获取个人违纪记录'''
-    # name = serializers.SerializerMethodField()
-    
-    # def get_name(self, obj):
-    #     return obj
-    
     class Meta:
         model = models.Record
         fields =('rule_str','score','worker','star_time')  
+class KnowingStudentRoomInfo(views.BaseSerializer):
+    '''晚查寝-房间工作数据'''
+    name = serializers.CharField(source='user.userinfo.name')
+    id = serializers.IntegerField(source='user.id')
+    status = serializers.SerializerMethodField()
+    
+    def get_status(self, obj):
+        task = self.request.task
+        status, flg = models.TaskFloorStudent.objects.get_or_create(task=task, user=obj.user)
+        return status.flg
+    
+    class Meta:
+        model = models.StuInRoom
+        fields =('id','name','bed_position','status')  
 class TaskSwitch(views.BaseSerializer):
     """开启/关闭任务"""
 
