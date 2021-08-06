@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-05 16:22:35
+LastEditTime: 2021-08-06 19:20:27
 Description: 
 '''
 from copy import error
@@ -609,9 +609,8 @@ class SubmitKnowing(TaskBase):
 
 
 @site
-class KnowingStoreyInfo(TaskBase):
-    name = _('晚查寝-楼工作数据')
-
+class DormStoreyInfo(TaskBase):
+    name = _('楼内层列表')
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         buildings = self.task.buildings.all()
@@ -627,41 +626,33 @@ class KnowingStoreyInfo(TaskBase):
 
 
 @site
-class KnowingRoomInfo(TaskBase):
-    name = _('晚查寝-层工作数据')
-
+class DormRoomInfo(TaskBase):
+    name = _('层内房间列表')
+    
+    response_info_serializer_class = serializers.DormRoomInfo
     def get_context(self, request, *args, **kwargs):
         self.get_task()
-        d = {"0": "dorm_status", "1": "health_status"}
         floor_id = request.params.floor_id
-        if not floor_id:
-            return
-        rooms = models.Room.objects.filter(floor_id=floor_id).values(
-            'id', 'name', 'health_status', 'dorm_status'
-        )
-        for room in rooms:
-            room['status'] = room[d[self.task.types]]
-            del room['health_status']
-            del room['dorm_status']
-        return list(rooms)
+        rooms = models.Room.objects.filter(floor_id=floor_id).values_list('id',flat=True)
+        history = models.RoomHistory.objects.filter(room__in=rooms,task = self.task)
+        return serializers.DormRoomInfo(history,many=True,request=request).data
 
     class Meta:
         param_fields = (('floor_id', fields.CharField(label=_('楼层ID'))),)
 
 
 @site
-class KnowingStudentRoomInfo(TaskBase):
-    name = _('晚查寝-房间工作数据')
-    response_info_serializer_class = serializers.KnowingStudentRoomInfo
+class DormStudentRoomInfo(TaskBase):
+    name = _('房间学生 信息')
+    response_info_serializer_class = serializers.DormStudentRoomInfo
 
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         room_id = request.params.room_id
-
         room = models.Room.objects.get(id=room_id)
         room_data = room.stu_in_room.all()
         request.task = self.task
-        return serializers.KnowingStudentRoomInfo(room_data,many=True,request=request).data
+        return serializers.DormStudentRoomInfo(room_data,many=True,request=request).data
 
     class Meta:
         param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)

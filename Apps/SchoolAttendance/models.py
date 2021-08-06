@@ -150,7 +150,7 @@ class TaskPlayer(models.Model):
 
 
 
-# TODO 后面3张表 考虑采用内存作为载体
+# TODO 后面3张表 考虑采用缓存作为载体
 @admin_register
 class RoomHistory(models.Model):
     """考勤-房间

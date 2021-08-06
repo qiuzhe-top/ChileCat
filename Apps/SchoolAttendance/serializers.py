@@ -27,20 +27,44 @@ class PersonalDisciplineQuery(views.BaseSerializer):
     class Meta:
         model = models.Record
         fields =('rule_str','score','worker','star_time')  
-class KnowingStudentRoomInfo(views.BaseSerializer):
-    '''晚查寝-房间工作数据'''
+class DormRoomInfo(views.BaseSerializer):
+    '''层内房间列表'''
+    name = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    id = serializers.CharField(source='room.id')
+    def get_name(self,obj):
+        name = obj.room.name
+        return name
+
+    def get_status(self,obj):
+        if obj.task.types == '0':
+            return obj.is_knowing
+        elif obj.task.types == '1':
+            return obj.is_health
+          
+    class Meta:
+        model = models.RoomHistory
+        fields =('id', 'name', 'status')  
+
+class DormStudentRoomInfo(views.BaseSerializer):
+    '''晚查寝-宿舍房间 数据'''
     name = serializers.CharField(source='user.userinfo.name')
     id = serializers.IntegerField(source='user.id')
     status = serializers.SerializerMethodField()
     
     def get_status(self, obj):
         task = self.request.task
+        if task.types == '1':
+            return True
         status, flg = models.TaskFloorStudent.objects.get_or_create(task=task, user=obj.user)
         return status.flg
     
     class Meta:
         model = models.StuInRoom
         fields =('id','name','bed_position','status')  
+class DormStudentRoomInfoTrue(DormStudentRoomInfo):
+    def get_status(self, obj):
+        return True
 class TaskSwitch(views.BaseSerializer):
     """开启/关闭任务"""
 

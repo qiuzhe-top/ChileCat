@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-04 20:51:22
+LastEditTime: 2021-08-06 17:01:05
 Description: 
 '''
 from django.db import models
@@ -127,8 +127,8 @@ class Room(models.Model):
     floor = models.ForeignKey(
         'Floor', on_delete=models.CASCADE, verbose_name="层", related_name="room"
     )
-    health_status = models.BooleanField(verbose_name="卫生检查状态",default=False)
-    dorm_status = models.BooleanField(verbose_name="晚查寝状态",default=False)
+    # health_status = models.BooleanField(verbose_name="卫生检查状态",default=False)
+    # dorm_status = models.BooleanField(verbose_name="晚查寝状态",default=False)
 
     class Meta:
         """Meta definition for Room."""

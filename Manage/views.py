@@ -303,85 +303,102 @@ def add_user():
         ['195303', '19530345'],
     ]
 
-
 # 晚自修规则
 def uinitialization_rules(request=None):
-    '''晚自修规则
+    '''考勤规则初始化
     codename:系统内部使用不能随意修改 导出Excel会使用
     '''
     print('晚自修规则初始化')
     # TODO 效率低
-    rule_f = {
-        'name': '查寝',
-        'codename': '0#001',
-        'is_person': True,
-    }
-    rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
-    rules = [
-        {'name': '请假', 'score': '1', 'rule': rule},
-        {'name': '未到校', 'score': '1', 'rule': rule},
-        {'name': '当兵', 'score': '1', 'rule': rule},
+    rules =  [
+        {
+          "rule_f" :{
+            'name': '查寝',
+            'codename': '0#001',
+            'is_person': True,
+          },
+          "rules":[
+            {'name': '请假', 'score': '1'},
+            {'name': '未到校', 'score': '1'},
+            {'name': '当兵', 'score': '1'},
+          ]
+      },
+      {
+        "rule_f":{
+          'name': '晚签',
+          'codename': '0#002',
+          'is_person': True,
+        },
+        "rules":[
+          {'name': '旷一', 'score': '1'},
+          {'name': '旷二', 'score': '1'},
+        ]
+      },
+      {
+        "rule_f": {
+          'name': '晚自修违纪',
+          'codename': '0#003',
+          'is_person': True,
+        },
+        "rules":[
+            {'name': '睡觉', 'score': '1'},
+            {'name': '玩手机', 'score': '1'},
+        ]
+      },
+      {
+        "rule_f":{
+            'name': '早签',
+            'codename': '0#004',
+            'is_person': True,
+        },
+        "rules": [
+            {'name': '早签', 'score': '1'},
+        ]
+      },
+      {
+        "rule_f" : {
+          'name': '课堂',
+          'codename': '0#005',
+          'is_person': True,
+        },
+        "rules": [
+            {'name': '早退', 'score': '1'},
+        ]
+      },
+      {
+        "rule_f": {
+            'name': '宿舍卫生',
+            'codename': '0#006',
+            'is_person': True,
+        },
+        "rules": [
+            {'name': '地面脏乱', 'score': '1'},
+            {'name': '阳台脏乱', 'score': '1'},
+        ]
+      },
+      {
+        "rule_f": {
+            'name': '宿舍个人卫生',
+            'codename': '0#007',
+            'is_person': True,
+        },
+        "rules": [
+            {'name': '被子未叠', 'score': '1'},
+            {'name': '鞋子摆放不合格', 'score': '1'},
+        ]
+      }
     ]
-    for r in rules:
-        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
-    # ----------------------------------------------------------------
-    rule_f = {
-        'name': '晚签',
-        'codename': '0#002',
-        'is_person': True,
-    }
-    rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
-
-    rules = [
-        {'name': '旷一', 'score': '1', 'rule': rule},
-        {'name': '旷二', 'score': '1', 'rule': rule},
-    ]
-    for r in rules:
-        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
-    # ----------------------------------------------------------------
-    rule_f = {
-        'name': '晚自修违纪',
-        'codename': '0#003',
-        'is_person': True,
-    }
-    rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
-
-    rules = [
-        {'name': '睡觉', 'score': '1', 'rule': rule},
-        {'name': '玩手机', 'score': '1', 'rule': rule},
-    ]
-    for r in rules:
-        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
-    # ---------------------------------------------------------------
-    # 早签的名字修改 会影响早签数据批量导入和平台数据导出
-    rule_f = {
-        'name': '早签',
-        'codename': '0#004',
-        'is_person': True,
-    }
-    rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
-
-    rules = [
-        {'name': '早签', 'score': '1', 'rule': rule},
-    ]
-    for r in rules:
-        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
-    # ---------------------------------------------------------------
-    rule_f = {
-        'name': '课堂',
-        'codename': '0#005',
-        'is_person': True,
-    }
-    rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
-
-    rules = [
-        {'name': '早退', 'score': '1', 'rule': rule},
-    ]
-
-    for r in rules:
-        SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
-
-    return {"code": 2000}
+    res = []
+    for item in rules:
+        rule_f = item['rule_f']
+        rules = item['rules']
+        rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
+        if flg:
+            res.append(rule_f['name'])
+        for r in rules:
+            r['rule'] = rule
+            SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+    return res
 
 
 class In_zaoqian_excel(APIView):
@@ -464,7 +481,7 @@ class DataInit(CoolBFFAPIView):
         init_dict = {
             # 用户组初始化
             "group_init": group_init,
-            # 晚自修规则
+            # 考勤规则
             "uinitialization_rules": uinitialization_rules,
             # 考勤权限分组
             "init_Attendance_group": init_Attendance_group,
