@@ -3,10 +3,11 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-06 19:20:27
+LastEditTime: 2021-08-07 21:26:31
 Description: 
 '''
 from copy import error
+from core.models_utils import create_custom_rule
 from core.common import is_number
 from Apps.User.utils.auth import get_token_by_user
 import datetime
@@ -521,93 +522,137 @@ class SubmitLate(TaskBase):
 class SubmitKnowing(TaskBase):
     name = _('寝室考勤 点名提交')
 
-    def get_context(self, request, *args, **kwargs):
-
-        # 获取参数
-        self.get_task_player_by_user()
-        self.is_open()
-
-        room_id = request.params.room_id
-        user_list = request.params.user_list
-
-        # 获取房间对象
+    def get_room(self):
+        '''获取房间'''
+        room_id = self.request.params.room_id
         room = SchoolInformationModels.Room.objects.get(id=room_id)
-
-        # 添加房间检查记录
+        # 保存房间状态为已检查
         obj, flg = models.RoomHistory.objects.get_or_create(room=room, task=self.task)
         obj.is_knowing = True
-        obj.room.dorm_status = True
-        obj.room.save()
         obj.save()
+        return room
+        
+    def get_custom_rule(self):
+        '''获取自定义规则'''
+        if getattr(self,'custom_rule'):
+            return self.custom_rule
+        else:
+            self.custom_rule = create_custom_rule('0#001','查寝:其他情况')
+            return self.custom_rule
 
-        rule_obj = models.Rule.objects.get(codename='0#001')
-        rule_obj, f = models.RuleDetails.objects.get_or_create(
-            name='查寝:其他情况', defaults={'rule': rule_obj, 'score': 1}
-        )
+    def init_data(self):
+        '''初始化所用数据'''
+        self.get_task_player_by_user()
+        room = self.get_room()
+        self.room_str = str(room)
 
+
+    def get_context(self, request, *args, **kwargs):        
+        self.init_data()
+        
+        user_list = request.params.user_list
         for d in user_list:
             # 获取用户
             user = User.objects.get(id=d['user_id'])
 
-            task_floor_student, flg = models.TaskFloorStudent.objects.get_or_create(
-                task=self.task, user=user
-            )
-            # 状态判断 1:撤销记录
+            # 学生是否在宿舍
+            user_in_room, flg = models.TaskFloorStudent.objects.get_or_create(task=self.task, user=user)
+
+            # 撤销记录
             if d['status'] == '1':
-                task_floor_student.flg = True
-                task_floor_student.save()
                 t = datetime.datetime.now()
                 models.Record.objects.filter(
                     star_time__date=t, worker=request.user, student_approved=user
                 ).update(manager=request.user, rule_str='查寝：误操作撤销')
-
-            elif d['status'] == '0':
-
-                reason = d['reason']
+                user_in_room.flg = True
+                user_in_room.save()
+                continue
+            
+            # 提交记录
+            if d['status'] == '0':
+                reason = d['reason'] # 自定义规则文本 / 规则ID
                 rule_str = ''
                 rule = None
 
-                # 判断是否为规则ID
-                if is_number(reason):
-                    # 获取对应规则对象
+                # 创建规则
+                if is_number(reason):# 判断是否为规则ID
                     try:
                         rule = models.RuleDetails.objects.get(id=reason)
                         rule_str = rule.name
                     except:
-                        rule = rule_obj
+                        rule = self.get_custom_rule()
                         rule_str = reason
                 else:
-                    # 记录字符串函数
-                    rule = rule_obj
+                    rule = self.get_custom_rule()
                     rule_str = reason
 
-                obj = {
-                    'task': self.task,
-                    'rule_str': rule_str,
-                    'room_str': room.get_room(),
-                    'grade_str': user.studentinfo.grade.name,
-                    'student_approved': user,
-                    'worker': request.user,
-                    'score': 1,  # 默认夜不归扣一分
-                }
-
+                # 构建任务
+                obj = {}
+                obj['rule_str'] = rule_str
+                obj['room_str'] = self.room_str
+                obj['grade_str'] =  user.studentinfo.grade.name
+                obj['student_approved'] = user
+                obj['score'] = 1 # 默认夜不归扣一分
                 if rule:
                     obj['rule'] = rule
                     obj['score'] = rule.score
-                models.Record.objects.create(**obj)
-                task_floor_student.flg = False
-                task_floor_student.save()
-                room.dorm_status = True
-                room.save()
-                # 写入历史记录
 
+                self.submit(obj)
+                user_in_room.flg = False
+                user_in_room.save()
     class Meta:
         param_fields = (
             ('room_id', fields.CharField(label=_('房间ID'))),
             ('user_list', fields.ListField(label=_('被记录用户列表'))),
         )
 
+@site
+class SubmitHealth(TaskBase):
+    name = _('寝室卫士 检查提交')
 
+
+    def get_custom_rule(self):
+        '''获取自定义宿舍卫生规则'''
+        if getattr(self,'custom_rule'):
+            return self.custom_rule
+        else:
+            self.custom_rule = create_custom_rule('0#006','宿舍卫生:其他情况')
+            return self.custom_rule
+
+    def get_custom_rule_personal(self):
+        '''获取自定义宿舍个人卫生规则'''
+        if getattr(self,'custom_rule_personal'):
+            return self.custom_rule_personal
+        else:
+            self.custom_rule_personal = create_custom_rule('0#007','个人卫生:其他情况')
+            return self.custom_rule_personal
+
+    def get_room(self):
+        room_id = self.request.params.room_id
+        return SchoolInformationModels.Room.objects.get(id=room_id)
+        
+    def init_data(self):
+        '''初始化所用数据'''
+        self.get_task_player_by_user()
+        room = self.get_room()
+        self.room_str = str(room)
+
+    def get_context(self, request, *args, **kwargs):
+        self.init_data()
+        user_list = request.params.user_list
+        for d in user_list:
+            # 撤销记录
+            if d['status'] == '1':
+                continue
+            
+            # 提交记录
+            if d['status'] == '0':
+                continue
+    class Meta:
+         param_fields = (
+            ('room_id', fields.CharField(label=_('房间ID'))),
+            ('user_list', fields.ListField(label=_('被记录用户列表'))),
+        )
 @site
 class DormStoreyInfo(TaskBase):
     name = _('楼内层列表')
@@ -633,9 +678,8 @@ class DormRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         floor_id = request.params.floor_id
-        rooms = models.Room.objects.filter(floor_id=floor_id).values_list('id',flat=True)
-        history = models.RoomHistory.objects.filter(room__in=rooms,task = self.task)
-        return serializers.DormRoomInfo(history,many=True,request=request).data
+        rooms = models.Room.objects.filter(floor_id=floor_id)
+        return serializers.DormRoomInfo(rooms,many=True,request=request).data
 
     class Meta:
         param_fields = (('floor_id', fields.CharField(label=_('楼层ID'))),)
@@ -651,7 +695,6 @@ class DormStudentRoomInfo(TaskBase):
         room_id = request.params.room_id
         room = models.Room.objects.get(id=room_id)
         room_data = room.stu_in_room.all()
-        request.task = self.task
         return serializers.DormStudentRoomInfo(room_data,many=True,request=request).data
 
     class Meta:

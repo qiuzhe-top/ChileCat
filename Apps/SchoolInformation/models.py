@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-06 17:01:05
+LastEditTime: 2021-08-07 20:59:19
 Description: 
 '''
 from django.db import models
@@ -143,7 +143,7 @@ class Room(models.Model):
         
     def __str__(self):
         """返回房间号"""
-        return self.floor.building.name + "#" + self.floor.name + self.name
+        return self.get_room()
 
 @admin_register
 class StuInRoom(models.Model):

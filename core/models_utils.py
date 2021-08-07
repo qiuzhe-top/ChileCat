@@ -2,13 +2,15 @@
 Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
-LastEditors: Please set LastEditors
-LastEditTime: 2021-08-01 10:53:20
-Description: 常用数据序列化
+LastEditors:  
+LastEditTime: 2021-08-07 21:09:40
+Description: 数据模型方法
 '''
 from django.db import models
 
-from Apps.SchoolInformation.models import Building,Floor,Room
+from Apps.SchoolInformation.models import *
+from Apps.SchoolAttendance.models import *
+
 def search_room(room_info):
     """3#106解析返回Room对象"""
     try:
@@ -23,4 +25,11 @@ def search_room(room_info):
     except Exception as e:
         print(e.args)
         return None
-
+def create_custom_rule(codename,name,score=1):
+        '''创建自定义规则'''
+        rule_obj = Rule.objects.get(codename=codename)
+        rule_obj, f = RuleDetails.objects.get_or_create(
+            name=name, defaults={'rule': rule_obj, 'score': score}
+        )
+        
+        return rule_obj

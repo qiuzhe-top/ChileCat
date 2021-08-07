@@ -26,6 +26,7 @@ class Rule(models.Model):
 
 @admin_register
 class RuleDetails(models.Model):
+    '''二级规则'''
     name = models.CharField(max_length=20, verbose_name=u'名称')
     score = models.IntegerField(verbose_name=u'分值', null=True, blank=True)
     rule = models.ForeignKey(
@@ -161,8 +162,8 @@ class RoomHistory(models.Model):
     )
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
-    is_knowing = models.BooleanField(verbose_name='是否查寝',null=True,blank=True)
-    is_health = models.BooleanField(verbose_name='是否查卫生',null=True,blank=True)
+    is_knowing = models.BooleanField(verbose_name='是否查寝',default=False)
+    is_health = models.BooleanField(verbose_name='是否查卫生',default=False)
 
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 

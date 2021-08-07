@@ -2,8 +2,8 @@
 Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
-LastEditors: Please set LastEditors
-LastEditTime: 2021-08-01 21:40:19
+LastEditors:  
+LastEditTime: 2021-08-07 20:34:10
 Description: 父类
 '''
 import json
@@ -83,7 +83,6 @@ class PermissionView(CoolBFFAPIView):
 
 
 class TaskBase(PermissionView):
-
     def get_context(self, request, *args, **kwargs):
         raise NotImplementedError
     
@@ -97,6 +96,7 @@ class TaskBase(PermissionView):
         try:
             id = self.request.params.task_id
             self.task = Task.objects.get(id=int(id))
+            self.request.task = self.task
             return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
@@ -135,6 +135,12 @@ class TaskBase(PermissionView):
         self.task.roster=json.dumps(roster)
         self.task.save()
 
+    def submit(self,record):
+        '''任务提交'''
+        self.is_open()
+        record['task'] = self.task
+        record['worker'] = self.request.user
+        Record.objects.create(**record)
     class Meta:
         param_fields = (
             ('task_id', fields.CharField(label=_('任务id'), max_length=8)),

@@ -29,21 +29,18 @@ class PersonalDisciplineQuery(views.BaseSerializer):
         fields =('rule_str','score','worker','star_time')  
 class DormRoomInfo(views.BaseSerializer):
     '''层内房间列表'''
-    name = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    id = serializers.CharField(source='room.id')
-    def get_name(self,obj):
-        name = obj.room.name
-        return name
 
     def get_status(self,obj):
-        if obj.task.types == '0':
-            return obj.is_knowing
-        elif obj.task.types == '1':
-            return obj.is_health
+        task = self.request.task
+        history = models.RoomHistory.objects.get_or_create(task=task, room=obj)[0]
+        if task.types == '0':
+            return history.is_knowing
+        elif task.types == '1':
+            return history.is_health
           
     class Meta:
-        model = models.RoomHistory
+        model = models.Room
         fields =('id', 'name', 'status')  
 
 class DormStudentRoomInfo(views.BaseSerializer):

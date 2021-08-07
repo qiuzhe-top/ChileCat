@@ -6,12 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
-# 获取环境数值 因为  ENV  只有服务器才配置
-ENV_PROFILE = os.getenv("ENV")
-
 DEBUG = True
 HOST = '127.0.0.1'
 
+# 获取环境数值 因为  ENV  只有服务器才配置
+ENV_PROFILE = os.getenv("ENV")
 if ENV_PROFILE:
     HOST = '47.102.215.230'
     DEBUG = False
