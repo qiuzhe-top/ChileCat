@@ -136,7 +136,7 @@ class RecordQuery(RecordUserInfo):
     class Meta:
 
         model = models.Record
-        fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
+        fields = ('id','task', 'rule_str','score','room_str','grade_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
         # fields = "__all__"
 
 class ConditionRecord(RecordUserInfo):

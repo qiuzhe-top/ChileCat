@@ -69,6 +69,7 @@ class Task(BaseModel):
         verbose_name_plural = '任务'
         permissions  = (
             ('undo_record_admin', "管理员销假"),
+            ('zq_data_import', "早签数据导入"),
         )
     def get_name(self):
         if self.college != None:

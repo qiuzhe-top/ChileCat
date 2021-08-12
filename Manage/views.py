@@ -289,8 +289,14 @@ def init_Attendance_group(request=None):
     # 数据汇总组
     name2 = 'task_data'
 
-    user_group.group_add_permission(name1, per1)
-    user_group.group_add_permission(name2, per2)
+    # task_data 组
+    name3 = 'task_data'
+    per3 = [
+        'undo_record_admin',
+        'zq_data_import',
+    ]
+    # user_group.group_add_permission(name1, per1)
+    user_group.group_add_permission(name3, per3)
     return 2000
 
 
@@ -476,6 +482,7 @@ def run_init(request):
     return {
         "group_init":group_init(request),
         "uinitialization_rules":uinitialization_rules(request),
+        "init_Attendance_group":init_Attendance_group(request)
     }
 @site
 class DataInit(CoolBFFAPIView):

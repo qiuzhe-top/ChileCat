@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-12 16:19:59
+LastEditTime: 2021-08-12 19:23:57
 Description: 
 '''
 from copy import error
@@ -516,7 +516,7 @@ class PersonalDisciplineQuery(PermissionView):
 class InzaoqianExcel(CoolBFFAPIView):
     name = _('导入早签数据')
     # TODO 需要进行管理员身份验证  导入大量的情况有问题
-    need_permissions = ('SchoolAttendance.undo_record_admin',)
+    need_permissions = ('SchoolAttendance.zq_data_import',)
 
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
