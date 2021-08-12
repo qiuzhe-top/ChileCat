@@ -15,9 +15,7 @@ from rest_framework.views import APIView
 from core.permission_group import user_group
 from Apps.User.models import UserInfo, Grade, College, User, StudentInfo
 
-from Manage.models_extension.models_permission import *
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-from .tests import *
 import time, datetime
 from core.excel_utils import excel_to_list
 
@@ -473,6 +471,12 @@ class In_zaoqian_excel(APIView):
         ret = {'message': '添加成功 请检查添加结果', 'code': '2000', 'data': error_list}
         return JsonResponse(ret)
 
+def run_init(request):
+    
+    return {
+        "group_init":group_init(request),
+        "uinitialization_rules":uinitialization_rules(request),
+    }
 @site
 class DataInit(CoolBFFAPIView):
     name = "系统数据初始化"
@@ -480,17 +484,19 @@ class DataInit(CoolBFFAPIView):
     def get_context(self, request):
         init_dict = {
             # 用户组初始化
-            "group_init": group_init,
+            # "group_init": group_init,
             # 考勤规则
-            "uinitialization_rules": uinitialization_rules,
+            # "uinitialization_rules": uinitialization_rules,
             # 考勤权限分组
-            "init_Attendance_group": init_Attendance_group,
+            # "init_Attendance_group": init_Attendance_group,
+            # 寝室表导入
+            # "import_stu_data": import_stu_data,
+
+            "init": run_init,
             # 导入学生
             "user_init": user_init,
             # 用户寝室关联
             "user_room": user_room,
-            # 寝室表导入
-            "import_stu_data": import_stu_data,
             # 用户与组的管理
             "group_user": group_user,
         }

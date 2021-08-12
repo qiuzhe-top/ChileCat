@@ -69,14 +69,6 @@ class TaskSwitch(views.BaseSerializer):
         model = models.Task
         fields =('is_open',)  # 包含
 
-class ConditionRecord(views.BaseSerializer):
-    '''获取考勤执行记录 晚查寝 晚自修'''
-    student_approved = serializers.CharField(source='student_approved.userinfo.name')
-    student_approved_number = serializers.CharField(source='student_approved.username')
-    worker = serializers.CharField(source='worker.userinfo.name')
-    class Meta:
-        model = models.Record
-        fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
 
 
 class TaskExecutor(views.BaseSerializer):
@@ -123,20 +115,37 @@ class TaskPlayerGetAdmin(serializers.ModelSerializer):
         model = models.TaskPlayer
         fields = ('user_id', 'uese_name')  # 包含
 
+class RecordUserInfo(views.BaseSerializer):
+    student_approved = serializers.SerializerMethodField()
+    student_approved_number = serializers.SerializerMethodField()
 
-class RecordQuery(serializers.ModelSerializer):
+    def get_student_approved(self,obj):
+        try:
+            return obj.student_approved.userinfo.name
+        except:
+            return None
+    def get_student_approved_number(self,obj):
+        try:
+            return obj.student_approved.username
+        except:
+            return None
+class RecordQuery(RecordUserInfo):
     '''考勤结果查询'''
-    student_approved = serializers.CharField(source='student_approved.userinfo.name')
-    student_approved_number = serializers.CharField(source='student_approved.username')
-    # manager = serializers.CharField(source='manager.userinfo.name')
     worker = serializers.CharField(source='worker.userinfo.name')
     task = serializers.CharField(source = 'task.__str__')
-
     class Meta:
 
         model = models.Record
         fields = ('id','task', 'rule_str','score','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
         # fields = "__all__"
+
+class ConditionRecord(RecordUserInfo):
+    '''获取考勤执行记录 晚查寝 晚自修'''
+    worker = serializers.CharField(source='worker.userinfo.name')
+
+    class Meta:
+        model = models.Record
+        fields = ('id', 'rule_str','room_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
 
 
 class UserCallGrader(serializers.ModelSerializer):
@@ -154,15 +163,24 @@ class UserCallGrader(serializers.ModelSerializer):
         model =User
         fields = ('id', 'name','username','flg')  # 包含
     
-# 晚查寝数据导出    
 class TaskRecordExcelSerializer(serializers.ModelSerializer):
+    '''晚查寝数据导出'''    
     room_name = serializers.CharField(source='room_str')
-    student_name = serializers.CharField(source='student_approved.userinfo.name')
-    student = serializers.CharField(source='student_approved.username')
+    student_name = serializers.SerializerMethodField()
+    student = serializers.SerializerMethodField()
     reason = serializers.CharField(source='rule_str')
     classname = serializers.CharField(source='grade_str')
     created_time = serializers.CharField(source='star_time')
-
+    def get_student_name(self,obj):
+        try:
+            return obj.student_approved.userinfo.name
+        except:
+            return None
+    def get_student(self,obj):
+        try:
+            return obj.student_approved.username
+        except:
+            return None
     class Meta:
         model =models.Record
         fields = ('created_time', 'room_name','classname','student','student_name','reason')  # 包含

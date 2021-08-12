@@ -43,10 +43,6 @@ class RuleDetails(models.Model):
         return self.name
 
 
-@admin_register(
-    list_display=['college', 'types','is_open']
-    # change_view_readonly_fields=['college','types'],
-)
 class Task(BaseModel):
     """考勤任务管理"""
     GENDER_CHOICES1 = (
@@ -84,7 +80,7 @@ class Task(BaseModel):
         """Unicode representation of Manage."""
         return  self.get_name()
 
-@admin_register
+
 class Record(models.Model):
     """考勤记录"""
     task = models.ForeignKey(

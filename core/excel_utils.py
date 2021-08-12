@@ -2,8 +2,8 @@
 Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
-LastEditors: Please set LastEditors
-LastEditTime: 2021-08-01 19:41:12
+LastEditors:  
+LastEditTime: 2021-08-12 16:18:43
 Description: Excel 操作
 '''
 
@@ -54,23 +54,24 @@ def at_all_out_xls(data):
             k.get('grade',''),
             k.get('usernames',''),
             k.get('name',''),
-
-            k.get('0#001score',0),
-            k.get('0#001rule',''),
-
-            k.get('0#002score',0),
-            k.get('0#002rule',''),
-
-            k.get('0#003score',0),
-            k.get('0#003rule',0),
-
+            # 晨点
+            '',
+            '',
+            # 早签
             k.get('0#004score',0),
             k.get('0#004rule',''),
-
+            # 晚签
+            k.get('0#002score',0),
+            k.get('0#002rule',''),
+            # 晚自修违纪
+            k.get('0#003score',0),
+            k.get('0#003rule',0),
+            # 查寝
+            k.get('0#001score',0),
+            k.get('0#001rule',''),
+            # 课堂
             k.get('0#005score',0),
             k.get('0#005rule',''),
-            0,
-            '',
             k.get('score','')
         ])
     TIME = datetime.datetime.now()#.strftime("%H:%M:%S")
@@ -91,7 +92,7 @@ def out_knowing_data(ser_records):
     '''晚查寝当日数据导出
     '''
     response = HttpResponse(content_type='application/vnd.ms-excel')
-    filename = datetime.date.today().strftime("%Y-%m-%d") + ' 学生缺勤表.xls'
+    filename = datetime.date.today().strftime("%Y-%m-%d") + ' 学生考勤表.xls'
     response['Content-Disposition'] = (
         'attachment; filename={}'.format(escape_uri_path(filename))
     )

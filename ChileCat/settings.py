@@ -171,9 +171,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         "core.rest_permission.authentication.AuthPermission",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "core.rest_permission.api_permission.ApiPublicPermission",
-    ],
     'EXCEPTION_HANDLER': 'core.rest_permission.exception_handler.custom_exception_handler',
 }
 
@@ -193,5 +190,6 @@ DJANGO_COOL = {
         ('ERR_TAKS_USER_HAS_NO_TASK', (5021, '没有对应任务')),
         ('ERR_TASK_ISOPEN_FALSE', (5022, '任务未开启')),
         ('ERR_UPDATE_BADS_IS_NULL', (5023, '床位使用中')),
+        ('EXCEL_OUT_NO_DATA', (5024, 'Excel数据为空')),
     )
 }

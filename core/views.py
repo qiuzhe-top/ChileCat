@@ -3,9 +3,10 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-07 20:34:10
+LastEditTime: 2021-08-10 19:48:39
 Description: 父类
 '''
+from core.common import is_number
 import json
 
 from django.db.models.query_utils import Q
@@ -18,6 +19,7 @@ from django.contrib.auth.models import User
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
+from core.models_utils import create_custom_rule
 
 
 class EditMixin:
@@ -135,14 +137,132 @@ class TaskBase(PermissionView):
         self.task.roster=json.dumps(roster)
         self.task.save()
 
-    def submit(self,record):
-        '''任务提交'''
-        self.is_open()
-        record['task'] = self.task
-        record['worker'] = self.request.user
-        Record.objects.create(**record)
+
     class Meta:
         param_fields = (
             ('task_id', fields.CharField(label=_('任务id'), max_length=8)),
         )
         path = '/'
+
+
+class SubmitBase(TaskBase):
+
+    def init_custom_rule(self):
+        '''获取自定义规则'''
+        if self.custom_rule:
+            return self.custom_rule
+        else:
+            self.custom_rule =self.get_custom_rule()
+            return self.custom_rule
+    def init_undo_record(self,record,user):
+        '''撤销对学生的违纪记录'''
+        t = datetime.datetime.now()
+        rule_str = str(self.undo_record())
+        Record.objects.filter(
+            star_time__date=t, worker=self.request.user, student_approved=user
+        ).update(manager=self.request.user, rule_str=rule_str)
+        
+    def get_room(self):
+        '''获取房间'''
+        try:
+            room_id = self.request.params.room_id
+            room = Room.objects.get(id=room_id)
+            self.room_str = str(room)
+            # 保存房间状态为已检查
+            obj, flg = RoomHistory.objects.get_or_create(room=room, task=self.task)
+            if self.task.types == '0':
+                obj.is_knowing = True
+            elif self.task.types == '1':
+                obj.is_health = True
+            obj.save()
+            return room
+        except:
+            self.room_str = None
+            return None
+
+    def get_custom_rule(self):
+        '''获取自定义规则'''
+        pass
+
+    def undo_record(self,record,user):
+        '''撤销对学生的违纪记录'''
+        return '操作撤销'
+
+    def submit_user_record(self,record_model,record):
+        '''提交学生考勤记录'''
+        return True
+
+
+
+    def init_data(self):
+        '''初始化所用数据'''
+        pass
+
+    def get_context(self, request, *args, **kwargs):
+        self.get_task_player_by_user()
+        self.is_open()
+        self.custom_rule = None
+        self.get_room()
+        self.init_data()
+        records = request.params.records
+        for record in records:
+            # 获取用户
+            user = None
+            try:
+                user = User.objects.get(id=record['user_id'])
+            except:
+                pass
+
+            # 撤销记录
+            if str(record['status']) == '1':
+                self.undo_record(record,user)
+                continue
+            
+            # 提交记录
+            if str(record['status']) == '0':
+                reason = record['reason'] # 自定义规则文本 / 规则ID
+                reason_is_custom = record['reason_is_custom'] # 自定义规则文本 / 规则ID
+                rule_str = '' # 规则文本
+                rule = None # 规则对象
+
+                if reason_is_custom:# 判断是否为自定义规则
+                    rule = self.init_custom_rule()
+                    rule_str = reason
+                else:
+                    try:
+                        rule = RuleDetails.objects.get(id=reason)
+                        rule_str = rule.name
+                    except:
+                        rule = self.init_custom_rule()
+                        rule_str = reason
+
+                # 构建 考勤记录模型
+                record_model = {}
+                record_model['task'] = self.task
+                record_model['rule_str'] = rule_str
+                record_model['score'] = 1 # 默认扣一分
+                record_model['room_str'] = self.room_str
+                try:
+                    record_model['grade_str'] =  user.studentinfo.grade.name
+                except:
+                    record_model['grade_str'] =  None
+                record_model['student_approved'] = user
+                record_model['worker'] = self.request.user
+                if rule:
+                    record_model['rule'] = rule
+                    record_model['score'] = rule.score
+                if self.submit_user_record(record_model,record) != False:
+                    Record.objects.create(**record_model)
+    class Meta:
+        records= {}
+        records['user_id'] = '用户ID'
+        records['reason'] = '规则内容'
+        records['status'] = '提交类型'
+        records['score'] = '自定义扣分'
+        records['reason_is_custom'] = '是否是自定义规则'
+        
+        param_fields = (
+            ('records', fields.ListField(label=_('提交记录 '),default=records)),
+        )
+        path = '/'
+        

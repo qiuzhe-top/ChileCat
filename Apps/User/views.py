@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-11 15:26:25
+LastEditTime: 2021-08-12 08:56:50
 Description: 用户模块
 '''
 from Apps.User.models import StudentInfo, TeacherForGrade
@@ -23,7 +23,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse, response
 from django.utils.translation import gettext_lazy as _
-from Manage.models_extension.models_permission import ApiPermission
 from rest_framework import fields
 from rest_framework.views import APIView
 
