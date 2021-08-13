@@ -14,6 +14,8 @@ ENV_PROFILE = os.getenv("ENV")
 if ENV_PROFILE:
     HOST = '47.102.215.230'
     DEBUG = False
+HOST = '47.102.215.230'
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -92,7 +94,6 @@ if DEBUG:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-   
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

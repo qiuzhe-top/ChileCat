@@ -116,11 +116,11 @@ class Record(models.Model):
         verbose_name="销假人",
         related_name="销假人",
     )
-     
+    
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
-    star_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u'创建日期')
+    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
-
+    
     class Meta:
         verbose_name = '任务-考勤记录'
         verbose_name_plural = '任务-考勤记录'
