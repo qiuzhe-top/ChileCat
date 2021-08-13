@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-12 19:23:57
+LastEditTime: 2021-08-13 15:42:21
 Description: 
 '''
 from copy import error
@@ -636,7 +636,6 @@ class OutData(CoolBFFAPIView):
         #     print(record)
         # return 
         for record in records:
-            print(record)
             rule_type = record['rule_type'].split(',')
             rule = record['rule'].split(',')
             score_onn = record['score_onn'].split(',')

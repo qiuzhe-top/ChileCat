@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-12 16:18:43
+LastEditTime: 2021-08-13 15:41:31
 Description: Excel 操作
 '''
 
@@ -39,8 +39,8 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 def at_all_out_xls(data):
-    '''学生考勤信息记录.xlsx模板'''
-    addr = os.getcwd()+ "\\core\\file\\学生考勤信息记录.xlsx"
+    '''学生考勤信息记录.xls模板'''
+    addr = os.getcwd()+ "/core/file/学生考勤信息记录.xlsx"
     # 设置文件 mingc
     # 打开文件
     wb = load_workbook(addr)
