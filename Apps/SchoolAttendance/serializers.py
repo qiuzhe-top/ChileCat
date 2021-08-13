@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from Apps.SchoolInformation import models as SchoolInformationModels
 from cool import views
-
+import time
 
 from . import models
 
@@ -22,8 +22,31 @@ class TaskObtain(views.BaseSerializer):
     class Meta:
         model = models.Task
         fields =('id','is_open','name')  # 包含
-class PersonalDisciplineQuery(views.BaseSerializer):
+
+
+class TimeSerializer(views.BaseSerializer):
+    star_time = serializers.SerializerMethodField()
+    last_time = serializers.SerializerMethodField()
+    def get_star_time(self,obj):
+        t  = obj.star_time
+        day = t.day
+        month = t.month
+        year = t.year
+        hour = t.hour
+        minute = t.minute
+        return '{}-{}-{} {}:{}'.format(year,month,day,hour,minute)
+    def get_last_time(self,obj):
+        t  = obj.last_time
+        day = t.day
+        month = t.month
+        year = t.year
+        hour = t.hour
+        minute = t.minute
+        return '{}-{}-{} {}:{}'.format(year,month,day,hour,minute)
+class PersonalDisciplineQuery(TimeSerializer,views.BaseSerializer):
     '''获取个人违纪记录'''
+    worker = serializers.CharField(source='worker.userinfo.name')
+
     class Meta:
         model = models.Record
         fields =('rule_str','score','worker','star_time')  
@@ -129,7 +152,7 @@ class RecordUserInfo(views.BaseSerializer):
             return obj.student_approved.username
         except:
             return None
-class RecordQuery(RecordUserInfo):
+class RecordQuery(TimeSerializer,RecordUserInfo):
     '''考勤结果查询'''
     worker = serializers.CharField(source='worker.userinfo.name')
     task = serializers.CharField(source = 'task.__str__')
@@ -139,7 +162,7 @@ class RecordQuery(RecordUserInfo):
         fields = ('id','task', 'rule_str','score','room_str','grade_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
         # fields = "__all__"
 
-class ConditionRecord(RecordUserInfo):
+class ConditionRecord(TimeSerializer,RecordUserInfo):
     '''获取考勤执行记录 晚查寝 晚自修'''
     worker = serializers.CharField(source='worker.userinfo.name')
 
