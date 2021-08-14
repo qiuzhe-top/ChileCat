@@ -185,11 +185,9 @@ class ConditionRecord(TimeSerializer,RecordUserInfo):
 
 class UserCallGrader(serializers.ModelSerializer):
     name = serializers.CharField(source='userinfo.name')
-    # flg = serializers.CharField(source='usercall_set.flg')
     flg = serializers.SerializerMethodField()
     def get_flg(self,obj):
         call = obj.user_call
-        print(call)
         if call:
             return call.flg
         return call
