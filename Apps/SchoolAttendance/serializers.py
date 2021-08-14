@@ -94,6 +94,18 @@ class TaskSwitch(views.BaseSerializer):
 
 
 
+class UserCallSerializer(views.BaseSerializer):
+    """任务点名 -- 学生"""
+    name = serializers.CharField(source="user.userinfo.name")
+    username = serializers.CharField(source="user.username")
+    user_id = serializers.SerializerMethodField()
+
+    def get_user_id(self,obj):
+        return obj.user.id
+    class Meta:
+        model = models.UserCall
+        fields = ('user_id','username','name','flg')  # 包含
+
 class TaskExecutor(views.BaseSerializer):
     """执行人获取任务"""
     # builder_name = serializers.CharField(source="task.user.userinfo.name")
@@ -219,3 +231,5 @@ class StudentDisciplinary(serializers.ModelSerializer):
     class Meta:
         model =models.Record
         fields = ('room_name', 'student','student_name','reason','classname','created_time')  # 包含
+
+

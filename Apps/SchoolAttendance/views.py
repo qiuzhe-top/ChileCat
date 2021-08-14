@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-14 15:04:13
+LastEditTime: 2021-08-14 16:13:35
 Description: 
 '''
 from copy import error
@@ -426,31 +426,20 @@ class LateClass(TaskBase):
     name = _('晚自修数据')
 
     def get_context(self, request, *args, **kwargs):
+        self.get_task_player_by_user()
         type_ = int(request.params.type)
-        task_id = request.params.task_id
-        task = models.Task.objects.get(id=task_id)
         if type_ == 0:
             grades = (
-                models.Task.objects.get(id=task_id).grades.all().values('id', 'name')
+                self.task.grades.all().values('id', 'name')
             )
             return list(grades)
         elif type_ == 1:
             class_id = request.params.class_id
             rule_id = request.params.rule_id
-            users = SchoolInformationModels.Grade.objects.get(id=class_id).get_users()
-            rule = models.RuleDetails.objects.get(id=rule_id)
-            l = []  # TODO 性能影响
-            for u in users:
-                call, flg = models.UserCall.objects.get_or_create(
-                    task=task, user=u, rule=rule
-                )
-                d = {}
-                d['username'] = u.username
-                d['user_id'] = u.id
-                d['name'] = u.userinfo.name
-                d['flg'] = call.flg
-                l.append(d)
-            return l
+            users = User.objects.filter(studentinfo__grade__id = class_id)
+            calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
+            ser = serializers.UserCallSerializer(calls,request=request,many=True).data
+            return ser
 
     class Meta:
         param_fields = (

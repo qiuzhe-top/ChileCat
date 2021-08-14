@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-10 19:48:39
+LastEditTime: 2021-08-14 15:51:45
 Description: 父类
 '''
 from core.common import is_number
@@ -109,6 +109,7 @@ class TaskBase(PermissionView):
             id = self.request.params.task_id
             user = self.request.user
             self.task = Task.objects.get(id=int(id),admin=user)
+            self.request.task = self.task
             return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
@@ -119,6 +120,7 @@ class TaskBase(PermissionView):
             id = self.request.params.task_id
             user = self.request.user
             self.task = TaskPlayer.objects.get(task=int(id),user=user).task
+            self.request.task = self.task
             return self.task
         except:
             raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
