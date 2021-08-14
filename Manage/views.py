@@ -150,14 +150,46 @@ def group_user(request):
     return ret
 
 
+# # 导入学生
+# def user_init(request):
+#     '''导入学生'''
+#     message_list = {}
+#     message_list['create'] = []
+#     message_list['update'] = []
+#     excel = excel_to_list(request)
+#     grade_list = list()
+#     user_list = list()
+#     user_info_list = list()
+#     stu_info_list = list()
+#     for row in excel:
+#         grade = row[0]
+#         username = row[1]
+#         name = row[2]
+#         # 创建/获取 班级
+#         grade = Grade(name=grade)
+#         grade_list.append(grade)
+#         # 创建/获取 用户对象
+#         user = User(username=username)
+#         user.set_password(username)
+#         user_list.append(user)
+#         user_info = UserInfo(user=user, name=name)
+#         stu_info = StudentInfo (user=user, grade=grade)
+#         user_info_list.append(user_info)
+#         stu_info_list.append(stu_info)
+#     Grade.objects.bulk_create(grade_list)
+#     User.objects.bulk_create(user_info_list)
+#     UserInfo.objects.bulk_create(user_info_list)
+#     StudentInfo.objects.bulk_create(stu_info_list)
+#     return message_list
 # 导入学生
 def user_init(request):
     '''导入学生'''
+    # TODO 这效率 我(*^_^*)了 赶紧优化吧
     message_list = {}
     message_list['create'] = []
     message_list['update'] = []
     excel = excel_to_list(request)
-
+    grade_list = list()
     for row in excel:
         grade = row[0]
         username = row[1]
@@ -165,7 +197,7 @@ def user_init(request):
 
         # 创建/获取 班级
         grade, f0 = Grade.objects.get_or_create(name=grade)
-
+        grade_list.append()
         # 创建/获取 用户对象
         u, f = User.objects.get_or_create(username=username)
         if not u:

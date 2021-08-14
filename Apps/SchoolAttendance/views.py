@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-14 19:23:33
+LastEditTime: 2021-08-14 19:27:22
 Description: 
 '''
 from copy import error
@@ -436,10 +436,8 @@ class LateClass(TaskBase):
         elif type_ == 1:
             class_id = request.params.class_id
             rule_id = request.params.rule_id
-            t = time_start()
             users = User.objects.filter(studentinfo__grade__id = class_id)
             calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
-            # 创建
             if users.count() != calls.count():
                 call_list = list()
                 for u in users:
@@ -447,7 +445,6 @@ class LateClass(TaskBase):
                 UserCall.objects.bulk_create(call_list)
                 calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
             ser = serializers.UserCallSerializer(calls,request=request,many=True).data
-            time_end(t)
             return ser
 
     class Meta:
