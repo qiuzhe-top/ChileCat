@@ -152,7 +152,7 @@ class RecordUserInfo(views.BaseSerializer):
             return obj.student_approved.username
         except:
             return None
-class RecordQuery(TimeSerializer,RecordUserInfo):
+class RecordQuery(RecordUserInfo,TimeSerializer):
     '''考勤结果查询'''
     worker = serializers.CharField(source='worker.userinfo.name')
     task = serializers.CharField(source = 'task.__str__')
@@ -160,7 +160,7 @@ class RecordQuery(TimeSerializer,RecordUserInfo):
 
         model = models.Record
         fields = ('id','task', 'rule_str','score','room_str','grade_str','student_approved','student_approved_number','worker','score','star_time')  # 包含
-        # fields = "__all__"
+
 
 class ConditionRecord(TimeSerializer,RecordUserInfo):
     '''获取考勤执行记录 晚查寝 晚自修'''

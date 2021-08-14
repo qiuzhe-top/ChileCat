@@ -78,7 +78,6 @@ class Task(BaseModel):
             return self.get_types_display()
 
     def __str__(self):
-        """Unicode representation of Manage."""
         return  self.get_name()
 
 

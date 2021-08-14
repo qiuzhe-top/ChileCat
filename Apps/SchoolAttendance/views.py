@@ -3,10 +3,11 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-13 15:42:21
+LastEditTime: 2021-08-14 15:04:13
 Description: 
 '''
 from copy import error
+from core.utils import time_end, time_start
 from core.common import is_number
 from Apps.User.utils.auth import get_token_by_user
 import datetime
@@ -40,7 +41,7 @@ class TaskObtain(PermissionView):
     response_info_serializer_class = serializers.TaskObtain
 
     def get_context(self, request, *args, **kwargs):
-        task = models.Task.objects.filter(admin=request.user, types=request.params.type)
+        task = models.Task.objects.filter(admin=request.user, types=request.params.type).select_related('college')
         return serializers.TaskObtain(task, many=True, request=request).data
 
     class Meta:
@@ -171,7 +172,8 @@ class Condition(TaskBase):
             task=task,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
-        )
+        ).select_related('student_approved__userinfo','worker__userinfo','rule')
+        
         return serializers.ConditionRecord(records, request=request, many=True).data
 
 
@@ -391,10 +393,9 @@ class DormStudentRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         room_id = request.params.room_id
-        room = models.Room.objects.get(id=room_id)
-        room_data = room.stu_in_room.all()
-        return serializers.DormStudentRoomInfo(room_data,many=True,request=request).data
-
+        rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user__userinfo')
+        ser =  serializers.DormStudentRoomInfo(rooms,many=True,request=request).data
+        return ser
     class Meta:
         param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
 
@@ -476,7 +477,7 @@ class RecordQuery(CoolBFFAPIView):
 
         records = models.Record.objects.filter(q4,
             star_time__range=(start_date, end_date), manager__isnull=True
-        )
+        ).select_related('student_approved__userinfo','worker__userinfo','rule','task__college')
 
         if username:
             try:
@@ -486,7 +487,6 @@ class RecordQuery(CoolBFFAPIView):
                 records = records.filter(student_approved=user)
             except:
                 records = []
-
         pg = RecordQueryrPagination()
         page_roles = pg.paginate_queryset(queryset=records, request=request, view=self)
         ser = serializers.RecordQuery(instance=page_roles, many=True).data
@@ -506,7 +506,7 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        data = Record.objects.filter(student_approved=request.user)
+        data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo')
         ser = serializers.PersonalDisciplineQuery(
             instance=data, many=True, request=request
         ).data
