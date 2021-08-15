@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-06 19:22:01
+LastEditTime: 2021-08-15 09:57:32
 Description: 
 '''
 from Apps.SchoolInformation.models import StuInRoom
@@ -83,6 +83,13 @@ class Mybedroom(PermissionView):
         room = StuInRoom.objects.get(user=request.user).room
         rooms = StuInRoom.objects.filter(room=room)
         return attendance_serializers.DormStudentRoomInfoTrue(rooms, many=True, request=request).data
-
+@site
+class CollegeQuery(PermissionView):
+    name = _('获取分院')
+    
+    def get_context(self, request, *args, **kwargs):
+        d =  models.College.objects.all().values('id','name')
+        return list(d)
+        
 urls = site.urls
 urlpatterns = site.urlpatterns

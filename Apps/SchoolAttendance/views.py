@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-14 19:27:22
+LastEditTime: 2021-08-15 10:23:08
 Description: 
 '''
 from copy import error
@@ -172,7 +172,7 @@ class Condition(TaskBase):
             task=task,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
-        ).select_related('student_approved__userinfo','worker__userinfo','rule')
+        ).select_related('student_approved__userinfo','worker__userinfo','rule').order_by('-last_time')
         
         return serializers.ConditionRecord(records, request=request, many=True).data
 
@@ -237,7 +237,7 @@ class knowingExcelOut(TaskBase):
             task=task,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
-        )
+        ).order_by('-last_time')
         if not records:
             raise CoolAPIException(ErrorCode.EXCEL_OUT_NO_DATA)
         ser_records = serializers.TaskRecordExcelSerializer(
@@ -417,7 +417,7 @@ class StudentDisciplinary(CoolBFFAPIView):
             task__in=task_id_list,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
-        )
+        ).order_by('-last_time')
         return serializers.StudentDisciplinary(records, many=True).data
 
 
@@ -461,6 +461,7 @@ class RecordQuery(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         username = request.params.username
+        college_id = request.params.college_id 
         start_date = request.params.start_date
         end_date = request.params.end_date
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
@@ -469,10 +470,10 @@ class RecordQuery(CoolBFFAPIView):
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
         q4 = Q(task__types__in=['2','0']) | Q(rule_str='早签') # 任务类型限制
-
-        records = models.Record.objects.filter(q4,
+        q5 = Q(task__college__id=college_id) # 分院
+        records = models.Record.objects.filter(q4,q5,
             star_time__range=(start_date, end_date), manager__isnull=True
-        ).select_related('student_approved__userinfo','worker__userinfo','rule','task__college')
+        ).select_related('student_approved__userinfo','worker__userinfo','rule','task__college').order_by('-last_time')
 
         if username:
             try:
@@ -490,6 +491,7 @@ class RecordQuery(CoolBFFAPIView):
     class Meta:
         param_fields = (
             ('username', fields.CharField(label=_('用户名'), default=None)),
+            ('college_id', fields.IntegerField(label=_('分院ID'))),
             ('start_date', fields.CharField(label=_('开始时间'))),
             ('end_date', fields.CharField(label=_('结束时间'))),
         )
@@ -501,7 +503,7 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo')
+        data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo').order_by('-last_time')
         ser = serializers.PersonalDisciplineQuery(
             instance=data, many=True, request=request
         ).data
@@ -586,6 +588,7 @@ class OutData(CoolBFFAPIView):
         # TODO 优化时间查询默认值
 
         username = request.params.username
+        college_id = request.params.college_id
         start_date = request.params.start_date
         end_date = request.params.end_date
         end_date = datetime.datetime(
@@ -601,9 +604,10 @@ class OutData(CoolBFFAPIView):
             else q1
         ) # 是否名称搜索
         q4 = Q(task__types__in=['2','0']) | Q(rule_str='早签') # 任务类型限制
+        q5 = Q(task__college__id=college_id) # 分院
 
         records = (
-            models.Record.objects.filter(q2 & q1 & q3 & q4)
+            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5)
             .values(
                 grade=F('grade_str'),
                 name=F('student_approved__userinfo__name'),
@@ -679,6 +683,7 @@ class OutData(CoolBFFAPIView):
         t = datetime.datetime.strftime(t, "%Y-%m-%d")
         param_fields = (
             ('username', fields.CharField(label=_('用户名'), default=None)),
+            ('college_id', fields.IntegerField(label=_('分院ID'), default=None)),
             ('start_date', fields.DateField(label=_('开始日期'), default=t)),
             ('end_date', fields.DateField(label=_('结束日期'), default=t)),
         )
