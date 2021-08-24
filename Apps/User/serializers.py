@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-24 16:40:39
+LastEditTime: 2021-08-24 17:07:41
 Description: 
 '''
 
@@ -71,6 +71,10 @@ class UserInformationSerializer(views.BaseSerializer):
     grade = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
     college = serializers.SerializerMethodField()
+    experience = serializers.SerializerMethodField()
+
+    def get_experience(self,obj):
+        return {'a':57,'b':500}
 
     def get_username(self,obj):
         try:
@@ -94,7 +98,7 @@ class UserInformationSerializer(views.BaseSerializer):
             return ''
 
     def get_avatar(self, obj):
-        return 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
+        return 'https://s.pc.qq.com/tousu/img/20210823/4865226_1629724433.jpg'
 
     def get_roles(self, obj):
         return get_groups(obj)
@@ -109,6 +113,7 @@ class UserInformationSerializer(views.BaseSerializer):
             'roles',
             'grade',
             'college',
+            'experience',
             'avatar',
             'is_staff',
             'is_superuser',

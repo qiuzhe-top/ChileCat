@@ -120,7 +120,7 @@ class Information(PermissionView):
     response_info_serializer_class = serializers.UserInformationSerializer
 
     def get_context(self, request, *args, **kwargs):
-        # time.sleep(2)
+        time.sleep(1)
         return serializers.UserInformationSerializer(request.user, request=request).data
 
 
