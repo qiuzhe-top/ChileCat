@@ -3,33 +3,26 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-15 10:23:08
+LastEditTime: 2021-08-22 11:39:41
 Description: 
 '''
-from copy import error
-from core.utils import time_end, time_start
-from core.common import is_number
-from Apps.User.utils.auth import get_token_by_user
 import datetime
 
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
-from Apps.SchoolInformation import models as SchoolInformationModels
+from Apps.User.utils.auth import get_token_by_user
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
 from core.query_methods import Concat
+from core.settings import *
 from core.views import *
 from django.contrib.auth.models import User
 from django.db.models import F
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
-from django.http import JsonResponse
-from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
-from openpyxl.reader.excel import load_workbook
 from rest_framework import fields
 
 from . import models, serializers
-
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
@@ -270,7 +263,7 @@ class SubmitLateDiscipline(SubmitBase):
     
     def get_custom_rule(self):
         '''获取自定义规则'''
-        return create_custom_rule('0#003','晚自修违纪:其他情况')
+        return create_custom_rule(RULE_CODE_03,RULE_NAME_03_01)
             
     def submit_user_record(self,record_model,record):
         '''提交学生考勤记录'''
@@ -305,7 +298,7 @@ class SubmitKnowing(SubmitBase):
 
     def get_custom_rule(self):
         '''获取自定义规则'''
-        return create_custom_rule('0#001','查寝:其他情况')
+        return create_custom_rule(RULE_CODE_01,RULE_NAME_01_01)
             
 
     def updata_user_in_room(self,user,is_flg):
@@ -335,15 +328,7 @@ class SubmitHealth(SubmitBase):
 
     def get_custom_rule(self):
         '''获取自定义宿舍卫生规则'''
-        return  create_custom_rule('0#007','个人卫生:其他情况')
-
-    # def get_custom_rule_personal(self):
-    #     '''获取自定义宿舍个人卫生规则'''
-    #     if getattr(self,'custom_rule_personal'):
-    #         return self.custom_rule_personal
-    #     else:
-    #         self.custom_rule_personal =  create_custom_rule('0#006','宿舍卫生:其他情况')
-    #         return self.custom_rule_personal
+        return  create_custom_rule(RULE_CODE_07,RULE_NAME_07_01)
 
     def submit_user_record(self,record_model,record):
         '''提交学生考勤记录'''
@@ -357,7 +342,7 @@ class SubmitHealth(SubmitBase):
 class DormStoreyInfo(TaskBase):
     name = _('楼内层列表')
     def get_context(self, request, *args, **kwargs):
-        self.get_task()
+        self.get_task() # TODO 可以优化查询
         buildings = self.task.buildings.all()
         buildings_info = []
         for building in buildings:
@@ -376,7 +361,7 @@ class DormRoomInfo(TaskBase):
     
     response_info_serializer_class = serializers.DormRoomInfo
     def get_context(self, request, *args, **kwargs):
-        self.get_task()
+        self.get_task() # TODO 可以优化查询
         floor_id = request.params.floor_id
         rooms = models.Room.objects.filter(floor_id=floor_id)
         return serializers.DormRoomInfo(rooms,many=True,request=request).data
@@ -394,8 +379,7 @@ class DormStudentRoomInfo(TaskBase):
         self.get_task()
         room_id = request.params.room_id
         rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user__userinfo')
-        ser =  serializers.DormStudentRoomInfo(rooms,many=True,request=request).data
-        return ser
+        return serializers.DormStudentRoomInfo(rooms,many=True,request=request).data
     class Meta:
         param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
 
@@ -407,12 +391,8 @@ class StudentDisciplinary(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         # TODO 优化为仅支持查看本学院的情况
-        task_id_list = models.Task.objects.filter(types='0').values_list(
-            'id', flat=True
-        )
-        now = (
-            datetime.datetime.now()
-        )  # ,star_time__date=datetime.date(now.year, now.month,now.day))
+        task_id_list = models.Task.objects.filter(types='0').values_list('id', flat=True)
+        now =datetime.datetime.now()
         records = models.Record.objects.filter(
             task__in=task_id_list,
             manager=None,
@@ -444,14 +424,13 @@ class LateClass(TaskBase):
                     call_list.append(UserCall(task=self.request.task,user=u,rule_id=rule_id))
                 UserCall.objects.bulk_create(call_list)
                 calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
-            ser = serializers.UserCallSerializer(calls,request=request,many=True).data
-            return ser
+            return serializers.UserCallSerializer(calls,request=request,many=True).data
 
     class Meta:
         param_fields = (
             ('rule_id', fields.CharField(label=_('规则ID'), default=None)),
             ('class_id', fields.CharField(label=_('班级ID'), default=None)),
-            ('type', fields.CharField(label=_('0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况'))),
+            ('type', fields.CharField(label=_('类型'),help_text="0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况")),
         )
 
 
@@ -504,10 +483,7 @@ class PersonalDisciplineQuery(PermissionView):
 
     def get_context(self, request, *args, **kwargs):
         data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo').order_by('-last_time')
-        ser = serializers.PersonalDisciplineQuery(
-            instance=data, many=True, request=request
-        ).data
-        return ser
+        return serializers.PersonalDisciplineQuery(instance=data, many=True, request=request).data
 
 @site
 class InzaoqianExcel(CoolBFFAPIView):
@@ -624,16 +600,13 @@ class OutData(CoolBFFAPIView):
                 'name',
                 'rule_type',
                 'rule',
-                # 'task__types',
                 'score_onn',
                 'score',
                 'time',
                 usernames=F('student_approved__username'),
             )
         )
-        # for record in records:
-        #     print(record)
-        # return 
+
         for record in records:
             rule_type = record['rule_type'].split(',')
             rule = record['rule'].split(',')
@@ -645,21 +618,17 @@ class OutData(CoolBFFAPIView):
                 type_ = rule_type[index]
 
                 if not type_ + 'score' in record:
-                    record['0#001score'] = 0
-                    record['0#002score'] = 0
-                    record['0#003score'] = 0
-                    record['0#004score'] = 0
-                    record['0#005score'] = 0
-                    # record['0#006score'] = 0
-                    # record['0#007score'] = 0
+                    record[RULE_CODE_01+'score'] = 0
+                    record[RULE_CODE_02+'score'] = 0
+                    record[RULE_CODE_03+'score'] = 0
+                    record[RULE_CODE_04+'score'] = 0
+                    record[RULE_CODE_05+'score'] = 0
                 if not type_ + 'rule' in record:
-                    record['0#001rule'] = ''
-                    record['0#002rule'] = ''
-                    record['0#003rule'] = ''
-                    record['0#004rule'] = ''
-                    record['0#005rule'] = ''
-                    # record['0#006rule'] = ''
-                    # record['0#007rule'] = ''
+                    record[RULE_CODE_01+'rule'] = ''
+                    record[RULE_CODE_02+'rule'] = ''
+                    record[RULE_CODE_03+'rule'] = ''
+                    record[RULE_CODE_04+'rule'] = ''
+                    record[RULE_CODE_05+'rule'] = ''
 
                 # 分数累加
                 record[type_ + 'score'] += int(score_onn[index])

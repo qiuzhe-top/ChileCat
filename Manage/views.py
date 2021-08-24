@@ -1,53 +1,30 @@
 """管理视图"""
-import re
-from cool.views import sites
-
-from cool.views.view import CoolBFFAPIView
-from openpyxl.reader.excel import ExcelReader
-from core.models_utils import search_room
-from Apps.SchoolInformation.models import *
+import datetime
 import logging
-from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 
-import os
-from openpyxl import load_workbook
-from rest_framework.views import APIView
-from core.permission_group import user_group
-from Apps.User.models import UserInfo, Grade, College, User, StudentInfo
 
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-import time, datetime
+from Apps.SchoolInformation.models import *
+from Apps.User.models import College, Grade, StudentInfo, User, UserInfo
+from cool import views
+from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
+                        sites)
+from cool.views.view import CoolBFFAPIView
 from core.excel_utils import excel_to_list
+from core.models_utils import search_room
+from core.permission_group import user_group
+from core.settings import *
+from django.http.response import JsonResponse
+from django.utils.translation import gettext_lazy as _
+from openpyxl import load_workbook
+from openpyxl.reader.excel import ExcelReader
+from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
 # https://www.jianshu.com/p/945c43b37624
 
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
-
-def put_stu_room(stu, room, ret):
-    """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
-    history = StuInRoom.objects.filter(room=search_room(room), user=stu)
-    try:
-        if history.exists():
-            ret.append(
-                "学生" + stu.userinfo.name + "->" + history.first().get_room() + "已存在"
-            )
-        else:
-            room = search_room(room)
-            stu_in_room = StuInRoom.objects.get_or_create(room=room, user=stu)
-            ret.append(
-                "记录("
-                + "学号:"
-                + stu.username
-                + "姓名:"
-                + stu.userinfo.name
-                + "->"
-                + stu_in_room[0].get_room()
-                + "寝室)已创建"
-            )
-    except:
-        ret.append(str(stu) + "异常")
 
 
 def create_class(class_name, college_name):
@@ -64,49 +41,6 @@ def create_class(class_name, college_name):
         return grade
     print("班级已存在,无需创建!")
     return None
-
-
-def import_stu_data(request):
-    """寝室表导入"""
-    file = request.data['file']
-    work_book = load_workbook(file)
-    ret = []
-    for sheet in work_book:
-        room_name = ""
-        for info in sheet.values:
-            if info[0] == "寝室日".strip():
-                continue
-            try:
-                if info[0]:
-                    room_name = str(info[0])[0 : info[0].find("#") + 3 + 1]
-                name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
-                if len(name) == 0 or not name:
-                    continue
-                grade = str(info[3]).strip()
-                stu_id = str(info[4]).strip()
-                tel = str(info[5]).strip()
-                user = User.objects.get_or_create(username=stu_id)
-                user_info, flg0 = UserInfo.objects.get_or_create(user=user[0])
-                user_info.name = name
-                user_info.tel = tel
-                user_info.save()
-
-                grade = Grade.objects.get_or_create(name=grade)
-                stu_info, flg1 = StudentInfo.objects.get_or_create(
-                    user=user[0], defaults={"grade": grade[0]}
-                )
-                if not flg1:
-                    stu_info.grade = grade[0]
-                    stu_info.save()
-                put_stu_room(user[0], room_name, ret)
-            except User.DoesNotExist:
-                ret.append(info[2] + name + "异常")
-            except UserInfo.DoesNotExist:
-                ret.append(info[2] + name + "异常")
-            except:
-                ret.append(info[2] + "---获取数据异常")
-
-    return ret
 
 
 # excel 转 列表 当第一个单元格为空是过滤这行数据
@@ -150,37 +84,6 @@ def group_user(request):
     return ret
 
 
-# # 导入学生
-# def user_init(request):
-#     '''导入学生'''
-#     message_list = {}
-#     message_list['create'] = []
-#     message_list['update'] = []
-#     excel = excel_to_list(request)
-#     grade_list = list()
-#     user_list = list()
-#     user_info_list = list()
-#     stu_info_list = list()
-#     for row in excel:
-#         grade = row[0]
-#         username = row[1]
-#         name = row[2]
-#         # 创建/获取 班级
-#         grade = Grade(name=grade)
-#         grade_list.append(grade)
-#         # 创建/获取 用户对象
-#         user = User(username=username)
-#         user.set_password(username)
-#         user_list.append(user)
-#         user_info = UserInfo(user=user, name=name)
-#         stu_info = StudentInfo (user=user, grade=grade)
-#         user_info_list.append(user_info)
-#         stu_info_list.append(stu_info)
-#     Grade.objects.bulk_create(grade_list)
-#     User.objects.bulk_create(user_info_list)
-#     UserInfo.objects.bulk_create(user_info_list)
-#     StudentInfo.objects.bulk_create(stu_info_list)
-#     return message_list
 # 导入学生
 def user_init(request):
     '''导入学生'''
@@ -189,7 +92,6 @@ def user_init(request):
     message_list['create'] = []
     message_list['update'] = []
     excel = excel_to_list(request)
-    grade_list = list()
     for row in excel:
         grade = row[0]
         username = row[1]
@@ -197,7 +99,6 @@ def user_init(request):
 
         # 创建/获取 班级
         grade, f0 = Grade.objects.get_or_create(name=grade)
-        grade_list.append()
         # 创建/获取 用户对象
         u, f = User.objects.get_or_create(username=username)
         if not u:
@@ -256,35 +157,35 @@ def user_room(request):
     message['error'] = []
     for row in rows:
         try:
-          room_ = row[0]
-          username_ = row[1]
-          flg = row[2]
+            room_ = row[0]
+            username_ = row[1]
+            flg = row[2]
 
-          # 清空寝室内的学生
-          if username_ == "-":
-              room = search_room(room_)
-              room.stu_in_room.all().delete()
-              message['username-'].append(room_ + "：清空")
+            # 清空寝室内的学生
+            if username_ == "-":
+                room = search_room(room_)
+                room.stu_in_room.all().delete()
+                message['username-'].append(room_ + "：清空")
 
-          # 学生寝室绑定/删除
-          elif flg == '+':
-              user = User.objects.get(username=username_)
-              room = search_room(room_)
-              count = StuInRoom.objects.filter(room=room).count()
-              st, flg = StuInRoom.objects.get_or_create(
-                  user=user, defaults={"room": room,"bed_position":count+1}
-              )
-              st.room = room
-              st.save()
-              if flg:
-                  message['flg+'].append(room_ + " 添加 " + username_)
-              else:
-                  message['update'].append(username_ + " 更新为 " + room_)
+            # 学生寝室绑定/删除
+            elif flg == '+':
+                user = User.objects.get(username=username_)
+                room = search_room(room_)
+                count = StuInRoom.objects.filter(room=room).count()
+                st, flg = StuInRoom.objects.get_or_create(
+                    user=user, defaults={"room": room, "bed_position": count + 1}
+                )
+                st.room = room
+                st.save()
+                if flg:
+                    message['flg+'].append(room_ + " 添加 " + username_)
+                else:
+                    message['update'].append(username_ + " 更新为 " + room_)
 
-          elif flg == '-':
-              user = User.objects.get(username=username_)
-              StuInRoom.objects.filter(user=user).delete()
-              message['flg-'].append(room_ + " 删除 " + username_)
+            elif flg == '-':
+                user = User.objects.get(username=username_)
+                StuInRoom.objects.filter(user=user).delete()
+                message['flg-'].append(room_ + " 删除 " + username_)
         except Exception as e:
             message['error'].append(username_)
 
@@ -294,40 +195,12 @@ def user_room(request):
 def init_Attendance_group(request=None):
     '''考勤权限分组'''
     print('考勤权限分组')
-    # 待添加进用户组的权限
-    per1 = [
-        '/api/school_attendance/task:GET',
-        '/api/school_attendance/task:POST',
-        '/api/school_attendance/task_admin:GET',
-        '/api/school_attendance/task_admin:POST',
-        '/api/school_attendance/task_admin:DELETE',
-        '/api/school_attendance/task_switch:PUT',
-        '/api/school_attendance/task_switch:DELETE',
-        '/api/school_attendance/scheduling:GET',
-        '/api/school_attendance/scheduling:POST',
-        '/api/school_attendance/condition:GET',
-        '/api/school_attendance/undo_record:DELETE',
-        '/api/school_attendance/out_knowing_excel_data:GET',
-    ]
-
-    # 任务管理组
-    name1 = 'task_admin'
-
-    per2 = [
-        '/api/school_attendance/in_zaoqian_excel:POST',
-        '/api/school_attendance/undo_record_admin:DELETE',
-    ]
-
-    # 数据汇总组
-    name2 = 'task_data'
-
     # task_data 组
     name3 = 'task_data'
     per3 = [
         'undo_record_admin',
         'zq_data_import',
     ]
-    # user_group.group_add_permission(name1, per1)
     user_group.group_add_permission(name3, per3)
     return 2000
 
@@ -339,6 +212,7 @@ def add_user():
         ['195303', '19530345'],
     ]
 
+
 # 晚自修规则
 def uinitialization_rules(request=None):
     '''考勤规则初始化
@@ -346,86 +220,8 @@ def uinitialization_rules(request=None):
     '''
     print('晚自修规则初始化')
     # TODO 效率低
-    rules =  [
-        {
-          "rule_f" :{
-            'name': '查寝',
-            'codename': '0#001',
-            'is_person': True,
-          },
-          "rules":[
-            {'name': '请假', 'score': '1'},
-            {'name': '未到校', 'score': '1'},
-            {'name': '当兵', 'score': '1'},
-          ]
-      },
-      {
-        "rule_f":{
-          'name': '晚签',
-          'codename': '0#002',
-          'is_person': True,
-        },
-        "rules":[
-          {'name': '旷一', 'score': '1'},
-          {'name': '旷二', 'score': '1'},
-        ]
-      },
-      {
-        "rule_f": {
-          'name': '晚自修违纪',
-          'codename': '0#003',
-          'is_person': True,
-        },
-        "rules":[
-            {'name': '睡觉', 'score': '1'},
-            {'name': '玩手机', 'score': '1'},
-        ]
-      },
-      {
-        "rule_f":{
-            'name': '早签',
-            'codename': '0#004',
-            'is_person': True,
-        },
-        "rules": [
-            {'name': '早签', 'score': '1'},
-        ]
-      },
-      {
-        "rule_f" : {
-          'name': '课堂',
-          'codename': '0#005',
-          'is_person': True,
-        },
-        "rules": [
-            {'name': '早退', 'score': '1'},
-        ]
-      },
-      {
-        "rule_f": {
-            'name': '宿舍卫生',
-            'codename': '0#006',
-            'is_person': True,
-        },
-        "rules": [
-            {'name': '地面脏乱', 'score': '1'},
-            {'name': '阳台脏乱', 'score': '1'},
-        ]
-      },
-      {
-        "rule_f": {
-            'name': '宿舍个人卫生',
-            'codename': '0#007',
-            'is_person': True,
-        },
-        "rules": [
-            {'name': '被子未叠', 'score': '1'},
-            {'name': '鞋子摆放不合格', 'score': '1'},
-        ]
-      }
-    ]
     res = []
-    for item in rules:
+    for item in INIT_RULES:
         rule_f = item['rule_f']
         rules = item['rules']
         rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
@@ -437,100 +233,21 @@ def uinitialization_rules(request=None):
     return res
 
 
-class In_zaoqian_excel(APIView):
-    def post(self, request):
-        """针对寝室表"""
-        file = request.data['file']
-
-        file_name = str(time.time()) + '__' + file.name
-        file_path = os.path.join('upload', file_name)
-        f = open(file_path, 'wb')
-        for i in file.chunks():  # chunks方法是一点点获取上传的文件内容
-            f.write(i)
-        f.close()
-
-        file_name = 'upload//' + file_name
-
-        # return JsonResponse({})
-
-        wb = load_workbook(file, read_only=True)
-
-        error_list = []
-        for rows in wb:
-            for row in rows:  # 遍历行
-                username = row[0].internal_value
-                name = row[1].internal_value
-                str_time = row[3].internal_value
-                is_header = (
-                    username.find('考勤') != -1
-                    or username.find('统计') != -1
-                    or username.find('员工号') != -1
-                )
-                if (
-                    not (username == None or name == None or str_time == None)
-                    and not is_header
-                ):
-                    print(username)
-                    try:
-                        u = User.objects.get(username=username)
-                        try:
-                            str_time = datetime.datetime.strptime(str_time, '%Y/%m/%d')
-                            d = {
-                                'rule_str': '旷早签',
-                                'student_approved': u,
-                                'score': 1,
-                                'star_time': str_time,
-                            }
-                            (
-                                sa,
-                                flg,
-                            ) = SchoolAttendanceModels.Record.objects.get_or_create(**d)
-                            sa.worker = request.user
-                            sa.save()
-                        except:
-                            error_list.append(
-                                {
-                                    'username': username,
-                                    'name': name,
-                                    'str_time': str_time,
-                                    'message': '导入记录失败',
-                                }
-                            )
-                    except:
-                        error_list.append(
-                            {
-                                'username': username,
-                                'name': name,
-                                'str_time': str_time,
-                                'message': '用户不存在',
-                            }
-                        )
-
-        ret = {'message': '添加成功 请检查添加结果', 'code': '2000', 'data': error_list}
-        return JsonResponse(ret)
-
 def run_init(request):
-    
+
     return {
-        "group_init":group_init(request),
-        "uinitialization_rules":uinitialization_rules(request),
-        "init_Attendance_group":init_Attendance_group(request)
+        "group_init": group_init(request),
+        "uinitialization_rules": uinitialization_rules(request),
+        "init_Attendance_group": init_Attendance_group(request),
     }
+
+
 @site
 class DataInit(CoolBFFAPIView):
     name = "系统数据初始化"
-    
+
     def get_context(self, request):
         init_dict = {
-            # 用户组初始化
-            # "group_init": group_init,
-            # 考勤规则
-            # "uinitialization_rules": uinitialization_rules,
-            # 考勤权限分组
-            # "init_Attendance_group": init_Attendance_group,
-            # 寝室表导入
-            # "import_stu_data": import_stu_data,
-
             "init": run_init,
             # 导入学生
             "user_init": user_init,
@@ -543,6 +260,384 @@ class DataInit(CoolBFFAPIView):
         data = init_dict[type_](request)
         return data
 
-        
+
+from cool.views.utils import get_api_info, get_url, get_view_list
+
+
+@site
+class Getapis(CoolBFFAPIView):
+    name = 'api接口'
+    method = 'GET'
+    tag = {
+        "/api/school_information": "学校信息",
+        "/api/school_attendance": "考勤管理",
+        "/api/manage": "系统管理",
+        "/api/user": "用户管理",
+    }
+    # 地址
+    def get_url(self):
+        # "/school/attendance/task/switch"
+        url = self.info['url'][4:]
+        return url
+
+    # Body请求参数
+    def get_urlencoded(self):
+        d = {}
+        required = []
+        if self.get_method() != 'post':
+            return d, required
+        params = self.info['info']['request_info']
+        for param in params:
+            d[param] = {
+                "type": params[param]['type'],
+                "description": params[param]['label'],
+                "example": params[param]['default_format'],
+            }
+            f = params[param]['required'] == True
+            if f:
+                required.append(param)
+        return d, required
+
+    # Get请求参数
+    def get_parameters(self):
+        data = []
+        data.append(
+            {
+                "name": "token",
+                "in": "header",
+                "description": "",
+                "required": False,
+                "example": "",
+                "schema": {"type": "string"},
+            }
+        )
+        if self.get_method() != 'get':
+            return data
+        params = self.info['info']['request_info']
+
+        for param in params:
+            data.append(
+                {
+                    "name": param,
+                    "in": "query",
+                    "description": params[param]['label'],
+                    "required": params[param]['required'],
+                    "example": params[param]['default_format'],
+                    "schema": {"type": params[param]['type']},
+                }
+            )
+        return data
+
+    # 返回参数
+    def get_response_info(self):
+        # response_info_format
+        response_info = self.info['info']['response_info']
+        data = response_info.get('data', [])
+        response_data = {}
+        if data:
+            for k in data:
+                response_data[k] = {
+                    "type": "string",
+                    "description": data[k]
+                }
+
+        d = {
+            "code": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 0,
+                "description": "状态码",
+            },
+            "message": {"type": "string", "description": "提示信息"},
+            "data": {
+                "type": "object",
+                "properties": response_data,
+                "description": "数据",
+            },
+        }
+        return d, response_info
+
+    # 当前接口分组
+    def tags(self):
+        self.tag
+        url = str(self.info['url'])
+        index = url.find('/', url.find('/', 1) + 1)
+        key = url[:index]
+        return [self.tag[key]]
+
+    def tag_header(self):
+        v = self.tag.values()
+        d = []
+        for i in v:
+            d.append({'name': i})
+        return d
+
+    def get_method(self):
+        return str.lower(getattr(self.view_class, "method", "post"))
+
+    def get_context(self, request, *args, **kwargs):
+        views = get_view_list()
+        items = []
+        apis = {}
+        apis['openapi'] = '3.0.1'
+        apis["info"] = {"title": "示例项目", "description": "", "version": "1.0.0"}
+        apis['name'] = 'Django 导出'
+        apis['tags'] = self.tag_header()
+        apis['paths'] = {}
+        for v in views:
+            self.view_class = v['view_class']
+
+            api_info = get_api_info(self.view_class)
+            self.info = api_info['apis'][0]
+            url = self.get_url()
+            tags = self.tags()
+            req, required = self.get_urlencoded()
+            parameters = self.get_parameters()
+            method = self.get_method()
+            rep, response_info = self.get_response_info()
+
+            name = self.info['name']
+
+            apis['paths'][url] = {
+                method: {
+                    "summary": name,
+                    "description": "",
+                    "tags": tags,
+                    "parameters": parameters,
+                    "requestBody": {
+                        "content": {
+                            "application/x-www-form-urlencoded": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": req,
+                                    "required": required,
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "成功",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": rep,
+                                        "required": [],
+                                    },
+                                    # "examples": {
+                                    #     "1": {"summary": "成功示例", "value": response_info}
+                                    # },
+                                }
+                            },
+                        }
+                    },
+                }
+            }
+            # apis['item'].append(api)
+        return JsonResponse(apis)
+
+
+from django.http import HttpResponse
+@site
+class Apitouviews(CoolBFFAPIView):
+    name = _('api转uViewsApi模板')
+
+    def get_method(self):
+        return str.lower(getattr(self.view_class, "method", "post"))
+
+    def get_url(self):
+        url = self.info['url']
+        return url
+
+    def get_context(self, request, *args, **kwargs):
+        views = get_view_list()
+        api_str = ""
+        for v in views:
+            self.view_class = v['view_class']
+            api_info = get_api_info(self.view_class)
+            self.info = api_info['apis'][0]
+            url = self.get_url()
+            name = self.info['name']
+            method = self.get_method()
+            ul_name = self.info['ul_name'][4:]
+            t1 = "// {} \n"
+            t2 = "api['{}'] = (params = {}) => vm.$u.{}('{}', params) \n"
+            t = (t1 + t2).format(name,ul_name,'{ }',method,url)
+            api_str += t
+        return HttpResponse(api_str)
+# 可以慢慢淘汰的代码
+
+# def put_stu_room(stu, room, ret):
+#     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
+#     history = StuInRoom.objects.filter(room=search_room(room), user=stu)
+#     try:
+#         if history.exists():
+#             ret.append(
+#                 "学生" + stu.userinfo.name + "->" + history.first().get_room() + "已存在"
+#             )
+#         else:
+#             room = search_room(room)
+#             stu_in_room = StuInRoom.objects.get_or_create(room=room, user=stu)
+#             ret.append(
+#                 "记录("
+#                 + "学号:"
+#                 + stu.username
+#                 + "姓名:"
+#                 + stu.userinfo.name
+#                 + "->"
+#                 + stu_in_room[0].get_room()
+#                 + "寝室)已创建"
+#             )
+#     except:
+#         ret.append(str(stu) + "异常")
+
+
+# def import_stu_data(request):
+#     """寝室表导入"""
+#     file = request.data['file']
+#     work_book = load_workbook(file)
+#     ret = []
+#     for sheet in work_book:
+#         room_name = ""
+#         for info in sheet.values:
+#             if info[0] == "寝室日".strip():
+#                 continue
+#             try:
+#                 if info[0]:
+#                     room_name = str(info[0])[0 : info[0].find("#") + 3 + 1]
+#                 name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
+#                 if len(name) == 0 or not name:
+#                     continue
+#                 grade = str(info[3]).strip()
+#                 stu_id = str(info[4]).strip()
+#                 tel = str(info[5]).strip()
+#                 user = User.objects.get_or_create(username=stu_id)
+#                 user_info, flg0 = UserInfo.objects.get_or_create(user=user[0])
+#                 user_info.name = name
+#                 user_info.tel = tel
+#                 user_info.save()
+
+#                 grade = Grade.objects.get_or_create(name=grade)
+#                 stu_info, flg1 = StudentInfo.objects.get_or_create(
+#                     user=user[0], defaults={"grade": grade[0]}
+#                 )
+#                 if not flg1:
+#                     stu_info.grade = grade[0]
+#                     stu_info.save()
+#                 put_stu_room(user[0], room_name, ret)
+#             except User.DoesNotExist:
+#                 ret.append(info[2] + name + "异常")
+#             except UserInfo.DoesNotExist:
+#                 ret.append(info[2] + name + "异常")
+#             except:
+#                 ret.append(info[2] + "---获取数据异常")
+
+#     return ret
+
+# # 导入学生
+# def user_init(request):
+#     '''导入学生'''
+#     message_list = {}
+#     message_list['create'] = []
+#     message_list['update'] = []
+#     excel = excel_to_list(request)
+#     grade_list = list()
+#     user_list = list()
+#     user_info_list = list()
+#     stu_info_list = list()
+#     for row in excel:
+#         grade = row[0]
+#         username = row[1]
+#         name = row[2]
+#         # 创建/获取 班级
+#         grade = Grade(name=grade)
+#         grade_list.append(grade)
+#         # 创建/获取 用户对象
+#         user = User(username=username)
+#         user.set_password(username)
+#         user_list.append(user)
+#         user_info = UserInfo(user=user, name=name)
+#         stu_info = StudentInfo (user=user, grade=grade)
+#         user_info_list.append(user_info)
+#         stu_info_list.append(stu_info)
+#     Grade.objects.bulk_create(grade_list)
+#     User.objects.bulk_create(user_info_list)
+#     UserInfo.objects.bulk_create(user_info_list)
+#     StudentInfo.objects.bulk_create(stu_info_list)
+#     return message_list
+# class In_zaoqian_excel(APIView):
+#     def post(self, request):
+#         """针对寝室表"""
+#         file = request.data['file']
+
+#         file_name = str(time.time()) + '__' + file.name
+#         file_path = os.path.join('upload', file_name)
+#         f = open(file_path, 'wb')
+#         for i in file.chunks():  # chunks方法是一点点获取上传的文件内容
+#             f.write(i)
+#         f.close()
+
+#         file_name = 'upload//' + file_name
+
+#         # return JsonResponse({})
+
+#         wb = load_workbook(file, read_only=True)
+
+#         error_list = []
+#         for rows in wb:
+#             for row in rows:  # 遍历行
+#                 username = row[0].internal_value
+#                 name = row[1].internal_value
+#                 str_time = row[3].internal_value
+#                 is_header = (
+#                     username.find('考勤') != -1
+#                     or username.find('统计') != -1
+#                     or username.find('员工号') != -1
+#                 )
+#                 if (
+#                     not (username == None or name == None or str_time == None)
+#                     and not is_header
+#                 ):
+#                     print(username)
+#                     try:
+#                         u = User.objects.get(username=username)
+#                         try:
+#                             str_time = datetime.datetime.strptime(str_time, '%Y/%m/%d')
+#                             d = {
+#                                 'rule_str': '旷早签',
+#                                 'student_approved': u,
+#                                 'score': 1,
+#                                 'star_time': str_time,
+#                             }
+#                             (
+#                                 sa,
+#                                 flg,
+#                             ) = SchoolAttendanceModels.Record.objects.get_or_create(**d)
+#                             sa.worker = request.user
+#                             sa.save()
+#                         except:
+#                             error_list.append(
+#                                 {
+#                                     'username': username,
+#                                     'name': name,
+#                                     'str_time': str_time,
+#                                     'message': '导入记录失败',
+#                                 }
+#                             )
+#                     except:
+#                         error_list.append(
+#                             {
+#                                 'username': username,
+#                                 'name': name,
+#                                 'str_time': str_time,
+#                                 'message': '用户不存在',
+#                             }
+#                         )
+
+#         ret = {'message': '添加成功 请检查添加结果', 'code': '2000', 'data': error_list}
+#         return JsonResponse(ret)
+
+
 urls = site.urls
 urlpatterns = site.urlpatterns

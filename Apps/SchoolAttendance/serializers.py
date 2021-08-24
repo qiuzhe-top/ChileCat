@@ -1,12 +1,9 @@
-from django.contrib.auth.models import User
-from django.db.models import fields
-from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
-from Apps.SchoolInformation import models as SchoolInformationModels
 from cool import views
-import time
+from django.contrib.auth.models import User
+from rest_framework import serializers
 
 from . import models
+
 
 class TaskObtain(views.BaseSerializer):
     """获取任务"""
@@ -218,7 +215,7 @@ class TaskRecordExcelSerializer(serializers.ModelSerializer):
         model =models.Record
         fields = ('created_time', 'room_name','classname','student','student_name','reason')  # 包含
 
-class StudentDisciplinary(serializers.ModelSerializer):
+class StudentDisciplinary(views.BaseSerializer):
     room_name = serializers.CharField(source='room_str')
     student_name = serializers.CharField(source='student_approved.userinfo.name')
     student = serializers.CharField(source='student_approved.username')

@@ -3,31 +3,22 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-12 08:56:50
+LastEditTime: 2021-08-24 16:41:14
 Description: 用户模块
 '''
-from Apps.User.models import StudentInfo, TeacherForGrade
+import time
+
 from Apps.User.utils import auth
 from Apps.User.utils.exceptions import *
-from cool.views import (
-    CoolAPIException,
-    CoolBFFAPIView,
-    ErrorCode,
-    ViewSite,
-    param,
-    utils,
-)
+from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
+from core.views import PermissionView
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser, Permission, User
-from django.contrib.contenttypes.models import ContentType
-from django.db import IntegrityError, transaction
-from django.http import JsonResponse, response
+from django.contrib.auth.models import User
+from django.http import request
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
-from rest_framework.views import APIView
 
 from . import models, serializers
-from .utils.auth import get_groups
 
 site = ViewSite(name='User', app_name='User')
 
@@ -124,13 +115,13 @@ class EditPassword(CoolBFFAPIView):
 
 
 @site
-class Information(CoolBFFAPIView):
+class Information(PermissionView):
     name = '获取个人信息 '
     response_info_serializer_class = serializers.UserInformationSerializer
 
     def get_context(self, request, *args, **kwargs):
-        data = serializers.UserInformationSerializer(request.user, request=request).data
-        return data
+        # time.sleep(2)
+        return serializers.UserInformationSerializer(request.user, request=request).data
 
 
 @site
@@ -201,7 +192,7 @@ def get_openid(js_code):
         'secret': 'e8f66b9581ced527fb319c015e670044',
         'js_code': js_code,
     }
-    ret = requests.get(url, params=data)  # 发get请求
+    ret = request.get(url, params=data)  # 发get请求
     try:
         openid = ret.json()['openid']
         return openid

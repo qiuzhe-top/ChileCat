@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-13 15:41:31
+LastEditTime: 2021-08-20 09:30:19
 Description: Excel 操作
 '''
 
@@ -11,10 +11,14 @@ import datetime
 import os
 from io import BytesIO
 from typing import Pattern
+
 import xlwt
-from django.utils.encoding import escape_uri_path
 from django.http import HttpResponse
+from django.utils.encoding import escape_uri_path
 from openpyxl import load_workbook
+
+from core.settings import *
+
 
 def excel_to_list(request):
     '''
@@ -32,12 +36,9 @@ def excel_to_list(request):
                     l.append(str(i.value))
                 data.append(l)
     return data
-import datetime
-from random import choice
-from time import time
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
+
+
+
 def at_all_out_xls(data):
     '''学生考勤信息记录.xls模板'''
     addr = os.getcwd()+ "/core/file/学生考勤信息记录.xlsx"
@@ -47,7 +48,6 @@ def at_all_out_xls(data):
     # 创建一张新表
     ws = wb[wb.sheetnames[0]]
     # 第一行输入
-    # ws.append(['TIME', 'TITLE', 'A-Z','TIME', 'TITLE', 'A-Z'])
     for i in data:
         k = dict(i)
         ws.append([
@@ -58,20 +58,20 @@ def at_all_out_xls(data):
             '',
             '',
             # 早签
-            k.get('0#004score',0),
-            k.get('0#004rule',''),
+            k.get(RULE_CODE_04+'score',0),
+            k.get(RULE_CODE_04+'rule',''),
             # 晚签
-            k.get('0#002score',0),
-            k.get('0#002rule',''),
+            k.get(RULE_CODE_02+'score',0),
+            k.get(RULE_CODE_02+'rule',''),
             # 晚自修违纪
-            k.get('0#003score',0),
-            k.get('0#003rule',0),
+            k.get(RULE_CODE_03+'score',0),
+            k.get(RULE_CODE_03+'rule',0),
             # 查寝
-            k.get('0#001score',0),
-            k.get('0#001rule',''),
+            k.get(RULE_CODE_01+'score',0),
+            k.get(RULE_CODE_01+'rule',''),
             # 课堂
-            k.get('0#005score',0),
-            k.get('0#005rule',''),
+            k.get(RULE_CODE_05+'score',0),
+            k.get(RULE_CODE_05+'rule',''),
             k.get('score','')
         ])
     TIME = datetime.datetime.now()#.strftime("%H:%M:%S")

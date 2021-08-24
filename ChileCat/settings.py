@@ -15,7 +15,7 @@ if ENV_PROFILE:
     HOST = '47.102.215.230'
     DEBUG = False
 HOST = '47.102.215.230'
-DEBUG = False
+# DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg2',
     'cool',
     'Apps.User',
     'Apps.SchoolInformation',
@@ -87,13 +88,13 @@ DATABASES = {
     }
 }
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+# if DEBUG:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#         }
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

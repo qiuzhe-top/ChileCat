@@ -2,8 +2,8 @@
 Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
-LastEditors: Please set LastEditors
-LastEditTime: 2021-08-01 13:25:48
+LastEditors:  
+LastEditTime: 2021-08-24 16:40:39
 Description: 
 '''
 
@@ -70,20 +70,28 @@ class UserInformationSerializer(views.BaseSerializer):
     avatar = serializers.SerializerMethodField()
     grade = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
-    
+    college = serializers.SerializerMethodField()
 
     def get_username(self,obj):
         try:
             return obj.userinfo.name
         except:
             return obj.username
-            
+    
+    def get_college(self,obj):
+        st = models.StudentInfo.objects.filter(user=obj)
+        try:
+            grade = st[0].grade
+            return grade.college.name + '学院'
+        except:
+            return ''
+
     def get_grade(self, obj):
         st = models.StudentInfo.objects.filter(user=obj)
         if st.exists():
-            return st[0].grade.name
+            return st[0].grade.name + '班'
         else:
-            return '该用户无班级'
+            return ''
 
     def get_avatar(self, obj):
         return 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
@@ -100,6 +108,7 @@ class UserInformationSerializer(views.BaseSerializer):
             'permissions',
             'roles',
             'grade',
+            'college',
             'avatar',
             'is_staff',
             'is_superuser',

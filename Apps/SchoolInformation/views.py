@@ -3,43 +3,22 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-15 09:57:32
+LastEditTime: 2021-08-20 09:45:23
 Description: 
 '''
-from Apps.SchoolInformation.models import StuInRoom
-import json
-import os
-import re
-import time
-
 from Apps.SchoolAttendance import models
-from Apps.User.models import StudentInfo, UserInfo
-from cool.views import (
-    CoolAPIException,
-    CoolBFFAPIView,
-    ErrorCode,
-    ViewSite,
-    param,
-    utils,
-)
-from core.models_utils import search_room
-from django.contrib.auth.models import Permission, User
-from django.core.checks import messages
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.utils.translation import gettext_lazy as _
-from openpyxl.reader.excel import load_workbook
-from rest_framework import fields
-from rest_framework.views import APIView
 from Apps.SchoolAttendance import serializers as attendance_serializers
-from . import serializers
+from Apps.SchoolInformation.models import StuInRoom
+from cool.views import CoolAPIException, ErrorCode, ViewSite
 from core.views import PermissionView
-# Create your views here.
-
+from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
+from rest_framework import fields
+from . import serializers
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 
-
+ 
 @site
 class StudentInformation(PermissionView):
 

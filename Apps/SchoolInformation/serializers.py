@@ -3,15 +3,13 @@ Author: 邹洋
 Date: 2021-07-11 15:27:50
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-11 15:52:55
+LastEditTime: 2021-08-20 09:46:20
 Description: 
 '''
+from cool import views
 from rest_framework import serializers
 
-from rest_framework.fields import CharField
 from . import models
-
-from cool import views
 
 
 class UserSerializer(views.BaseSerializer):
