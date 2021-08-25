@@ -139,13 +139,13 @@ CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ORIGIN_WHITELIST = ('*')#跨域增加忽略
 # 跨域允许的请求方式(可选)
 CORS_ALLOW_METHODS = (
-    'DELETE',
+    # 'DELETE',
     'GET',
     'OPTIONS',
-    'PATCH',
+    # 'PATCH',
     'POST',
-    'PUT',
-    'VIEW',
+    # 'PUT',
+    # 'VIEW',
 )
 # 跨域允许的头部参数(可选)
 CORS_ALLOW_HEADERS = (

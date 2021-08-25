@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-24 16:41:14
+LastEditTime: 2021-08-24 19:29:44
 Description: 用户模块
 '''
 import time
@@ -120,7 +120,7 @@ class Information(PermissionView):
     response_info_serializer_class = serializers.UserInformationSerializer
 
     def get_context(self, request, *args, **kwargs):
-        time.sleep(1)
+        # time.sleep(1)
         return serializers.UserInformationSerializer(request.user, request=request).data
 
 

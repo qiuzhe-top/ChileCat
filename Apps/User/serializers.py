@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-24 17:07:41
+LastEditTime: 2021-08-24 17:11:05
 Description: 
 '''
 
@@ -74,7 +74,7 @@ class UserInformationSerializer(views.BaseSerializer):
     experience = serializers.SerializerMethodField()
 
     def get_experience(self,obj):
-        return {'a':57,'b':500}
+        return {'a':37,'b':100}
 
     def get_username(self,obj):
         try:
