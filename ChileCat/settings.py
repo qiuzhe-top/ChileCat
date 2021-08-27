@@ -7,15 +7,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
-HOST = '127.0.0.1'
+# DEBUG时是否连接本地sqlite3
+DEBUG_SQLITE = not True
 
+HOST = '127.0.0.1'
 # 获取环境数值 因为  ENV  只有服务器才配置
 ENV_PROFILE = os.getenv("ENV")
 if ENV_PROFILE:
     HOST = '47.102.215.230'
     DEBUG = False
-HOST = '47.102.215.230'
-# DEBUG = False
+    
+if not DEBUG_SQLITE:
+    HOST = '47.102.215.230'
 
 ALLOWED_HOSTS = ["*"]
 
@@ -88,13 +91,13 @@ DATABASES = {
     }
 }
 
-# if DEBUG:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#         }
-#     }
+if DEBUG and DEBUG_SQLITE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
