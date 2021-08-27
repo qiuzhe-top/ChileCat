@@ -16,7 +16,7 @@ ENV_PROFILE = os.getenv("ENV")
 if ENV_PROFILE:
     HOST = '47.102.215.230'
     DEBUG = False
-    
+
 if not DEBUG_SQLITE:
     HOST = '47.102.215.230'
 
@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'drf_yasg2',
     'cool',
     'Apps.User',
     'Apps.SchoolInformation',
