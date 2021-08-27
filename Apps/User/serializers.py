@@ -86,14 +86,14 @@ class UserInformationSerializer(views.BaseSerializer):
         st = models.StudentInfo.objects.filter(user=obj)
         try:
             grade = st[0].grade
-            return grade.college.name + '学院'
+            return grade.college.name
         except:
             return ''
 
     def get_grade(self, obj):
         st = models.StudentInfo.objects.filter(user=obj)
         if st.exists():
-            return st[0].grade.name + '班'
+            return st[0].grade.name
         else:
             return ''
 
