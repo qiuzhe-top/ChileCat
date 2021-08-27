@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-22 11:39:41
+LastEditTime: 2021-08-27 10:55:45
 Description: 
 '''
 import datetime
@@ -400,7 +400,6 @@ class StudentDisciplinary(CoolBFFAPIView):
         ).order_by('-last_time')
         return serializers.StudentDisciplinary(records, many=True).data
 
-
 @site
 class LateClass(TaskBase):
     name = _('晚自修数据')
@@ -421,8 +420,10 @@ class LateClass(TaskBase):
             if users.count() != calls.count():
                 call_list = list()
                 for u in users:
-                    call_list.append(UserCall(task=self.request.task,user=u,rule_id=rule_id))
-                UserCall.objects.bulk_create(call_list)
+                #     call_list.append(UserCall(task=self.request.task,user=u,rule_id=rule_id))
+                # UserCall.objects.bulk_create(call_list)
+                # TODO 这里的加载应该在系统初始化的时候就完成 并且提供手动更新的接口 当然更应该使用缓存
+                    UserCall.objects.get_or_create(task=self.request.task,user=u,rule_id=rule_id)
                 calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
             return serializers.UserCallSerializer(calls,request=request,many=True).data
 

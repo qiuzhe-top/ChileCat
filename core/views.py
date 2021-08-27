@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-14 15:51:45
+LastEditTime: 2021-08-27 08:24:37
 Description: 父类
 '''
 from core.common import is_number
@@ -201,6 +201,7 @@ class SubmitBase(TaskBase):
         pass
 
     def get_context(self, request, *args, **kwargs):
+        # TODO 优化提交数度
         self.get_task_player_by_user()
         self.is_open()
         self.custom_rule = None
@@ -223,7 +224,7 @@ class SubmitBase(TaskBase):
             # 提交记录
             if str(record['status']) == '0':
                 reason = record['reason'] # 自定义规则文本 / 规则ID
-                reason_is_custom = record['reason_is_custom'] # 自定义规则文本 / 规则ID
+                reason_is_custom = record['reason_is_custom']
                 rule_str = '' # 规则文本
                 rule = None # 规则对象
 
