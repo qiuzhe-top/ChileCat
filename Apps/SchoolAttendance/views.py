@@ -3,9 +3,10 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-27 10:55:45
+LastEditTime: 2021-08-27 21:00:49
 Description: 
 '''
+from Apps.User.models import StudentInfo
 import datetime
 
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
@@ -494,6 +495,11 @@ class InzaoqianExcel(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
+        user = request.user
+        st = StudentInfo.objects.filter(user=user)
+        college = st[0].grade.college
+        task , task_t = Task.objects.get_or_create(types='3',college=college)
+        print(task.id)
         error_list = []
         for row in rows:
             username = row[0]
@@ -521,10 +527,11 @@ class InzaoqianExcel(CoolBFFAPIView):
                             'score': 1,
                             'grade_str': u.studentinfo.grade.name,
                             'star_time': str_time,
+                            'task':task
                         }
 
                         try:
-                            d['rule'] = models.RuleDetails.objects.get(name='早签')
+                            d['rule'] = models.RuleDetails.objects.get(codename=RULE_CODE_04)
                         except:
                             pass
 
@@ -580,7 +587,7 @@ class OutData(CoolBFFAPIView):
             if username != None
             else q1
         ) # 是否名称搜索
-        q4 = Q(task__types__in=['2','0']) | Q(rule_str='早签') # 任务类型限制
+        q4 = Q(task__types__in=['2','0','3']) # 任务类型限制
         q5 = Q(task__college__id=college_id) # 分院
 
         records = (

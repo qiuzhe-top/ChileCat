@@ -48,7 +48,8 @@ class Task(BaseModel):
     GENDER_CHOICES1 = (
         (u'0', u'查寝'),
         (u'1', u'查卫生'),
-        (u'2', u'晚自修')
+        (u'2', u'晚自修'),
+        (u'3', u'早签'),
     )
     is_open = models.BooleanField(verbose_name='是否开启',default=False)
     types = models.CharField(

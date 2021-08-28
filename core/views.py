@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-27 08:24:37
+LastEditTime: 2021-08-27 21:08:58
 Description: 父类
 '''
 from core.common import is_number
@@ -156,14 +156,7 @@ class SubmitBase(TaskBase):
         else:
             self.custom_rule =self.get_custom_rule()
             return self.custom_rule
-    def init_undo_record(self,record,user):
-        '''撤销对学生的违纪记录'''
-        t = datetime.datetime.now()
-        rule_str = str(self.undo_record())
-        Record.objects.filter(
-            star_time__date=t, worker=self.request.user, student_approved=user
-        ).update(manager=self.request.user, rule_str=rule_str)
-        
+
     def get_room(self):
         '''获取房间'''
         try:

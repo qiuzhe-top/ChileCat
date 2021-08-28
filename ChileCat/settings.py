@@ -138,7 +138,7 @@ STATIC_URL = '/static/'
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-# CORS_ORIGIN_WHITELIST = ('',)# 允许跨域IP/域名列表
+# CORS_ORIGIN_WHITELIST = ('http://127.0.0.1:8080',)# 允许跨域IP/域名列表
 # 跨域允许的请求方式(可选)
 CORS_ALLOW_METHODS = (
     'GET',
@@ -166,7 +166,6 @@ CORS_ALLOW_HEADERS = (
     'Access-Control-Allow-Origin',
     'token',
 )
-
 # JWT 密钥
 SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 
