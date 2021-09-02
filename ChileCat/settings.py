@@ -23,7 +23,7 @@ if not DEBUG_SQLITE:
 ALLOWED_HOSTS = ["*"]
 
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'simpleui',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,14 +31,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+THIRD_PARTY_APPS  = [
     'rest_framework',
     'cool',
+    'corsheaders',
+]
+
+LOCAL_APPS = [
     'Apps.User',
     'Apps.SchoolInformation',
     'Apps.SchoolAttendance',
+    'Apps.HomeWork',
     'Manage',
-    'corsheaders',
 ]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # 跨域
