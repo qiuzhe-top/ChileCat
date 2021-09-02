@@ -110,7 +110,7 @@ class Record(models.Model):
         User, on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name="执行者", related_name="task_worker",
     )
-
+    #TODO 修正related_name 排查系统问题
     manager = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name="销假人",
