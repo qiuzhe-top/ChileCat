@@ -108,6 +108,7 @@ class UserInformationSerializer(views.BaseSerializer):
     class Meta:
         model = models.User
         fields = (
+            'id',
             'username',
             'permissions',
             'roles',
