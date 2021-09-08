@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-27 21:08:58
+LastEditTime: 2021-09-08 18:46:59
 Description: 父类
 '''
 from core.common import is_number
@@ -179,9 +179,10 @@ class SubmitBase(TaskBase):
         '''获取自定义规则'''
         pass
 
-    def undo_record(self,record,user):
+    def undo_record(self,record_model,user):
         '''撤销对学生的违纪记录'''
-        return '操作撤销'
+        record_model['rule_str'] = '操作撤销'
+        # 更新数据
 
     def submit_user_record(self,record_model,record):
         '''提交学生考勤记录'''
@@ -201,6 +202,8 @@ class SubmitBase(TaskBase):
         self.get_room()
         self.init_data()
         records = request.params.records
+
+
         for record in records:
             # 获取用户
             user = None
@@ -209,15 +212,30 @@ class SubmitBase(TaskBase):
             except:
                 pass
 
+            # 构建 考勤记录模型
+            record_model = {}
+            record_model['task'] = self.task
+            record_model['room_str'] = self.room_str
+            try:
+                record_model['grade_str'] =  user.studentinfo.grade.name
+            except:
+                record_model['grade_str'] =  None
+            record_model['student_approved'] = user
+            record_model['worker'] = self.request.user
+
+
+            status = str(record['status'])
             # 撤销记录
-            if str(record['status']) == '1':
-                self.undo_record(record,user)
-                continue
-            
+            if status == '1':
+                record_model['manager'] = self.request.user
+                self.undo_record(record_model,user)
+                          
+
             # 提交记录
-            if str(record['status']) == '0':
+            elif status == '0':
                 reason = record['reason'] # 自定义规则文本 / 规则ID
                 reason_is_custom = record['reason_is_custom']
+                
                 rule_str = '' # 规则文本
                 rule = None # 规则对象
 
@@ -232,21 +250,12 @@ class SubmitBase(TaskBase):
                         rule = self.init_custom_rule()
                         rule_str = reason
 
-                # 构建 考勤记录模型
-                record_model = {}
-                record_model['task'] = self.task
                 record_model['rule_str'] = rule_str
                 record_model['score'] = 1 # 默认扣一分
-                record_model['room_str'] = self.room_str
-                try:
-                    record_model['grade_str'] =  user.studentinfo.grade.name
-                except:
-                    record_model['grade_str'] =  None
-                record_model['student_approved'] = user
-                record_model['worker'] = self.request.user
                 if rule:
                     record_model['rule'] = rule
                     record_model['score'] = rule.score
+
                 if self.submit_user_record(record_model,record) != False:
                     Record.objects.create(**record_model)
     class Meta:
