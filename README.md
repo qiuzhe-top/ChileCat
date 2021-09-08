@@ -3,7 +3,7 @@
  * @Date: 2021-07-04 13:27:27
  * @Email: 2810201146@qq.com
  * @LastEditors:  
- * @LastEditTime: 2021-09-08 10:53:16
+ * @LastEditTime: 2021-09-08 18:53:06
  * @Description: 
 -->
 ## 分配考勤管理员
@@ -36,6 +36,11 @@ python manage.py test Apps.SchoolAttendance.tests.
 
 
 # 智慧彩云
+### V 1.0.1
+- 去除重置查寝任务状态多余的重置房间的循环
+- 修正SubmitKnowing 寝室考勤逻辑
+  - 优化不能第二次提交的规则
+- 修正撤销学生不生效问题 改为具体考勤类里面实现
 ### V 1.0.1
 - 实现对楼层和房间按顺序排序
 - 修正前端出现自定义规则这个分类
