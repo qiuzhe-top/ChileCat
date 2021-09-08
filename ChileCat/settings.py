@@ -19,7 +19,7 @@ if ENV_PROFILE:
     DB_NAME= 'ChileCat'
     DEBUG = False
 
-if not DEBUG_SQLITE:
+if DEBUG and not DEBUG_SQLITE:
     HOST = '47.102.215.230'
     DB_NAME= 'ChileCatTest'
 
