@@ -10,15 +10,19 @@ DEBUG = True
 # DEBUG时是否连接本地sqlite3
 DEBUG_SQLITE = not True
 
+DB_NAME = ''
 HOST = '127.0.0.1'
-# 获取环境数值 因为  ENV  只有服务器才配置
-ENV_PROFILE = os.getenv("ENV")
+
+ENV_PROFILE = os.getenv("ENV") # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
     HOST = '47.102.215.230'
+    DB_NAME= 'ChileCat'
     DEBUG = False
 
 if not DEBUG_SQLITE:
     HOST = '47.102.215.230'
+    DB_NAME= 'ChileCatTest'
+
 
 ALLOWED_HOSTS = ["*"]
 
@@ -77,11 +81,12 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-print('DEBUG:', DEBUG, '数据库:', HOST)
+
+print('DEBUG:', DEBUG, '数据库:', HOST,DB_NAME)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ChileCat',
+        'NAME': DB_NAME,
         'USER': 'root',
         'PASSWORD': 'zhou24272592',
         'HOST': HOST,
@@ -91,6 +96,7 @@ DATABASES = {
 }
 
 if DEBUG and DEBUG_SQLITE:
+    print('Sqlite 连接中...')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -133,7 +139,10 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
+# 当访问静态文件时去哪里找
+STATICFILES_DIRS=(
+    os.path.join(BASE_DIR,"static"),
+)
 
 # CORS
 CORS_ALLOW_CREDENTIALS = True

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 09:06:00
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-20 09:23:56
+LastEditTime: 2021-09-08 10:42:34
 Description: 配置
 '''
 
@@ -15,9 +15,11 @@ RULE_CODE_05 = '0#005'
 RULE_CODE_06 = '0#006'
 RULE_CODE_07 = '0#007'
 
-RULE_NAME_01_01 = '查寝:其他情况'
-RULE_NAME_07_01 = '个人卫生:其他情况'
-RULE_NAME_03_01 = '晚自修违纪:其他情况'
+# 用作自定义规则的分类 只会在第一次提交自定义规则的时候创建
+CUSTOM_RULE = 'CUSTOM_RULE'
+RULE_NAME_01_01 = '查寝' + CUSTOM_RULE
+RULE_NAME_07_01 = '个人卫生' + CUSTOM_RULE
+RULE_NAME_03_01 = '晚自修违纪' + CUSTOM_RULE
 
 # 初始化规则
 INIT_RULES =  [
@@ -29,8 +31,7 @@ INIT_RULES =  [
           },
           "rules":[
             {'name': '请假', 'score': '1'},
-            {'name': '未到校', 'score': '1'},
-            {'name': '当兵', 'score': '1'},
+            {'name': '无故', 'score': '1'},
           ]
       },
       {
