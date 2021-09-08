@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 10:51:42
+LastEditTime: 2021-09-08 18:42:23
 Description: 
 '''
 from Apps.User.models import StudentInfo
@@ -68,16 +68,8 @@ class TaskRestKnowing(TaskBase):
 
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
-        # TODO 请简化循环
-        b = task.buildings.all()
-        for i in b:
-            for j in i.floor.all():
-                for k in j.room.all():
-                    k.dorm_status = False
-                    k.save()
-
-        models.RoomHistory.objects.filter(task=task).update(is_knowing=False)
-        models.TaskFloorStudent.objects.filter(task=task).update(flg=True)
+        models.RoomHistory.objects.filter(task=task).update(is_knowing=False) # 所有寝室为未检查
+        models.TaskFloorStudent.objects.filter(task=task).update(flg=True) # 所有学生为在寝
 
 
 @site
@@ -304,18 +296,34 @@ class SubmitKnowing(SubmitBase):
 
     def updata_user_in_room(self,user,is_flg):
         ''' 学生在宿舍情况'''
-        user_in_room, flg = models.TaskFloorStudent.objects.get_or_create(task=self.task, user=user)
-        user_in_room.flg = is_flg
-        user_in_room.save()
+        if is_flg == False:
+            user_in_room, flg = models.TaskFloorStudent.objects.get_or_create(task=self.task, user=user)
+            # TODO 多线程需要保证原子性
+            if user_in_room.flg == False: # 如果状态为不在寝室 就不进行提交 
+                return False
+            else:
+                user_in_room.flg = is_flg
+                user_in_room.save()
+        elif is_flg == True:
+            models.TaskFloorStudent.objects.filter(task=self.task, user=user).update(flg=True)
 
-    def undo_record(self,record,user):
+
+    def undo_record(self,record_model,user):
         '''撤销对学生的违纪记录'''
         self.updata_user_in_room(user,True)
-        return '查寝：误操作撤销'
+        record_model['rule_str'] = '查寝：误操作撤销'
+        
+        # 定位记录 时间 任务 被撤销学生
+        now = datetime.datetime.now()
+        records = models.Record.objects.filter(
+            task=self.task,
+            student_approved = record_model['student_approved'],
+            star_time__date=datetime.date(now.year, now.month, now.day)).update(manager=record_model['manager'])
+        
 
     def submit_user_record(self,record_model,record):
         '''提交学生考勤记录'''
-        self.updata_user_in_room(record_model['student_approved'],False)
+        return self.updata_user_in_room(record_model['student_approved'],False)
         
     class Meta:
         param_fields = (
