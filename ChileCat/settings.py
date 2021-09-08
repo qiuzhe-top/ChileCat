@@ -8,7 +8,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
 # DEBUG时是否连接本地sqlite3
-DEBUG_SQLITE = True
+DEBUG_SQLITE = not True
 
 DB_NAME = ''
 HOST = '127.0.0.1'
@@ -27,7 +27,7 @@ if not DEBUG_SQLITE:
 ALLOWED_HOSTS = ["*"]
 
 
-DJANGO_APPS = [
+INSTALLED_APPS = [
     'simpleui',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,23 +35,14 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-]
-
-THIRD_PARTY_APPS  = [
     'rest_framework',
     'cool',
-    'corsheaders',
-]
-
-LOCAL_APPS = [
     'Apps.User',
     'Apps.SchoolInformation',
     'Apps.SchoolAttendance',
-    'Apps.HomeWork',
     'Manage',
+    'corsheaders',
 ]
-
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # 跨域
