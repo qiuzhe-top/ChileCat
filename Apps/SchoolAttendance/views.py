@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-27 21:00:49
+LastEditTime: 2021-09-08 10:51:42
 Description: 
 '''
 from Apps.User.models import StudentInfo
@@ -249,7 +249,7 @@ class Rule(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         codename = request.params.codename
         rule = models.Rule.objects.get(codename=codename)
-        data = rule.ruledetails_set.all().values('id', 'name', 'parent_id', 'score')
+        data = rule.ruledetails_set.exclude(name__endswith=CUSTOM_RULE).values('id', 'name', 'parent_id', 'score')
         return list(data)
 
     class Meta:
@@ -348,7 +348,7 @@ class DormStoreyInfo(TaskBase):
         buildings_info = []
         for building in buildings:
             info = {"list": [], 'id': building.id, 'name': building.name + "号楼"}
-            floors = building.floor.filter(is_open=True)
+            floors = building.floor.filter(is_open=True).order_by('name')
             for floor in floors:
                 floor = {'id': floor.id, 'name': "第" + floor.name + "层"}
                 info['list'].append(floor)
@@ -364,7 +364,7 @@ class DormRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task() # TODO 可以优化查询
         floor_id = request.params.floor_id
-        rooms = models.Room.objects.filter(floor_id=floor_id)
+        rooms = models.Room.objects.filter(floor_id=floor_id).order_by('name')
         return serializers.DormRoomInfo(rooms,many=True,request=request).data
 
     class Meta:
