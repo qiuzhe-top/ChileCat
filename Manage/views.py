@@ -260,6 +260,18 @@ class DataInit(CoolBFFAPIView):
         data = init_dict[type_](request)
         return data
 
+from django.shortcuts import render
+
+@site
+class Index(CoolBFFAPIView):
+    name = _('后台主页')
+   
+    def get_context(self, request, *args, **kwargs):
+        data = []
+        u = User.objects.all().count()
+        t = SchoolAttendanceModels.Record.objects.all().count()
+        context = { 'user_count': u, 'task_count': t }
+        return render(request, 'index/index.html',context)
 
 from cool.views.utils import get_api_info, get_url, get_view_list
 
