@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'Apps.SchoolInformation',
     'Apps.SchoolAttendance',
     'Manage',
+    'django_extensions',
     'corsheaders',
 ]
 

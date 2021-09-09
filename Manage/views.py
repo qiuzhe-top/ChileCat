@@ -125,6 +125,7 @@ def user_init(request):
         grade_str = excel_users[username]['grade']
         grade_obj = excel_grades[grade_str]
         excel_users[username]['grade'] = grade_obj
+        excel_users[username]['password'] = PASSWOED_123456
         user = User(**excel_users[username])
         wait_create_users.append(user)
     User.objects.bulk_create(wait_create_users)

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 09:06:00
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 10:42:34
+LastEditTime: 2021-09-10 06:08:03
 Description: 配置
 '''
 
@@ -21,6 +21,8 @@ RULE_NAME_01_01 = '查寝' + CUSTOM_RULE
 RULE_NAME_07_01 = '个人卫生' + CUSTOM_RULE
 RULE_NAME_03_01 = '晚自修违纪' + CUSTOM_RULE
 
+# 123456加密后的密码 
+PASSWOED_123456 = 'pbkdf2_sha256$216000$EdbBhgrAllGw$10q+5fYrzMXRnUaj/5QYKptd+6VHtBlIUc83OF9yuRE='
 # 初始化规则
 INIT_RULES =  [
         {
