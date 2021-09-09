@@ -1,10 +1,11 @@
 """管理视图"""
+from Apps.SchoolInformation.models import StuInRoom
 import datetime
 import logging
 
 
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-from Apps.SchoolInformation.models import *
+# from Apps.SchoolInformation.models import *
 from Apps.User.models import College, Grade
 from cool import views
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
@@ -19,7 +20,8 @@ from django.utils.translation import gettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.reader.excel import ExcelReader
 from rest_framework.views import APIView
-
+from django.contrib.auth import get_user_model
+User = get_user_model()
 logger = logging.getLogger(__name__)
 # https://www.jianshu.com/p/945c43b37624
 
@@ -87,41 +89,46 @@ def group_user(request):
 # 导入学生
 def user_init(request):
     '''导入学生'''
-    # TODO 这效率 我(*^_^*)了 赶紧优化吧
-    message_list = {}
-    message_list['create'] = []
-    message_list['update'] = []
     excel = excel_to_list(request)
+    excel_users = {}
+    excel_grades = {}
     for row in excel:
         grade = row[0]
         username = row[1]
         name = row[2]
+        excel_users[username] = {
+            "username":username,
+            "grade":grade,
+            "name":name,
+        }
+        excel_grades[grade] = ''
 
-        # 创建/获取 班级
-        grade, f0 = Grade.objects.get_or_create(name=grade)
-        # 创建/获取 用户对象
-        u, f = User.objects.get_or_create(username=username)
-        if not u:
-            continue
-        u.set_password(username)
-        u.save()
 
-        # 创建/修改 用户 UserInfo StudentInfo
-        user_info, f1 = User.objects.get_or_create(user=u, defaults={"name": name})
-        stu_info, f2 = User.objects.get_or_create(
-            user=u, defaults={"grade": grade}
-        )
+    # 创建DB没有的班级
+    db_grades = dict(Grade.objects.all().values_list('name','id'))
+    grades =  excel_grades.keys() - db_grades.keys()
+    wait_create_grades=[]
+    for grade in grades:
+        wait_create_grades.append(Grade(name=grade))
+    Grade.objects.bulk_create(wait_create_grades)
+    # 通过excel里面的班级集合获取班级实例列表
+    db_grades = Grade.objects.filter(name__in=excel_grades.keys())
+    for grade in db_grades:
+        name = grade.name
+        excel_grades[name] = grade # 完善从excel里面获取的班级列表 改为班级实例
 
-        # 记录结果
-        if f1 and f2:
-            message_list['create'].append(username + "---" + name)
-        else:
-            user_info.name = name
-            user_info.save()
-            stu_info.grade = grade
-            stu_info.save()
-            message_list['update'].append(username + "---" + name)
-    return message_list
+    db_users =dict(User.objects.all().values_list('username','name')) # 这里取name只为完成dict
+    username_list =  excel_users.keys() - db_users.keys() # 取出DB不存在的用户
+    wait_create_users=[]
+    for username in username_list:
+        # 构建用户实例
+        grade_str = excel_users[username]['grade']
+        grade_obj = excel_grades[grade_str]
+        excel_users[username]['grade'] = grade_obj
+        user = User(**excel_users[username])
+        wait_create_users.append(user)
+    User.objects.bulk_create(wait_create_users)
+    return {'create_user':username_list}
 
 
 # 用户组初始化
