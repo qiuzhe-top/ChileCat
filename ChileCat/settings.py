@@ -13,15 +13,15 @@ DEBUG_SQLITE = not True
 DB_NAME = ''
 HOST = '127.0.0.1'
 
-ENV_PROFILE = os.getenv("ENV") # 获取环境数值 因为  ENV  只有服务器才配置
+ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
     HOST = '47.102.215.230'
-    DB_NAME= 'ChileCat'
+    DB_NAME = 'ChileCat'
     DEBUG = False
 
 if not DEBUG_SQLITE:
     HOST = '47.102.215.230'
-    DB_NAME= 'ChileCatTest'
+    DB_NAME = 'ChileCatTest'
 
 
 ALLOWED_HOSTS = ["*"]
@@ -62,7 +62,7 @@ ROOT_URLCONF = 'ChileCat.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 
-print('DEBUG:', DEBUG, '数据库:', HOST,DB_NAME)
+print('DEBUG:', DEBUG, '数据库:', HOST, DB_NAME)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -135,19 +135,14 @@ USE_L10N = True
 
 USE_TZ = False
 
-APPEND_SLASH=False
-
-# 服务器信息
-SIMPLEUI_HOME_INFO = True
+APPEND_SLASH = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
 # 当访问静态文件时去哪里找
-STATICFILES_DIRS=(
-    os.path.join(BASE_DIR,"static"),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 # CORS
 CORS_ALLOW_CREDENTIALS = True
@@ -209,4 +204,42 @@ DJANGO_COOL = {
         ('ERR_UPDATE_BADS_IS_NULL', (5023, '床位使用中')),
         ('EXCEL_OUT_NO_DATA', (5024, 'Excel数据为空')),
     )
+}
+# SimpleUi 配置
+# 服务器信息
+SIMPLEUI_HOME_INFO = True
+# 隐藏右侧SimpleUI广告链接和使用分析
+SIMPLEUI_HOME_INFO = False
+SIMPLEUI_ANALYSIS = False
+
+# 修改左侧菜单首页设置
+SIMPLEUI_HOME_PAGE = '/api/manage/index'  # 指向页面
+# SIMPLEUI_HOME_TITLE = '百度欢迎你!' # 首页标题
+
+# 设置右上角Home图标跳转链接，会以另外一个窗口打开
+SIMPLEUI_INDEX = 'http://www.qiuzhe.top'
+
+
+SIMPLEUI_CONFIG = {
+    # 是否使用系统默认菜单，自定义菜单时建议关闭。
+    'system_keep': True,
+    # 用于菜单排序和过滤, 不填此字段为默认排序和全部显示。空列表[] 为全部不显示.
+    #  'menu_display': ['任务管理', '权限认证'],
+    # 设置是否开启动态菜单, 默认为False. 如果开启, 则会在每次用户登陆时刷新展示菜单内容。
+    # 一般建议关闭。
+    'dynamic': False,
+    'menus': [
+        #  {
+        #      'name': '任务管理',
+        #      'icon': 'fa fa-th-list',
+        #      'models': [
+        #          {
+        #          'name': '任务列表',
+        #          # 注意url按'/admin/应用名小写/模型名小写/'命名。
+        #          'url': '/admin/tasks/task/',
+        #          'icon': 'fa fa-tasks'
+        #          },
+        #      ]
+        #  },
+    ],
 }
