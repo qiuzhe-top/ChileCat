@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 18:42:23
+LastEditTime: 2021-09-09 09:10:24
 Description: 
 '''
 from Apps.User.models import StudentInfo
