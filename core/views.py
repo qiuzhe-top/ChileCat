@@ -15,7 +15,8 @@ from Apps.SchoolAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
@@ -217,7 +218,7 @@ class SubmitBase(TaskBase):
             record_model['task'] = self.task
             record_model['room_str'] = self.room_str
             try:
-                record_model['grade_str'] =  user.studentinfo.grade.name
+                record_model['grade_str'] =  user.grade.name
             except:
                 record_model['grade_str'] =  None
             record_model['student_approved'] = user

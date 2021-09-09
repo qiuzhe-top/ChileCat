@@ -5,7 +5,7 @@ import logging
 
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
 from Apps.SchoolInformation.models import *
-from Apps.User.models import College, Grade, StudentInfo, User, UserInfo
+from Apps.User.models import College, Grade
 from cool import views
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
                         sites)
@@ -107,8 +107,8 @@ def user_init(request):
         u.save()
 
         # 创建/修改 用户 UserInfo StudentInfo
-        user_info, f1 = UserInfo.objects.get_or_create(user=u, defaults={"name": name})
-        stu_info, f2 = StudentInfo.objects.get_or_create(
+        user_info, f1 = User.objects.get_or_create(user=u, defaults={"name": name})
+        stu_info, f2 = User.objects.get_or_create(
             user=u, defaults={"grade": grade}
         )
 

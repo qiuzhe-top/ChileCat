@@ -8,7 +8,8 @@ Description:
 '''
 
 from Apps.User.models import Token
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.test import TestCase
 from rest_framework.test import RequestsClient
 

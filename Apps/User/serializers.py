@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-24 17:11:05
+LastEditTime: 2021-09-09 19:00:50
 Description: 
 '''
 
@@ -23,13 +23,13 @@ class GradeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class TeacherForGradeSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='grade.id')
-    name = serializers.CharField(source='grade.name')
+# class TeacherForGradeSerializer(serializers.ModelSerializer):
+#     id = serializers.CharField(source='grade.id')
+#     name = serializers.CharField(source='grade.name')
 
-    class Meta:
-        model = models.TeacherForGrade
-        fields = ('id', 'name')
+#     class Meta:
+#         model = models.TeacherForGrade
+#         fields = ('id', 'name')
 
 
 class TeacherForCollegeSerializer(serializers.ModelSerializer):
@@ -78,23 +78,20 @@ class UserInformationSerializer(views.BaseSerializer):
 
     def get_username(self,obj):
         try:
-            return obj.userinfo.name
+            return obj.name
         except:
             return obj.username
     
     def get_college(self,obj):
-        st = models.StudentInfo.objects.filter(user=obj)
         try:
-            grade = st[0].grade
-            return grade.college.name
+            return obj.grade.college.name
         except:
             return ''
 
     def get_grade(self, obj):
-        st = models.StudentInfo.objects.filter(user=obj)
-        if st.exists():
-            return st[0].grade.name
-        else:
+        try:
+            return obj.grade.name
+        except:
             return ''
 
     def get_avatar(self, obj):

@@ -3,10 +3,9 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 09:10:24
+LastEditTime: 2021-09-09 19:01:58
 Description: 
 '''
-from Apps.User.models import StudentInfo
 import datetime
 
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
@@ -16,7 +15,8 @@ from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
 from core.query_methods import Concat
 from core.settings import *
 from core.views import *
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.db.models import F
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
@@ -158,7 +158,7 @@ class Condition(TaskBase):
             task=task,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
-        ).select_related('student_approved__userinfo','worker__userinfo','rule').order_by('-last_time')
+        ).select_related('rule').order_by('-last_time')
         
         return serializers.ConditionRecord(records, request=request, many=True).data
 
@@ -387,7 +387,7 @@ class DormStudentRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         room_id = request.params.room_id
-        rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user__userinfo')
+        rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user')
         return serializers.DormStudentRoomInfo(rooms,many=True,request=request).data
     class Meta:
         param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
@@ -424,8 +424,8 @@ class LateClass(TaskBase):
         elif type_ == 1:
             class_id = request.params.class_id
             rule_id = request.params.rule_id
-            users = User.objects.filter(studentinfo__grade__id = class_id)
-            calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
+            users = User.objects.filter(grade__id = class_id)
+            calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user')
             if users.count() != calls.count():
                 call_list = list()
                 for u in users:
@@ -433,7 +433,7 @@ class LateClass(TaskBase):
                 # UserCall.objects.bulk_create(call_list)
                 # TODO 这里的加载应该在系统初始化的时候就完成 并且提供手动更新的接口 当然更应该使用缓存
                     UserCall.objects.get_or_create(task=self.request.task,user=u,rule_id=rule_id)
-                calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
+                calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user')
             return serializers.UserCallSerializer(calls,request=request,many=True).data
 
     class Meta:
@@ -462,7 +462,7 @@ class RecordQuery(CoolBFFAPIView):
         q5 = Q(task__college__id=college_id) # 分院
         records = models.Record.objects.filter(q4,q5,
             star_time__range=(start_date, end_date), manager__isnull=True
-        ).select_related('student_approved__userinfo','worker__userinfo','rule','task__college').order_by('-last_time')
+        ).select_related('student_approved','worker','rule','task__college').order_by('-last_time')
 
         if username:
             try:
@@ -492,7 +492,7 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo').order_by('-last_time')
+        data = Record.objects.filter(student_approved=request.user).select_related('worker').order_by('-last_time')
         return serializers.PersonalDisciplineQuery(instance=data, many=True, request=request).data
 
 @site
@@ -504,8 +504,7 @@ class InzaoqianExcel(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
         user = request.user
-        st = StudentInfo.objects.filter(user=user)
-        college = st[0].grade.college
+        college =user.grade.college
         task , task_t = Task.objects.get_or_create(types='3',college=college)
         print(task.id)
         error_list = []
@@ -533,7 +532,7 @@ class InzaoqianExcel(CoolBFFAPIView):
                             'rule_str': '早签',
                             'student_approved': u,
                             'score': 1,
-                            'grade_str': u.studentinfo.grade.name,
+                            'grade_str': u.grade.name,
                             'star_time': str_time,
                             'task':task
                         }
@@ -602,7 +601,7 @@ class OutData(CoolBFFAPIView):
             models.Record.objects.filter(q2 & q1 & q3 & q4 & q5)
             .values(
                 grade=F('grade_str'),
-                name=F('student_approved__userinfo__name'),
+                name=F('student_approved__name'),
             )
             .annotate(
                 rule=Concat('rule_str'),

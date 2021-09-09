@@ -11,7 +11,8 @@ from Apps.User.models import Token
 from Apps.SchoolInformation.models import *
 from cool.views import ErrorCode
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.test import Client, TestCase
 import requests
 from .views import Login

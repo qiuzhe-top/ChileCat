@@ -3,14 +3,15 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 07:25:57
+LastEditTime: 2021-09-09 19:20:13
 Description: 
 '''
 from django.db import models
-from django.contrib.auth.models import User
+
 from cool.admin import admin_register
 from django.utils import tree
-
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 # Create your models here.
 
 @admin_register
@@ -46,7 +47,7 @@ class Grade(models.Model):
 
     def get_users(self):
         '''获取班级内学生'''
-        user_list = self.studentinfo_set.all().values_list('user',flat=True)
+        user_list = self.user_set.all().values_list('user',flat=True)
         return User.objects.filter(id__in=list(user_list))
 
     def __str__(self):
@@ -154,7 +155,7 @@ class StuInRoom(models.Model):
         verbose_name="床铺位置")
 
     def user_name(self):
-            return '%s' % self.user.userinfo.name
+            return '%s' % self.user.name
     user_name.short_description = '姓名'
 
     class Meta:

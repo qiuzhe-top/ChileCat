@@ -1,10 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import User
 import django.utils.timezone as timezone
 from Apps.SchoolInformation.models import *
 from cool.admin import admin_register
 from cool.model import BaseModel
+from django.conf import settings
+from django.db import models
 
+
+User = settings.AUTH_USER_MODEL
 # Create your models here.
 
 
@@ -59,11 +61,11 @@ class Task(BaseModel):
     college = models.ForeignKey(
         College, null=True, blank=True, on_delete=models.CASCADE, verbose_name=u'分院')
     admin = models.ManyToManyField(
-        User, null=True, blank=True,  verbose_name=u'管理员')
+        User,blank=True,  verbose_name=u'管理员')
     buildings = models.ManyToManyField(
-        Building, null=True, blank=True, verbose_name=u'关联楼')
+        Building, blank=True, verbose_name=u'关联楼')
     grades = models.ManyToManyField(
-        Grade, null=True, blank=True, verbose_name=u'关联班级')
+        Grade, blank=True, verbose_name=u'关联班级')
 
     class Meta:
         verbose_name = '任务'

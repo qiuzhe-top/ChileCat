@@ -13,7 +13,8 @@ from Apps.User.utils.exceptions import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from core.views import PermissionView
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.http import request
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields

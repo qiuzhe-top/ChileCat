@@ -11,7 +11,8 @@ from Apps.SchoolAttendance import serializers as attendance_serializers
 from Apps.SchoolInformation.models import StuInRoom
 from cool.views import CoolAPIException, ErrorCode, ViewSite
 from core.views import PermissionView
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
 from . import serializers

@@ -1,5 +1,6 @@
 from cool import views
-from django.contrib.auth.models import User
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 from rest_framework import serializers
 
 from . import models
@@ -42,7 +43,7 @@ class TimeSerializer(views.BaseSerializer):
         return '{}-{}-{} {}:{}'.format(year,month,day,hour,minute)
 class PersonalDisciplineQuery(TimeSerializer,views.BaseSerializer):
     '''获取个人违纪记录'''
-    worker = serializers.CharField(source='worker.userinfo.name')
+    worker = serializers.CharField(source='worker.name')
 
     class Meta:
         model = models.Record
@@ -65,7 +66,7 @@ class DormRoomInfo(views.BaseSerializer):
 
 class DormStudentRoomInfo(views.BaseSerializer):
     '''晚查寝-宿舍房间 数据'''
-    name = serializers.CharField(source='user.userinfo.name')
+    name = serializers.CharField(source='user.name')
     id = serializers.IntegerField(source='user.id')
     status = serializers.SerializerMethodField()
     
@@ -93,7 +94,7 @@ class TaskSwitch(views.BaseSerializer):
 
 class UserCallSerializer(views.BaseSerializer):
     """任务点名 -- 学生"""
-    name = serializers.CharField(source="user.userinfo.name")
+    name = serializers.CharField(source="user.name")
     username = serializers.CharField(source="user.username")
     user_id = serializers.SerializerMethodField()
 
@@ -153,7 +154,7 @@ class RecordUserInfo(views.BaseSerializer):
 
     def get_student_approved(self,obj):
         try:
-            return obj.student_approved.userinfo.name
+            return obj.student_approved.name
         except:
             return None
     def get_student_approved_number(self,obj):
@@ -163,7 +164,7 @@ class RecordUserInfo(views.BaseSerializer):
             return None
 class RecordQuery(RecordUserInfo,TimeSerializer):
     '''考勤结果查询'''
-    worker = serializers.CharField(source='worker.userinfo.name')
+    worker = serializers.CharField(source='worker.name')
     task = serializers.CharField(source = 'task.__str__')
     class Meta:
 
@@ -173,7 +174,7 @@ class RecordQuery(RecordUserInfo,TimeSerializer):
 
 class ConditionRecord(TimeSerializer,RecordUserInfo):
     '''获取考勤执行记录 晚查寝 晚自修'''
-    worker = serializers.CharField(source='worker.userinfo.name')
+    worker = serializers.CharField(source='worker.name')
 
     class Meta:
         model = models.Record
@@ -181,7 +182,6 @@ class ConditionRecord(TimeSerializer,RecordUserInfo):
 
 
 class UserCallGrader(serializers.ModelSerializer):
-    name = serializers.CharField(source='userinfo.name')
     flg = serializers.SerializerMethodField()
     def get_flg(self,obj):
         call = obj.user_call
@@ -203,7 +203,7 @@ class TaskRecordExcelSerializer(serializers.ModelSerializer):
     created_time = serializers.CharField(source='star_time')
     def get_student_name(self,obj):
         try:
-            return obj.student_approved.userinfo.name
+            return obj.student_approved.name
         except:
             return None
     def get_student(self,obj):
@@ -217,7 +217,7 @@ class TaskRecordExcelSerializer(serializers.ModelSerializer):
 
 class StudentDisciplinary(views.BaseSerializer):
     room_name = serializers.CharField(source='room_str')
-    student_name = serializers.CharField(source='student_approved.userinfo.name')
+    student_name = serializers.CharField(source='student_approved.name')
     student = serializers.CharField(source='student_approved.username')
     reason = serializers.CharField(source='rule_str')
     classname = serializers.CharField(source='grade_str')
