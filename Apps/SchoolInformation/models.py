@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-07 20:59:19
+LastEditTime: 2021-09-09 07:25:57
 Description: 
 '''
 from django.db import models
@@ -99,7 +99,6 @@ class Building(models.Model):
         """Unicode representation of building."""
         return self.name
 
-@admin_register
 class Floor(models.Model):
     """宿舍楼层."""
     building = models.ForeignKey(
@@ -120,15 +119,12 @@ class Floor(models.Model):
         """Unicode representation of floor."""
         return self.building.name + '-' + self.name
 
-@admin_register
 class Room(models.Model):
     """宿舍房间信息"""
     name = models.CharField(max_length=20, verbose_name="房间号")
     floor = models.ForeignKey(
         'Floor', on_delete=models.CASCADE, verbose_name="层", related_name="room"
     )
-    # health_status = models.BooleanField(verbose_name="卫生检查状态",default=False)
-    # dorm_status = models.BooleanField(verbose_name="晚查寝状态",default=False)
 
     class Meta:
         """Meta definition for Room."""
@@ -145,7 +141,6 @@ class Room(models.Model):
         """返回房间号"""
         return self.get_room()
 
-@admin_register
 class StuInRoom(models.Model):
     """宿舍入住信息"""
     room = models.ForeignKey(
@@ -157,6 +152,10 @@ class StuInRoom(models.Model):
     )
     bed_position = models.IntegerField(
         verbose_name="床铺位置")
+
+    def user_name(self):
+            return '%s' % self.user.userinfo.name
+    user_name.short_description = '姓名'
 
     class Meta:
         verbose_name = '宿舍入住信息'

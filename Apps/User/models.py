@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-06 21:28:01
+LastEditTime: 2021-09-09 07:00:15
 Description: 
 '''
 
@@ -81,7 +81,6 @@ class UserInfo(models.Model):
         verbose_name_plural = '用户信息'
 
 
-@admin_register
 class StudentInfo(models.Model):
     """
     学生信息
