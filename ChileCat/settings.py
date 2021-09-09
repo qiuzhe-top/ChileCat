@@ -213,33 +213,8 @@ SIMPLEUI_HOME_INFO = False
 SIMPLEUI_ANALYSIS = False
 
 # 修改左侧菜单首页设置
-SIMPLEUI_HOME_PAGE = '/api/manage/index'  # 指向页面
+# SIMPLEUI_HOME_PAGE = '/api/manage/index'  # 指向页面
 # SIMPLEUI_HOME_TITLE = '百度欢迎你!' # 首页标题
 
 # 设置右上角Home图标跳转链接，会以另外一个窗口打开
 SIMPLEUI_INDEX = 'http://www.qiuzhe.top'
-
-
-SIMPLEUI_CONFIG = {
-    # 是否使用系统默认菜单，自定义菜单时建议关闭。
-    'system_keep': True,
-    # 用于菜单排序和过滤, 不填此字段为默认排序和全部显示。空列表[] 为全部不显示.
-    #  'menu_display': ['任务管理', '权限认证'],
-    # 设置是否开启动态菜单, 默认为False. 如果开启, 则会在每次用户登陆时刷新展示菜单内容。
-    # 一般建议关闭。
-    'dynamic': False,
-    'menus': [
-        #  {
-        #      'name': '任务管理',
-        #      'icon': 'fa fa-th-list',
-        #      'models': [
-        #          {
-        #          'name': '任务列表',
-        #          # 注意url按'/admin/应用名小写/模型名小写/'命名。
-        #          'url': '/admin/tasks/task/',
-        #          'icon': 'fa fa-tasks'
-        #          },
-        #      ]
-        #  },
-    ],
-}
