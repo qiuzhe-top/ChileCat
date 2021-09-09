@@ -174,6 +174,11 @@ def user_room(request):
                 room.stu_in_room.all().delete()
                 message['username-'].append(room_ + "：清空")
 
+            elif flg == '-':
+                user = User.objects.get(username=username_)
+                StuInRoom.objects.filter(user=user).delete()
+                message['flg-'].append(room_ + " 删除 " + username_)
+                
             # 学生寝室绑定/删除
             elif flg == '+':
                 user = User.objects.get(username=username_)
@@ -189,10 +194,7 @@ def user_room(request):
                 else:
                     message['update'].append(username_ + " 更新为 " + room_)
 
-            elif flg == '-':
-                user = User.objects.get(username=username_)
-                StuInRoom.objects.filter(user=user).delete()
-                message['flg-'].append(room_ + " 删除 " + username_)
+            
         except Exception as e:
             message['error'].append(username_)
 

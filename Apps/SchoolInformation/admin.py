@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-09-08 19:34:17
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 08:56:56
+LastEditTime: 2021-09-09 20:14:03
 Description: 
 '''
 from django.core.checks import messages
@@ -37,9 +37,9 @@ class StuInRoom(AjaxAdmin):
 
     def upload_file(self, request, queryset):
         # 这里的upload 就是和params中配置的key一样
-        upload= request.POST.get('upload')
+        upload= request.FILES
         
-        print(upload.name)
+        print(upload)
         return JsonResponse(data={
                 'status': 'error',
                 'msg': '请先选中数据！'
