@@ -3,15 +3,13 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 19:20:13
+LastEditTime: 2021-09-10 18:27:05
 Description: 
 '''
+from cool.admin import admin_register
+from django.conf import settings
 from django.db import models
 
-from cool.admin import admin_register
-from django.utils import tree
-from django.conf import settings
-User = settings.AUTH_USER_MODEL
 # Create your models here.
 
 @admin_register
@@ -22,7 +20,7 @@ class TeacherForCollege(models.Model):
     college = models.ForeignKey(
         "College", on_delete=models.CASCADE, verbose_name="分院号")
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="管理者账号")
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "老师院级关系"
@@ -57,7 +55,7 @@ class Grade(models.Model):
 class WholeGrade(models.Model):
     """学校年级"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
     )
     name = models.CharField(max_length=20, verbose_name="年级")
 
@@ -148,11 +146,10 @@ class StuInRoom(models.Model):
         'Room', on_delete=models.CASCADE, verbose_name="房间id", related_name="stu_in_room"
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE, verbose_name="学生"
     )
-    bed_position = models.IntegerField(
-        verbose_name="床铺位置")
+    bed_position = models.IntegerField(blank=True, null=True, verbose_name="床铺位置")
 
     def user_name(self):
             return '%s' % self.user.name

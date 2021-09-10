@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 18:46:59
+LastEditTime: 2021-09-10 06:27:20
 Description: 父类
 '''
 from core.common import is_number
@@ -15,14 +15,16 @@ from Apps.SchoolAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
-from django.conf import settings
-User = settings.AUTH_USER_MODEL
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
 from core.models_utils import create_custom_rule
 
+# from django.conf import settings
+# User = settings.AUTH_USER_MODEL
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 class EditMixin:
 
     model = None

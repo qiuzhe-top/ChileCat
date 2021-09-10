@@ -206,6 +206,7 @@ DJANGO_COOL = {
         ('ERR_TASK_ISOPEN_FALSE', (5022, '任务未开启')),
         ('ERR_UPDATE_BADS_IS_NULL', (5023, '床位使用中')),
         ('EXCEL_OUT_NO_DATA', (5024, 'Excel数据为空')),
+        ('DORMITORY_NOT_ARRANGED', (5025, '未安排寝室')),
     )
 }
 # SimpleUi 配置

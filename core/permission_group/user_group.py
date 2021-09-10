@@ -1,4 +1,14 @@
-from django.contrib.auth.models import Permission,Group,User
+'''
+Author: 邹洋
+Date: 2021-09-08 19:34:17
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2021-09-10 09:20:34
+Description: 
+'''
+from django.contrib.auth.models import Permission,Group
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 def group_init(groups):
     """添加用户组"""

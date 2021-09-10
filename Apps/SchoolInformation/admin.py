@@ -3,30 +3,32 @@ Author: 邹洋
 Date: 2021-09-08 19:34:17
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 20:14:03
+LastEditTime: 2021-09-10 18:26:51
 Description: 
 '''
-from django.core.checks import messages
-from django.http.request import HttpRequest
-from django.http.response import JsonResponse
-from core.excel_utils import excel_to_list
 from django.contrib import admin
-from .models import *
+from django.http.response import JsonResponse
 from simpleui.admin import AjaxAdmin
+
+from .models import *
+
+
 @admin.register(Floor)
-class Floor(admin.ModelAdmin):
+class FloorAdmin(admin.ModelAdmin):
     list_display = (
         "id", "building", "name", "is_open"
     )
 @admin.register(Room)
-class Room(admin.ModelAdmin):
+class RoomAdmin(admin.ModelAdmin):
     list_display = (
         "id", "floor", "name", 
     )
 
 from django.http import HttpResponse
+
+
 @admin.register(StuInRoom)
-class StuInRoom(AjaxAdmin):
+class StuInRoomAdmin(AjaxAdmin):
     list_display = (
         "id", "room","user", "user_name",'bed_position'
     )

@@ -1,11 +1,8 @@
 """管理视图"""
-from Apps.SchoolInformation.models import StuInRoom
-import datetime
 import logging
 
-
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-# from Apps.SchoolInformation.models import *
+from Apps.SchoolInformation.models import StuInRoom
 from Apps.User.models import College, Grade
 from cool import views
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
@@ -15,15 +12,15 @@ from core.excel_utils import excel_to_list
 from core.models_utils import search_room
 from core.permission_group import user_group
 from core.settings import *
+from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.reader.excel import ExcelReader
 from rest_framework.views import APIView
-from django.contrib.auth import get_user_model
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
-# https://www.jianshu.com/p/945c43b37624
 
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
@@ -184,9 +181,8 @@ def user_room(request):
             elif flg == '+':
                 user = User.objects.get(username=username_)
                 room = search_room(room_)
-                count = StuInRoom.objects.filter(room=room).count()
                 st, flg = StuInRoom.objects.get_or_create(
-                    user=user, defaults={"room": room, "bed_position": count + 1}
+                    user=user, defaults={"room": room}
                 )
                 st.room = room
                 st.save()
@@ -271,6 +267,7 @@ class DataInit(CoolBFFAPIView):
         return data
 
 from django.shortcuts import render
+
 
 @site
 class Index(CoolBFFAPIView):
@@ -461,6 +458,8 @@ class Getapis(CoolBFFAPIView):
 
 
 from django.http import HttpResponse
+
+
 @site
 class Apitouviews(CoolBFFAPIView):
     name = _('api转uViewsApi模板')

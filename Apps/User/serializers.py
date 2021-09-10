@@ -3,19 +3,19 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 19:00:50
+LastEditTime: 2021-09-10 18:27:46
 Description: 
 '''
 
 from Apps.User.utils.auth import get_groups
 from cool import views
-from cool.views import view
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import fields, serializers
+from rest_framework import serializers
 
 from . import models
-from .backend import BaseUserBackend
 
+User = get_user_model()
 
 class GradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,7 +59,7 @@ class TokenSerializer(views.BaseSerializer):
 
 class UserSerializer(views.BaseSerializer):
     class Meta:
-        model = models.User
+        model = User
         fields = ('id', 'username')
 
 
@@ -103,7 +103,7 @@ class UserInformationSerializer(views.BaseSerializer):
     def get_permissions(self, obj):
         return obj.user_permissions.all().values_list('codename',flat=True)
     class Meta:
-        model = models.User
+        model = User
         fields = (
             'username',
             'permissions',

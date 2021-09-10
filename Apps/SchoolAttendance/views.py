@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 19:01:58
+LastEditTime: 2021-09-10 18:26:44
 Description: 
 '''
 import datetime
@@ -15,8 +15,7 @@ from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
 from core.query_methods import Concat
 from core.settings import *
 from core.views import *
-from django.conf import settings
-User = settings.AUTH_USER_MODEL
+from django.contrib.auth import get_user_model
 from django.db.models import F
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
@@ -24,6 +23,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
 
 from . import models, serializers
+
+User = get_user_model()
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 

@@ -3,7 +3,7 @@
  * @Date: 2021-07-04 13:27:27
  * @Email: 2810201146@qq.com
  * @LastEditors:  
- * @LastEditTime: 2021-09-09 22:53:54
+ * @LastEditTime: 2021-09-10 06:09:09
  * @Description: 
 -->
 ## 分配考勤管理员
@@ -39,6 +39,7 @@ python manage.py test Apps.SchoolAttendance.tests.
 ### V 1.1.0
 - 继承User拷贝UserAdmin完成注册，大部分代码进行替换但没有测试
 - 优化学生导入
+- 修改默认密码为123456
 ### V 1.0.1
 - 去除重置查寝任务状态多余的重置房间的循环
 - 修正SubmitKnowing 寝室考勤逻辑

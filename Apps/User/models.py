@@ -3,15 +3,15 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 19:01:22
+LastEditTime: 2021-09-10 18:27:31
 Description: 
 '''
 
-from django.db import models
-from django.conf import settings
-User = settings.AUTH_USER_MODEL
 from Apps.SchoolInformation.models import *
 from cool.admin import admin_register
+from django.conf import settings
+from django.db import models
+
 
 # 第三方账户绑定
 class Token(models.Model):
@@ -20,7 +20,7 @@ class Token(models.Model):
     """
 
     token = models.CharField(max_length=100)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="用户")
 
     def __str__(self):
         return self.user.username + "的token:" + self.token
@@ -51,7 +51,7 @@ class Token(models.Model):
 #     photo = models.CharField(
 #         max_length=2048, verbose_name="学生照片", null=True, blank=True
 #     )
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户id")
+#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="用户id")
 
 #     def __str__(self):
 #         return self.name
@@ -73,7 +73,7 @@ class Token(models.Model):
 #         on_delete=models.CASCADE,
 #         verbose_name="班级id",
 #     )
-#     user = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
+#     user = models.OneToOneField(settings.AUTH_USER_MODEL, verbose_name="用户", on_delete=models.CASCADE)
 #     photo = models.CharField(
 #         max_length=2048, verbose_name="学生照片", null=True, blank=True
 #     )
@@ -94,7 +94,7 @@ class Token(models.Model):
 #     """
 
 #     teacher_extra_info = models.CharField(verbose_name="老师额外信息", max_length=50)
-#     user = models.OneToOneField(User, verbose_name="用户", on_delete=models.CASCADE)
+#     user = models.OneToOneField(settings.AUTH_USER_MODEL, verbose_name="用户", on_delete=models.CASCADE)
 
 #     class Meta:
 #         db_table = ''
@@ -115,7 +115,7 @@ class Token(models.Model):
 #         related_name="related_to_teacher",
 #     )
 #     user = models.OneToOneField(
-#         User,
+#         settings.AUTH_USER_MODEL,
 #         on_delete=models.CASCADE,
 #         verbose_name="管理者账号",
 #         related_name="related_to_grade",

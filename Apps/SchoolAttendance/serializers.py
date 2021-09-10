@@ -1,10 +1,10 @@
 from cool import views
-from django.conf import settings
-User = settings.AUTH_USER_MODEL
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from . import models
 
+User = get_user_model()
 
 class TaskObtain(views.BaseSerializer):
     """获取任务"""
@@ -67,7 +67,7 @@ class DormRoomInfo(views.BaseSerializer):
 class DormStudentRoomInfo(views.BaseSerializer):
     '''晚查寝-宿舍房间 数据'''
     name = serializers.CharField(source='user.name')
-    id = serializers.IntegerField(source='user.id')
+    id = serializers.CharField(source='user.id')
     status = serializers.SerializerMethodField()
     
     def get_status(self, obj):
