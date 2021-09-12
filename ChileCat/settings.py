@@ -207,6 +207,10 @@ DJANGO_COOL = {
         ('ERR_UPDATE_BADS_IS_NULL', (5023, '床位使用中')),
         ('EXCEL_OUT_NO_DATA', (5024, 'Excel数据为空')),
         ('DORMITORY_NOT_ARRANGED', (5025, '未安排寝室')),
+        ('CUSTOM_SCORE_ERROR', (5026, '自定义分数必须在1-10')),
+        ('TASK_SUBMISSION_FAILURE', (5027, '任务提交失败')),
+        ('THE_REASON_IS_EMPTY', (5028, '原因为空')),
+        ('NO_COLLEGE_CODE', (5029, '缺少分院代码/分院不存在')),
     )
 }
 # SimpleUi 配置
