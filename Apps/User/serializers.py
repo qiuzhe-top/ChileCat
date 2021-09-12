@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:27:46
+LastEditTime: 2021-09-10 22:18:23
 Description: 
 '''
 
@@ -78,7 +78,10 @@ class UserInformationSerializer(views.BaseSerializer):
 
     def get_username(self,obj):
         try:
-            return obj.name
+            if obj.name:
+                return obj.name
+            else:
+                return obj.username
         except:
             return obj.username
     
