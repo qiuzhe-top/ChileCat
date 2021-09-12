@@ -2,7 +2,7 @@
 import logging
 
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-from Apps.SchoolInformation.models import StuInRoom
+from Apps.SchoolInformation.models import StuInRoom,College
 from Apps.User.models import College, Grade
 from cool import views
 from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
@@ -89,6 +89,12 @@ def user_init(request):
     excel = excel_to_list(request)
     excel_users = {}
     excel_grades = {}
+    # 获取分院实例
+    try:
+        college = College.objects.get(code_name=request.data['college_codename'])
+    except:
+        raise CoolAPIException(ErrorCode.NO_COLLEGE_CODE)
+
     for row in excel:
         grade = row[0]
         username = row[1]
@@ -100,14 +106,14 @@ def user_init(request):
         }
         excel_grades[grade] = ''
 
-
     # 创建DB没有的班级
     db_grades = dict(Grade.objects.all().values_list('name','id'))
     grades =  excel_grades.keys() - db_grades.keys()
     wait_create_grades=[]
     for grade in grades:
-        wait_create_grades.append(Grade(name=grade))
+        wait_create_grades.append(Grade(name=grade,college = college))
     Grade.objects.bulk_create(wait_create_grades)
+
     # 通过excel里面的班级集合获取班级实例列表
     db_grades = Grade.objects.filter(name__in=excel_grades.keys())
     for grade in db_grades:
@@ -239,12 +245,28 @@ def uinitialization_rules(request=None):
     return res
 
 
+def init_college():
+    colleges = [
+        {
+            "name":ZHJT_NAME,
+            'codename':ZHJT_CODENAM
+        },
+        {
+            "name":LQ_NAME,
+            'codename':LQ_CODENAM
+        }
+    ]
+    for c in colleges:
+        College.objects.get_or_create(name=c['name'],code_name=c['codename'])
+    return colleges
+
 def run_init(request):
 
     return {
         "group_init": group_init(request),
         "uinitialization_rules": uinitialization_rules(request),
         "init_Attendance_group": init_Attendance_group(request),
+        "init_college": init_college(),
     }
 
 
