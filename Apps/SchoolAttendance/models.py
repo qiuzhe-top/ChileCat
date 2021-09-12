@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 import django.utils.timezone as timezone
 from Apps.SchoolInformation.models import *
 from cool.admin import admin_register
@@ -79,6 +80,12 @@ class Task(BaseModel):
     def __str__(self):
         return  self.get_name()
 
+def get_worker_user():
+    return get_user_model().objects.get_or_create(id="work00CUSTEM00USERT",name='默认执行者',username='work00CUSTEM00USERT')[0]
+def get_manager_user():
+    return get_user_model().objects.get_or_create(id="manager00CUSTEM00USERT",name='默认销假人',username='manager00CUSTEM00USERT')[0]
+def get_student_approved_user():
+    return get_user_model().objects.get_or_create(id="studentapproved00CUSTEM00USERT",name='默认被执行者',username='studentapproved00CUSTEM00USERT')[0]
 
 class Record(models.Model):
     """考勤记录"""
@@ -100,17 +107,17 @@ class Record(models.Model):
         max_length=20, verbose_name="班级", null=True, blank=True)
 
     student_approved = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_student_approved_user), null=True, blank=True,
         verbose_name="被执行者", related_name="stu_approved",
     )
 
     worker = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_worker_user), null=True, blank=True,
         verbose_name="执行者", related_name="task_worker",
     )
 
     manager = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_manager_user), null=True, blank=True,
         verbose_name="销假人",
         related_name="销假人",
     )
@@ -118,7 +125,8 @@ class Record(models.Model):
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
     star_time = models.DateTimeField(default = timezone.now, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
-    
+
+
     class Meta:
         verbose_name = '任务-考勤记录'
         verbose_name_plural = '任务-考勤记录'
