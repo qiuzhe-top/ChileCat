@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 09:06:00
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 06:08:03
+LastEditTime: 2021-09-11 17:17:41
 Description: 配置
 '''
 
@@ -21,8 +21,18 @@ RULE_NAME_01_01 = '查寝' + CUSTOM_RULE
 RULE_NAME_07_01 = '个人卫生' + CUSTOM_RULE
 RULE_NAME_03_01 = '晚自修违纪' + CUSTOM_RULE
 
-# 123456加密后的密码 
+# 分院代码
+ZHJT_NAME = '智慧交通学院'
+ZHJT_CODENAM = 'ZHJT'
+LQ_NAME = '路桥学院'
+LQ_CODENAM = 'LQ'
+
+# 用户初始密码 123456加密后的密码 
 PASSWOED_123456 = 'pbkdf2_sha256$216000$EdbBhgrAllGw$10q+5fYrzMXRnUaj/5QYKptd+6VHtBlIUc83OF9yuRE='
+
+# 早签
+MORNING_SIGN = '早签'
+
 # 初始化规则
 INIT_RULES =  [
         {
@@ -60,12 +70,12 @@ INIT_RULES =  [
       },
       {
         "rule_f":{
-            'name': '早签',
+            'name': MORNING_SIGN,
             'codename': RULE_CODE_04,
             'is_person': True,
         },
         "rules": [
-            {'name': '早签', 'score': '1'},
+            {'name': MORNING_SIGN, 'score': '1'},
         ]
       },
       {
