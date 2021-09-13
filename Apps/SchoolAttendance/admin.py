@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:26:11
+LastEditTime: 2021-09-11 16:20:57
 Description: 
 '''
 from django.contrib import admin
@@ -20,7 +20,7 @@ class TaskAdmin(admin.ModelAdmin):
     filter_horizontal = ("admin","buildings","grades")
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):
-    """任务管理"""
+    """考勤记录"""
     list_display = (
         "id", "task","rule_str","score","grade_str","room_str","student_approved","student_approved_name","worker","worker_name","manager","star_time"
     )
@@ -28,7 +28,7 @@ class RecordAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'star_time'
 
-    search_fields = ("student_approved__username",)
+    search_fields = ("student_approved__username","student_approved__name")
 
     def  student_approved_name(self,obj):
         try:

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-09-09 16:49:49
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 20:07:06
+LastEditTime: 2021-09-11 22:58:31
 Description: 
 '''
 from django.conf import settings
@@ -20,7 +20,7 @@ from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.utils.html import escape
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 

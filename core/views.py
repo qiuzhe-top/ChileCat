@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 06:27:20
+LastEditTime: 2021-09-11 22:48:41
 Description: 父类
 '''
 from core.common import is_number
@@ -153,7 +153,7 @@ class TaskBase(PermissionView):
 class SubmitBase(TaskBase):
 
     def init_custom_rule(self):
-        '''获取自定义规则'''
+        '''获取自定义规则 所属父类'''
         if self.custom_rule:
             return self.custom_rule
         else:
@@ -261,6 +261,7 @@ class SubmitBase(TaskBase):
 
                 if self.submit_user_record(record_model,record) != False:
                     Record.objects.create(**record_model)
+
     class Meta:
         records= {}
         records['user_id'] = '用户ID'
