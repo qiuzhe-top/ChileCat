@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-12 10:59:32
+LastEditTime: 2021-09-09 19:37:13
 Description: 数据模型方法
 '''
 from django.db import models
@@ -33,3 +33,7 @@ def create_custom_rule(codename,name,score=1):
         )
         
         return rule_obj
+
+class TimeClass():
+    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')

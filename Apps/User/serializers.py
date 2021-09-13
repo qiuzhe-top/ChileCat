@@ -3,19 +3,19 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-24 17:11:05
+LastEditTime: 2021-09-10 22:18:23
 Description: 
 '''
 
 from Apps.User.utils.auth import get_groups
 from cool import views
-from cool.views import view
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import fields, serializers
+from rest_framework import serializers
 
 from . import models
-from .backend import BaseUserBackend
 
+User = get_user_model()
 
 class GradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,13 +23,13 @@ class GradeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class TeacherForGradeSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='grade.id')
-    name = serializers.CharField(source='grade.name')
+# class TeacherForGradeSerializer(serializers.ModelSerializer):
+#     id = serializers.CharField(source='grade.id')
+#     name = serializers.CharField(source='grade.name')
 
-    class Meta:
-        model = models.TeacherForGrade
-        fields = ('id', 'name')
+#     class Meta:
+#         model = models.TeacherForGrade
+#         fields = ('id', 'name')
 
 
 class TeacherForCollegeSerializer(serializers.ModelSerializer):
@@ -59,7 +59,7 @@ class TokenSerializer(views.BaseSerializer):
 
 class UserSerializer(views.BaseSerializer):
     class Meta:
-        model = models.User
+        model = User
         fields = ('id', 'username')
 
 
@@ -78,23 +78,23 @@ class UserInformationSerializer(views.BaseSerializer):
 
     def get_username(self,obj):
         try:
-            return obj.userinfo.name
+            if obj.name:
+                return obj.name
+            else:
+                return obj.username
         except:
             return obj.username
     
     def get_college(self,obj):
-        st = models.StudentInfo.objects.filter(user=obj)
         try:
-            grade = st[0].grade
-            return grade.college.name
+            return obj.grade.college.name
         except:
             return ''
 
     def get_grade(self, obj):
-        st = models.StudentInfo.objects.filter(user=obj)
-        if st.exists():
-            return st[0].grade.name
-        else:
+        try:
+            return obj.grade.name
+        except:
             return ''
 
     def get_avatar(self, obj):
@@ -106,7 +106,7 @@ class UserInformationSerializer(views.BaseSerializer):
     def get_permissions(self, obj):
         return obj.user_permissions.all().values_list('codename',flat=True)
     class Meta:
-        model = models.User
+        model = User
         fields = (
             'username',
             'permissions',

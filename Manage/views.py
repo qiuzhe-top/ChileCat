@@ -1,27 +1,25 @@
 """管理视图"""
-import datetime
 import logging
 
-
 from Apps.SchoolAttendance import models as SchoolAttendanceModels
-from Apps.SchoolInformation.models import *
-from Apps.User.models import College, Grade, StudentInfo, User, UserInfo
+from Apps.SchoolInformation.models import StuInRoom, College
+from Apps.User.models import College, Grade
 from cool import views
-from cool.views import (CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite,
-                        sites)
+from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
 from cool.views.view import CoolBFFAPIView
 from core.excel_utils import excel_to_list
 from core.models_utils import search_room
 from core.permission_group import user_group
 from core.settings import *
+from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.reader.excel import ExcelReader
 from rest_framework.views import APIView
 
+User = get_user_model()
 logger = logging.getLogger(__name__)
-# https://www.jianshu.com/p/945c43b37624
 
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
@@ -87,41 +85,55 @@ def group_user(request):
 # 导入学生
 def user_init(request):
     '''导入学生'''
-    # TODO 这效率 我(*^_^*)了 赶紧优化吧
-    message_list = {}
-    message_list['create'] = []
-    message_list['update'] = []
     excel = excel_to_list(request)
+    excel_users = {}
+    excel_grades = {}
+    # 获取分院实例
+    try:
+        college = College.objects.get(code_name=request.data['college_codename'])
+    except:
+        raise CoolAPIException(ErrorCode.NO_COLLEGE_CODE)
+
     for row in excel:
         grade = row[0]
         username = row[1]
         name = row[2]
+        excel_users[username] = {
+            "username": username,
+            "grade": grade,
+            "name": name,
+        }
+        excel_grades[grade] = ''
 
-        # 创建/获取 班级
-        grade, f0 = Grade.objects.get_or_create(name=grade)
-        # 创建/获取 用户对象
-        u, f = User.objects.get_or_create(username=username)
-        if not u:
-            continue
-        u.set_password(username)
-        u.save()
+    # 创建DB没有的班级
+    db_grades = dict(Grade.objects.all().values_list('name', 'id'))
+    grades = excel_grades.keys() - db_grades.keys()
+    wait_create_grades = []
+    for grade in grades:
+        wait_create_grades.append(Grade(name=grade, college=college))
+    Grade.objects.bulk_create(wait_create_grades)
 
-        # 创建/修改 用户 UserInfo StudentInfo
-        user_info, f1 = UserInfo.objects.get_or_create(user=u, defaults={"name": name})
-        stu_info, f2 = StudentInfo.objects.get_or_create(
-            user=u, defaults={"grade": grade}
-        )
+    # 通过excel里面的班级集合获取班级实例列表
+    db_grades = Grade.objects.filter(name__in=excel_grades.keys())
+    for grade in db_grades:
+        name = grade.name
+        excel_grades[name] = grade  # 完善从excel里面获取的班级列表 改为班级实例
 
-        # 记录结果
-        if f1 and f2:
-            message_list['create'].append(username + "---" + name)
-        else:
-            user_info.name = name
-            user_info.save()
-            stu_info.grade = grade
-            stu_info.save()
-            message_list['update'].append(username + "---" + name)
-    return message_list
+    db_users = dict(
+        User.objects.all().values_list('username', 'name')
+    )  # 这里取name只为完成dict
+    username_list = excel_users.keys() - db_users.keys()  # 取出DB不存在的用户
+    wait_create_users = []
+    for username in username_list:
+        # 构建用户实例
+        grade_str = excel_users[username]['grade']
+        grade_obj = excel_grades[grade_str]
+        excel_users[username]['grade'] = grade_obj
+        excel_users[username]['password'] = PASSWOED_123456
+        user = User(**excel_users[username])
+        wait_create_users.append(user)
+    User.objects.bulk_create(wait_create_users)
+    return {'create_user': username_list}
 
 
 # 用户组初始化
@@ -167,13 +179,17 @@ def user_room(request):
                 room.stu_in_room.all().delete()
                 message['username-'].append(room_ + "：清空")
 
+            elif flg == '-':
+                user = User.objects.get(username=username_)
+                StuInRoom.objects.filter(user=user).delete()
+                message['flg-'].append(room_ + " 删除 " + username_)
+
             # 学生寝室绑定/删除
             elif flg == '+':
                 user = User.objects.get(username=username_)
                 room = search_room(room_)
-                count = StuInRoom.objects.filter(room=room).count()
                 st, flg = StuInRoom.objects.get_or_create(
-                    user=user, defaults={"room": room, "bed_position": count + 1}
+                    user=user, defaults={"room": room}
                 )
                 st.room = room
                 st.save()
@@ -182,10 +198,6 @@ def user_room(request):
                 else:
                     message['update'].append(username_ + " 更新为 " + room_)
 
-            elif flg == '-':
-                user = User.objects.get(username=username_)
-                StuInRoom.objects.filter(user=user).delete()
-                message['flg-'].append(room_ + " 删除 " + username_)
         except Exception as e:
             message['error'].append(username_)
 
@@ -224,13 +236,36 @@ def uinitialization_rules(request=None):
     for item in INIT_RULES:
         rule_f = item['rule_f']
         rules = item['rules']
-        rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f)
+        
+        rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f) # i一级规则
         if flg:
-            res.append(rule_f['name'])
+            res.append('创建：' + rule_f['name'])
+        else:
+            res.append('存在：' + rule_f['name'])
+
         for r in rules:
-            r['rule'] = rule
-            SchoolAttendanceModels.RuleDetails.objects.get_or_create(**r)
+            rule_detail = SchoolAttendanceModels.RuleDetails.objects.get_or_create(
+                name=r['name'], score=r['score'], rule=rule
+            )[0] # 二级规则
+            if 'child' in r.keys():
+                for child_rule in r['child']:
+                    SchoolAttendanceModels.RuleDetails.objects.get_or_create(
+                        name=child_rule['name'],
+                        score=child_rule['score'],
+                        rule=rule,
+                        parent_id=rule_detail,
+                    ) # 三级规则
     return res
+
+
+def init_college():
+    colleges = [
+        {"name": ZHJT_NAME, 'codename': ZHJT_CODENAM},
+        {"name": LQ_NAME, 'codename': LQ_CODENAM},
+    ]
+    for c in colleges:
+        College.objects.get_or_create(name=c['name'], code_name=c['codename'])
+    return colleges
 
 
 def run_init(request):
@@ -239,6 +274,7 @@ def run_init(request):
         "group_init": group_init(request),
         "uinitialization_rules": uinitialization_rules(request),
         "init_Attendance_group": init_Attendance_group(request),
+        "init_college": init_college(),
     }
 
 
@@ -259,6 +295,21 @@ class DataInit(CoolBFFAPIView):
         type_ = request.data['type']
         data = init_dict[type_](request)
         return data
+
+
+from django.shortcuts import render
+
+
+@site
+class Index(CoolBFFAPIView):
+    name = _('后台主页')
+
+    def get_context(self, request, *args, **kwargs):
+        data = []
+        u = User.objects.all().count()
+        t = SchoolAttendanceModels.Record.objects.all().count()
+        context = {'user_count': u, 'task_count': t}
+        return render(request, 'index/index.html', context)
 
 
 from cool.views.utils import get_api_info, get_url, get_view_list
@@ -336,10 +387,7 @@ class Getapis(CoolBFFAPIView):
         response_data = {}
         if data:
             for k in data:
-                response_data[k] = {
-                    "type": "string",
-                    "description": data[k]
-                }
+                response_data[k] = {"type": "string", "description": data[k]}
 
         d = {
             "code": {
@@ -439,6 +487,8 @@ class Getapis(CoolBFFAPIView):
 
 
 from django.http import HttpResponse
+
+
 @site
 class Apitouviews(CoolBFFAPIView):
     name = _('api转uViewsApi模板')
@@ -463,9 +513,11 @@ class Apitouviews(CoolBFFAPIView):
             ul_name = self.info['ul_name'][4:]
             t1 = "// {} \n"
             t2 = "api['{}'] = (params = {}) => vm.$u.{}('{}', params) \n"
-            t = (t1 + t2).format(name,ul_name,'{ }',method,url)
+            t = (t1 + t2).format(name, ul_name, '{ }', method, url)
             api_str += t
         return HttpResponse(api_str)
+
+
 # 可以慢慢淘汰的代码
 
 # def put_stu_room(stu, room, ret):

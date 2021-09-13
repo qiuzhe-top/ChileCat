@@ -1,11 +1,10 @@
-from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 import django.utils.timezone as timezone
 from Apps.SchoolInformation.models import *
 from cool.admin import admin_register
 from cool.model import BaseModel
-
-# Create your models here.
+from django.conf import settings
+from django.db import models
 
 
 @admin_register
@@ -24,7 +23,7 @@ class Rule(models.Model):
     def __str__(self):
         return self.name
 
-@admin_register
+
 class RuleDetails(models.Model):
     '''二级规则'''
     name = models.CharField(max_length=20, verbose_name=u'名称')
@@ -59,11 +58,11 @@ class Task(BaseModel):
     college = models.ForeignKey(
         College, null=True, blank=True, on_delete=models.CASCADE, verbose_name=u'分院')
     admin = models.ManyToManyField(
-        User, null=True, blank=True,  verbose_name=u'管理员')
+        settings.AUTH_USER_MODEL,blank=True,  verbose_name=u'管理员')
     buildings = models.ManyToManyField(
-        Building, null=True, blank=True, verbose_name=u'关联楼')
+        Building, blank=True, verbose_name=u'关联楼')
     grades = models.ManyToManyField(
-        Grade, null=True, blank=True, verbose_name=u'关联班级')
+        Grade, blank=True, verbose_name=u'关联班级')
 
     class Meta:
         verbose_name = '任务'
@@ -81,6 +80,12 @@ class Task(BaseModel):
     def __str__(self):
         return  self.get_name()
 
+def get_worker_user():
+    return get_user_model().objects.get_or_create(id="work00CUSTEM00USERT",name='默认执行者',username='work00CUSTEM00USERT')[0]
+def get_manager_user():
+    return get_user_model().objects.get_or_create(id="manager00CUSTEM00USERT",name='默认销假人',username='manager00CUSTEM00USERT')[0]
+def get_student_approved_user():
+    return get_user_model().objects.get_or_create(id="studentapproved00CUSTEM00USERT",name='默认被执行者',username='studentapproved00CUSTEM00USERT')[0]
 
 class Record(models.Model):
     """考勤记录"""
@@ -102,17 +107,17 @@ class Record(models.Model):
         max_length=20, verbose_name="班级", null=True, blank=True)
 
     student_approved = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_student_approved_user), null=True, blank=True,
         verbose_name="被执行者", related_name="stu_approved",
     )
 
     worker = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_worker_user), null=True, blank=True,
         verbose_name="执行者", related_name="task_worker",
     )
 
     manager = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET(get_manager_user), null=True, blank=True,
         verbose_name="销假人",
         related_name="销假人",
     )
@@ -120,7 +125,8 @@ class Record(models.Model):
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
     star_time = models.DateTimeField(default = timezone.now, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
-    
+
+
     class Meta:
         verbose_name = '任务-考勤记录'
         verbose_name_plural = '任务-考勤记录'
@@ -137,7 +143,7 @@ class TaskPlayer(models.Model):
     '''
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="用户")
     is_finish = models.BooleanField(verbose_name="是否完成", default=False)
     star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
@@ -179,7 +185,7 @@ class TaskFloorStudent(models.Model):
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'用户')
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=u'用户')
     flg = models.BooleanField(verbose_name='是否在寝室',default=True)
 
     def __str__(self):
@@ -197,7 +203,7 @@ class UserCall(models.Model):
         Task, on_delete=models.CASCADE, verbose_name=u'任务')
         
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name=u'用户', related_name="user_call")
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=u'用户', related_name="user_call")
 
     flg = models.BooleanField(verbose_name='是否在班',default=None,null=True,blank=True)
 

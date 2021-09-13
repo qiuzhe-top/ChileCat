@@ -3,25 +3,22 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-26 10:27:59
+LastEditTime: 2021-09-10 18:27:57
 Description: 用户模块
 '''
-import time
-
 from Apps.User.utils import auth
 from Apps.User.utils.exceptions import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from core.views import PermissionView
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, get_user_model
 from django.http import request
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
 
-from . import models, serializers
+from . import serializers
 
 site = ViewSite(name='User', app_name='User')
-
+User = get_user_model()
 
 @site
 class Login(CoolBFFAPIView):

@@ -3,13 +3,12 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-07 20:59:19
+LastEditTime: 2021-09-10 18:27:05
 Description: 
 '''
-from django.db import models
-from django.contrib.auth.models import User
 from cool.admin import admin_register
-from django.utils import tree
+from django.conf import settings
+from django.db import models
 
 # Create your models here.
 
@@ -21,7 +20,7 @@ class TeacherForCollege(models.Model):
     college = models.ForeignKey(
         "College", on_delete=models.CASCADE, verbose_name="分院号")
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="管理者账号")
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="管理者账号")
 
     class Meta:
         verbose_name = "老师院级关系"
@@ -46,7 +45,7 @@ class Grade(models.Model):
 
     def get_users(self):
         '''获取班级内学生'''
-        user_list = self.studentinfo_set.all().values_list('user',flat=True)
+        user_list = self.user_set.all().values_list('user',flat=True)
         return User.objects.filter(id__in=list(user_list))
 
     def __str__(self):
@@ -56,7 +55,7 @@ class Grade(models.Model):
 class WholeGrade(models.Model):
     """学校年级"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tea_for_whole_grade", null=True, blank=True, verbose_name="辅导员账号"
     )
     name = models.CharField(max_length=20, verbose_name="年级")
 
@@ -99,7 +98,6 @@ class Building(models.Model):
         """Unicode representation of building."""
         return self.name
 
-@admin_register
 class Floor(models.Model):
     """宿舍楼层."""
     building = models.ForeignKey(
@@ -120,15 +118,12 @@ class Floor(models.Model):
         """Unicode representation of floor."""
         return self.building.name + '-' + self.name
 
-@admin_register
 class Room(models.Model):
     """宿舍房间信息"""
     name = models.CharField(max_length=20, verbose_name="房间号")
     floor = models.ForeignKey(
         'Floor', on_delete=models.CASCADE, verbose_name="层", related_name="room"
     )
-    # health_status = models.BooleanField(verbose_name="卫生检查状态",default=False)
-    # dorm_status = models.BooleanField(verbose_name="晚查寝状态",default=False)
 
     class Meta:
         """Meta definition for Room."""
@@ -145,18 +140,20 @@ class Room(models.Model):
         """返回房间号"""
         return self.get_room()
 
-@admin_register
 class StuInRoom(models.Model):
     """宿舍入住信息"""
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE, verbose_name="房间id", related_name="stu_in_room"
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE, verbose_name="学生"
     )
-    bed_position = models.IntegerField(
-        verbose_name="床铺位置")
+    bed_position = models.IntegerField(blank=True, null=True, verbose_name="床铺位置")
+
+    def user_name(self):
+            return '%s' % self.user.name
+    user_name.short_description = '姓名'
 
     class Meta:
         verbose_name = '宿舍入住信息'

@@ -3,11 +3,11 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-27 13:34:53
+LastEditTime: 2021-09-10 13:30:11
 Description: file information
 '''
 # from django.contrib import admin
-# from django.urls import include, path
+# from django.urls import include, pathDORMITORY_NOT_ARRANGED
 
 # urlpatterns = [
 #     path('admin/', admin.site.urls),

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-20 09:45:23
+LastEditTime: 2021-09-10 18:27:16
 Description: 
 '''
 from Apps.SchoolAttendance import models
@@ -11,10 +11,13 @@ from Apps.SchoolAttendance import serializers as attendance_serializers
 from Apps.SchoolInformation.models import StuInRoom
 from cool.views import CoolAPIException, ErrorCode, ViewSite
 from core.views import PermissionView
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
+
 from . import serializers
+
+User = get_user_model()
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
 
@@ -59,7 +62,10 @@ class Mybedroom(PermissionView):
     response_info_serializer_class = attendance_serializers.DormStudentRoomInfoTrue
    
     def get_context(self, request, *args, **kwargs):
-        room = StuInRoom.objects.get(user=request.user).room
+        try:
+            room = StuInRoom.objects.get(user=request.user).room
+        except:
+            raise CoolAPIException(ErrorCode.DORMITORY_NOT_ARRANGED)
         rooms = StuInRoom.objects.filter(room=room)
         return attendance_serializers.DormStudentRoomInfoTrue(rooms, many=True, request=request).data
 @site

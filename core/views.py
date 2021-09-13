@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 18:46:59
+LastEditTime: 2021-09-11 22:48:41
 Description: 父类
 '''
 from core.common import is_number
@@ -15,13 +15,16 @@ from Apps.SchoolAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
-from django.contrib.auth.models import User
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
 from core.models_utils import create_custom_rule
 
+# from django.conf import settings
+# User = settings.AUTH_USER_MODEL
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 class EditMixin:
 
     model = None
@@ -150,7 +153,7 @@ class TaskBase(PermissionView):
 class SubmitBase(TaskBase):
 
     def init_custom_rule(self):
-        '''获取自定义规则'''
+        '''获取自定义规则 所属父类'''
         if self.custom_rule:
             return self.custom_rule
         else:
@@ -217,7 +220,7 @@ class SubmitBase(TaskBase):
             record_model['task'] = self.task
             record_model['room_str'] = self.room_str
             try:
-                record_model['grade_str'] =  user.studentinfo.grade.name
+                record_model['grade_str'] =  user.grade.name
             except:
                 record_model['grade_str'] =  None
             record_model['student_approved'] = user
@@ -258,6 +261,7 @@ class SubmitBase(TaskBase):
 
                 if self.submit_user_record(record_model,record) != False:
                     Record.objects.create(**record_model)
+
     class Meta:
         records= {}
         records['user_id'] = '用户ID'

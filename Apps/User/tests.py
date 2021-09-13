@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-07-11 15:22:32
+LastEditTime: 2021-09-10 18:08:34
 Description: 
 '''
 from django.contrib import auth
@@ -11,11 +11,13 @@ from Apps.User.models import Token
 from Apps.SchoolInformation.models import *
 from cool.views import ErrorCode
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
+
 from django.test import Client, TestCase
 import requests
 from .views import Login
 from rest_framework.test import APITransactionTestCase, RequestsClient
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class AuthTest(TestCase):
     # 用户测试类

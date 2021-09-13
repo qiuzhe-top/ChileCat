@@ -3,10 +3,9 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-08 18:42:23
+LastEditTime: 2021-09-13 21:13:30
 Description: 
 '''
-from Apps.User.models import StudentInfo
 import datetime
 
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
@@ -16,14 +15,16 @@ from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
 from core.query_methods import Concat
 from core.settings import *
 from core.views import *
-from django.contrib.auth.models import User
-from django.db.models import F
+from django.contrib.auth import get_user_model
+from django.db.models import F, query
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
 
 from . import models, serializers
+
+User = get_user_model()
 
 site = ViewSite(name='SchoolInformation', app_name='SchoolInformation')
 
@@ -35,7 +36,9 @@ class TaskObtain(PermissionView):
     response_info_serializer_class = serializers.TaskObtain
 
     def get_context(self, request, *args, **kwargs):
-        task = models.Task.objects.filter(admin=request.user, types=request.params.type).select_related('college')
+        task = models.Task.objects.filter(
+            admin=request.user, types=request.params.type
+        ).select_related('college')
         return serializers.TaskObtain(task, many=True, request=request).data
 
     class Meta:
@@ -68,8 +71,10 @@ class TaskRestKnowing(TaskBase):
 
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
-        models.RoomHistory.objects.filter(task=task).update(is_knowing=False) # 所有寝室为未检查
-        models.TaskFloorStudent.objects.filter(task=task).update(flg=True) # 所有学生为在寝
+        models.RoomHistory.objects.filter(task=task).update(
+            is_knowing=False
+        )  # 所有寝室为未检查
+        models.TaskFloorStudent.objects.filter(task=task).update(flg=True)  # 所有学生为在寝
 
 
 @site
@@ -80,6 +85,7 @@ class TaskRestLate(TaskBase):
         task = self.get_task_by_user()
         models.UserCall.objects.filter(task=task).update(flg=None)
 
+
 @site
 class TaskRestHealth(TaskBase):
     name = _('重置卫生检查任务状态')
@@ -87,7 +93,6 @@ class TaskRestHealth(TaskBase):
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
         models.RoomHistory.objects.filter(task=task).update(is_health=False)
-
 
 
 @site
@@ -154,13 +159,26 @@ class Condition(TaskBase):
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
         now = datetime.datetime.now()
-        records = models.Record.objects.filter(
-            task=task,
-            manager=None,
-            star_time__date=datetime.date(now.year, now.month, now.day),
-        ).select_related('student_approved__userinfo','worker__userinfo','rule').order_by('-last_time')
-        
+        q_time = Q( star_time__date=datetime.date(now.year, now.month, now.day))
+
+        records = (
+            models.Record.objects.filter(
+                task=task,
+                manager=None,
+                star_time__date=datetime.date(now.year, now.month, now.day)
+            )
+            .select_related('rule')
+            .order_by('-last_time')
+        )
+
         return serializers.ConditionRecord(records, request=request, many=True).data
+    class Meta:
+        param_fields = (
+            # ('roster', fields.CharField(label=_('寝室'),default=None)),
+            # ('roster', fields.CharField(label=_('班级'))),
+            ('building', fields.CharField(label=_('楼'),default=None)),
+            ('floor', fields.CharField(label=_('层'),default=None)),
+        )
 
 
 @site
@@ -194,7 +212,6 @@ class UndoRecordAdmin(PermissionView):
         param_fields = (
             ('record_id', fields.CharField(label=_('考勤记录ID'), max_length=8)),
         )
-
 
 
 @site
@@ -234,6 +251,7 @@ class knowingExcelOut(TaskBase):
     class Meta:
         param_fields = (('token', fields.CharField(label=_('token'))),)
 
+
 @site
 class Rule(CoolBFFAPIView):
     name = _('获取规则')
@@ -241,49 +259,58 @@ class Rule(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         codename = request.params.codename
         rule = models.Rule.objects.get(codename=codename)
-        data = rule.ruledetails_set.exclude(name__endswith=CUSTOM_RULE).values('id', 'name', 'parent_id', 'score')
+        data = rule.ruledetails_set.exclude(name__endswith=CUSTOM_RULE).values(
+            'id', 'name', 'parent_id', 'score'
+        )
         return list(data)
 
     class Meta:
         param_fields = (('codename', fields.CharField(label=_('规则编号'))),)
 
 
-
-
 @site
 class SubmitLateDiscipline(SubmitBase):
     name = _('晚自修考勤 违纪提交')
-    
+
     def get_custom_rule(self):
         '''获取自定义规则'''
-        return create_custom_rule(RULE_CODE_03,RULE_NAME_03_01)
-            
-    def submit_user_record(self,record_model,record):
+        return create_custom_rule(RULE_CODE_03, RULE_NAME_03_01)
+
+    def submit_user_record(self, record_model, record):
         '''提交学生考勤记录'''
-        # TODO 验证score是否为整型 是否超过最大分值
-        try:
+        if record['reason_is_custom']:
+            if len(record_model['rule_str']) <= 0:
+                raise CoolAPIException(ErrorCode.THE_REASON_IS_EMPTY)
+
+            score = int(record_model['score'])
+            if score <= 0 or score > 10:
+                raise CoolAPIException(ErrorCode.CUSTOM_SCORE_ERROR)
+
             record_model['score'] = record['score']
-        except:
-            pass
+
+
 @site
 class SubmitLate(SubmitBase):
     name = _('晚自修考勤 点名提交')
 
-    def submit_user_record(self,record_model,record):
+    def submit_user_record(self, record_model, record):
         '''提交学生考勤记录'''
         call, status = models.UserCall.objects.get_or_create(
-            task=self.task, user=record_model['student_approved'], rule=record_model['rule']
+            task=self.task,
+            user=record_model['student_approved'],
+            rule=record_model['rule'],
         )
         # 判断是不是本次任务第一次点名
         is_none = call.flg == None
         if is_none:
             call.flg = self.request.params.flg
             call.save()
+            return not self.request.params.flg
         return is_none
+
     class Meta:
-        param_fields = (
-            ('flg', fields.BooleanField(label=_('点名 在/不在'))),
-        )
+        param_fields = (('flg', fields.BooleanField(label=_('点名 在/不在'))),)
+
 
 @site
 class SubmitKnowing(SubmitBase):
@@ -291,44 +318,44 @@ class SubmitKnowing(SubmitBase):
 
     def get_custom_rule(self):
         '''获取自定义规则'''
-        return create_custom_rule(RULE_CODE_01,RULE_NAME_01_01)
-            
+        return create_custom_rule(RULE_CODE_01, RULE_NAME_01_01)
 
-    def updata_user_in_room(self,user,is_flg):
-        ''' 学生在宿舍情况'''
+    def updata_user_in_room(self, user, is_flg):
+        '''学生在宿舍情况'''
         if is_flg == False:
-            user_in_room, flg = models.TaskFloorStudent.objects.get_or_create(task=self.task, user=user)
+            user_in_room, flg = models.TaskFloorStudent.objects.get_or_create(
+                task=self.task, user=user
+            )
             # TODO 多线程需要保证原子性
-            if user_in_room.flg == False: # 如果状态为不在寝室 就不进行提交 
+            if user_in_room.flg == False:  # 如果状态为不在寝室 就不进行提交
                 return False
             else:
                 user_in_room.flg = is_flg
                 user_in_room.save()
         elif is_flg == True:
-            models.TaskFloorStudent.objects.filter(task=self.task, user=user).update(flg=True)
+            models.TaskFloorStudent.objects.filter(task=self.task, user=user).update(
+                flg=True
+            )
 
-
-    def undo_record(self,record_model,user):
+    def undo_record(self, record_model, user):
         '''撤销对学生的违纪记录'''
-        self.updata_user_in_room(user,True)
+        self.updata_user_in_room(user, True)
         record_model['rule_str'] = '查寝：误操作撤销'
-        
+
         # 定位记录 时间 任务 被撤销学生
         now = datetime.datetime.now()
         records = models.Record.objects.filter(
             task=self.task,
-            student_approved = record_model['student_approved'],
-            star_time__date=datetime.date(now.year, now.month, now.day)).update(manager=record_model['manager'])
-        
+            student_approved=record_model['student_approved'],
+            star_time__date=datetime.date(now.year, now.month, now.day),
+        ).update(manager=record_model['manager'])
 
-    def submit_user_record(self,record_model,record):
+    def submit_user_record(self, record_model, record):
         '''提交学生考勤记录'''
-        return self.updata_user_in_room(record_model['student_approved'],False)
-        
+        return self.updata_user_in_room(record_model['student_approved'], False)
+
     class Meta:
-        param_fields = (
-            ('room_id', fields.CharField(label=_('房间ID'))),
-        )
+        param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
 
 
 @site
@@ -337,21 +364,22 @@ class SubmitHealth(SubmitBase):
 
     def get_custom_rule(self):
         '''获取自定义宿舍卫生规则'''
-        return  create_custom_rule(RULE_CODE_07,RULE_NAME_07_01)
+        return create_custom_rule(RULE_CODE_07, RULE_NAME_07_01)
 
-    def submit_user_record(self,record_model,record):
+    def submit_user_record(self, record_model, record):
         '''提交学生考勤记录'''
         pass
 
     class Meta:
-         param_fields = (
-            ('room_id', fields.CharField(label=_('房间ID'))),
-        )
+        param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
+
+
 @site
 class DormStoreyInfo(TaskBase):
     name = _('楼内层列表')
+
     def get_context(self, request, *args, **kwargs):
-        self.get_task() # TODO 可以优化查询
+        self.get_task()  # TODO 可以优化查询
         buildings = self.task.buildings.all()
         buildings_info = []
         for building in buildings:
@@ -367,13 +395,14 @@ class DormStoreyInfo(TaskBase):
 @site
 class DormRoomInfo(TaskBase):
     name = _('层内房间列表')
-    
+
     response_info_serializer_class = serializers.DormRoomInfo
+
     def get_context(self, request, *args, **kwargs):
-        self.get_task() # TODO 可以优化查询
+        self.get_task()  # TODO 可以优化查询
         floor_id = request.params.floor_id
         rooms = models.Room.objects.filter(floor_id=floor_id).order_by('name')
-        return serializers.DormRoomInfo(rooms,many=True,request=request).data
+        return serializers.DormRoomInfo(rooms, many=True, request=request).data
 
     class Meta:
         param_fields = (('floor_id', fields.CharField(label=_('楼层ID'))),)
@@ -387,8 +416,9 @@ class DormStudentRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()
         room_id = request.params.room_id
-        rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user__userinfo')
-        return serializers.DormStudentRoomInfo(rooms,many=True,request=request).data
+        rooms = models.StuInRoom.objects.filter(room_id=room_id).select_related('user')
+        return serializers.DormStudentRoomInfo(rooms, many=True, request=request).data
+
     class Meta:
         param_fields = (('room_id', fields.CharField(label=_('房间ID'))),)
 
@@ -400,14 +430,17 @@ class StudentDisciplinary(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         # TODO 优化为仅支持查看本学院的情况
-        task_id_list = models.Task.objects.filter(types='0').values_list('id', flat=True)
-        now =datetime.datetime.now()
+        task_id_list = models.Task.objects.filter(types='0').values_list(
+            'id', flat=True
+        )
+        now = datetime.datetime.now()
         records = models.Record.objects.filter(
             task__in=task_id_list,
             manager=None,
             star_time__date=datetime.date(now.year, now.month, now.day),
         ).order_by('-last_time')
         return serializers.StudentDisciplinary(records, many=True).data
+
 
 @site
 class LateClass(TaskBase):
@@ -417,30 +450,41 @@ class LateClass(TaskBase):
         self.get_task_player_by_user()
         type_ = int(request.params.type)
         if type_ == 0:
-            grades = (
-                self.task.grades.all().values('id', 'name')
-            )
+            grades = self.task.grades.all().values('id', 'name')
             return list(grades)
         elif type_ == 1:
             class_id = request.params.class_id
             rule_id = request.params.rule_id
-            users = User.objects.filter(studentinfo__grade__id = class_id)
-            calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
+            users = User.objects.filter(grade__id=class_id)
+            calls = models.UserCall.objects.filter(
+                user__in=users, task=self.request.task, rule_id=rule_id
+            ).select_related('user')
             if users.count() != calls.count():
                 call_list = list()
                 for u in users:
-                #     call_list.append(UserCall(task=self.request.task,user=u,rule_id=rule_id))
-                # UserCall.objects.bulk_create(call_list)
-                # TODO 这里的加载应该在系统初始化的时候就完成 并且提供手动更新的接口 当然更应该使用缓存
-                    UserCall.objects.get_or_create(task=self.request.task,user=u,rule_id=rule_id)
-                calls = models.UserCall.objects.filter(user__in=users,task=self.request.task,rule_id=rule_id).select_related('user__userinfo')
-            return serializers.UserCallSerializer(calls,request=request,many=True).data
+                    #     call_list.append(UserCall(task=self.request.task,user=u,rule_id=rule_id))
+                    # UserCall.objects.bulk_create(call_list)
+                    # TODO 这里的加载应该在系统初始化的时候就完成 并且提供手动更新的接口 当然更应该使用缓存
+                    UserCall.objects.get_or_create(
+                        task=self.request.task, user=u, rule_id=rule_id
+                    )
+                calls = models.UserCall.objects.filter(
+                    user__in=users, task=self.request.task, rule_id=rule_id
+                ).select_related('user')
+            return serializers.UserCallSerializer(
+                calls, request=request, many=True
+            ).data
 
     class Meta:
         param_fields = (
             ('rule_id', fields.CharField(label=_('规则ID'), default=None)),
             ('class_id', fields.CharField(label=_('班级ID'), default=None)),
-            ('type', fields.CharField(label=_('类型'),help_text="0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况")),
+            (
+                'type',
+                fields.CharField(
+                    label=_('类型'), help_text="0 # 获取任务绑定的班级 1 # 获取班级名单附带学生多次点名情况"
+                ),
+            ),
         )
 
 
@@ -450,7 +494,7 @@ class RecordQuery(CoolBFFAPIView):
 
     def get_context(self, request, *args, **kwargs):
         username = request.params.username
-        college_id = request.params.college_id 
+        college_id = request.params.college_id
         start_date = request.params.start_date
         end_date = request.params.end_date
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
@@ -458,17 +502,19 @@ class RecordQuery(CoolBFFAPIView):
         end_date = datetime.datetime(
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
-        q4 = Q(task__types__in=['2','0']) | Q(rule_str='早签') # 任务类型限制
-        q5 = Q(task__college__id=college_id) # 分院
-        records = models.Record.objects.filter(q4,q5,
-            star_time__range=(start_date, end_date), manager__isnull=True
-        ).select_related('student_approved__userinfo','worker__userinfo','rule','task__college').order_by('-last_time')
+        q4 = Q(task__types__in=['2', '0']) | Q(rule_str='早签')  # 任务类型限制
+        q5 = Q(task__college__id=college_id)  # 分院
+        records = (
+            models.Record.objects.filter(
+                q4, q5, star_time__range=(start_date, end_date), manager__isnull=True
+            )
+            .select_related('student_approved', 'worker', 'rule', 'task__college')
+            .order_by('-last_time')
+        )
 
         if username:
             try:
-                user = User.objects.get(
-                    Q(username=username) | Q(userinfo__name=username)
-                )
+                user = User.objects.get(Q(username=username) | Q(name=username))
                 records = records.filter(student_approved=user)
             except:
                 records = []
@@ -492,83 +538,96 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        data = Record.objects.filter(student_approved=request.user).select_related('worker__userinfo').order_by('-last_time')
-        return serializers.PersonalDisciplineQuery(instance=data, many=True, request=request).data
+        data = (
+            Record.objects.filter(student_approved=request.user)
+            .select_related('worker')
+            .order_by('-last_time')
+        )
+        return serializers.PersonalDisciplineQuery(
+            instance=data, many=True, request=request
+        ).data
+
 
 @site
 class InzaoqianExcel(CoolBFFAPIView):
     name = _('导入早签数据')
-    # TODO 需要进行管理员身份验证  导入大量的情况有问题
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
         user = request.user
-        st = StudentInfo.objects.filter(user=user)
-        college = st[0].grade.college
-        task , task_t = Task.objects.get_or_create(types='3',college=college)
-        print(task.id)
+        college = user.grade.college
+        task, task_t = Task.objects.get_or_create(types='3', college=college)
+        rule = models.RuleDetails.objects.get(name=MORNING_SIGN)
         error_list = []
+
+        # 获取历史早签记录
+        query = Record.objects.filter(task=task).values(
+            name=F('student_approved__username'), time=F('star_time')
+        )
+        db_records = []
+        for q in query:
+            time = q['time']
+            time = str(time.year) + '/' + str(time.month) + '/' + str(time.day)
+            name = q['name']
+            db_records.append(name + time)
+
+        # 获取涉及的学生对象列表
+        user_usernams = []
+        db_users = {}
         for row in rows:
             username = row[0]
-            name = row[1]
-            str_time = row[3]
-            if username == None or str_time == None:
-                continue
+            user_usernams.append(username)
+        query = User.objects.filter(username__in=user_usernams)
+        for u in query:
+            db_users[u.username] = u
 
-            is_header = (
-                username.find('考勤') != -1
-                or username.find('统计') != -1
-                or username.find('员工号') != -1
-                or username.find('考勤') != -1
-            )
-            f = not (username == None or name == None or str_time == None)
-            if f and not is_header:
+        wait_create_record = []  # 等待批量获取的记录实例
+        for row in rows:
+            time = row[1]
+            name = row[0]
+            if (name + time) not in db_records:
+                
                 try:
-                    u = User.objects.get(username=username)
-                    try:
-                        str_time = datetime.datetime.strptime(str_time, '%Y/%m/%d')
-
-                        d = {
-                            'rule_str': '早签',
-                            'student_approved': u,
-                            'score': 1,
-                            'grade_str': u.studentinfo.grade.name,
-                            'star_time': str_time,
-                            'task':task
-                        }
-
-                        try:
-                            d['rule'] = models.RuleDetails.objects.get(codename=RULE_CODE_04)
-                        except:
-                            pass
-
-                        record, flg = models.Record.objects.get_or_create(**d)
-                        record.worker = request.user
-                        record.save()
-                    except:
-                        error_list.append(
-                            {
-                                'username': username,
-                                'name': name,
-                                'str_time': str_time,
-                                'message': '导入记录失败',
-                            }
-                        )
+                    u = db_users[name]
+                    grade_str = u.grade.name
                 except:
                     error_list.append(
                         {
-                            'username': username,
+                            'username': name,
                             'name': name,
-                            'str_time': str_time,
-                            'message': '用户不存在',
+                            'str_time': time,
+                            'message': '用户信息不完整',
                         }
                     )
-
+                    continue
+                star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
+                record = Record(
+                    rule_str = '早签',
+                    student_approved = u,
+                    score = 1,
+                    grade_str = grade_str,
+                    star_time = star_time,
+                    worker = user,
+                    task = task,
+                    rule = rule,
+                )
+                wait_create_record.append(record)
+            else:
+                error_list.append(
+                    {
+                        'username': name,
+                        'name': name,
+                        'str_time': time,
+                        'message': '已经存在',
+                    }
+                )
+        Record.objects.bulk_create(wait_create_record)
         return error_list
 
     class Meta:
-        param_fields = (('file', fields.FileField(label=_('Excel文件'))),)
+        param_fields = (('file', fields.FileField(label=_('Excel文件'),default=None)),)
+
 
 @site
 class OutData(CoolBFFAPIView):
@@ -588,21 +647,25 @@ class OutData(CoolBFFAPIView):
         )
 
         # 筛选条件
-        q1 = Q(manager__isnull=True) # 是否销假
-        q2 = Q(star_time__range=(start_date, end_date)) # 时间
+        q1 = Q(manager__isnull=True)  # 是否销假
+        q2 = Q(star_time__range=(start_date, end_date))  # 时间
         q3 = (
-            Q(student_approved=User.objects.get(username=username))
+            Q(
+                student_approved=User.objects.get(
+                    Q(username=username) | Q(name=username)
+                )
+            )
             if username != None
             else q1
-        ) # 是否名称搜索
-        q4 = Q(task__types__in=['2','0','3']) # 任务类型限制
-        q5 = Q(task__college__id=college_id) # 分院
+        )  # 是否名称搜索
+        q4 = Q(task__types__in=['2', '0', '3'])  # 任务类型限制
+        q5 = Q(task__college__id=college_id)  # 分院
 
         records = (
             models.Record.objects.filter(q2 & q1 & q3 & q4 & q5)
             .values(
                 grade=F('grade_str'),
-                name=F('student_approved__userinfo__name'),
+                name=F('student_approved__name'),
             )
             .annotate(
                 rule=Concat('rule_str'),
@@ -628,30 +691,49 @@ class OutData(CoolBFFAPIView):
             rule = record['rule'].split(',')
             score_onn = record['score_onn'].split(',')
             time = record['time'].split(',')
-
             # 根据rule_type 把违纪情况拆分合并为 分数1 分数1 分数1 原因1 原因1 原因1
+            rule_02_time = {}
             for index in range(0, len(rule_type)):
                 type_ = rule_type[index]
 
                 if not type_ + 'score' in record:
-                    record[RULE_CODE_01+'score'] = 0
-                    record[RULE_CODE_02+'score'] = 0
-                    record[RULE_CODE_03+'score'] = 0
-                    record[RULE_CODE_04+'score'] = 0
-                    record[RULE_CODE_05+'score'] = 0
+                    record[RULE_CODE_01 + 'score'] = 0
+                    record[RULE_CODE_02 + 'score'] = 0
+                    record[RULE_CODE_03 + 'score'] = 0
+                    record[RULE_CODE_04 + 'score'] = 0
+                    record[RULE_CODE_05 + 'score'] = 0
+                    # record[RULE_CODE_06+'score'] = 0
+                    # record[RULE_CODE_07+'score'] = 0
                 if not type_ + 'rule' in record:
-                    record[RULE_CODE_01+'rule'] = ''
-                    record[RULE_CODE_02+'rule'] = ''
-                    record[RULE_CODE_03+'rule'] = ''
-                    record[RULE_CODE_04+'rule'] = ''
-                    record[RULE_CODE_05+'rule'] = ''
+                    record[RULE_CODE_01 + 'rule'] = ''
+                    record[RULE_CODE_02 + 'rule'] = ''
+                    record[RULE_CODE_03 + 'rule'] = ''
+                    record[RULE_CODE_04 + 'rule'] = ''
+                    record[RULE_CODE_05 + 'rule'] = ''
+                    # record[RULE_CODE_06+'rule'] = ''
+                    # record[RULE_CODE_07+'rule'] = ''
 
                 # 分数累加
                 record[type_ + 'score'] += int(score_onn[index])
 
-                # 规则拼接
                 t = time[index][5:10]
+                # 统计晚自修点名扣分
+                if type_ == RULE_CODE_02:
+                    if t not in rule_02_time.keys():
+                        rule_02_time[t] = []
+                    rule_02_time[t].append(rule[index])
+                    
+                # 规则拼接
                 record[type_ + 'rule'] += t + "：" + str(rule[index]) + '\r\n'
+            
+            # 计算晚自修点名扣分
+            if len(rule_02_time.keys())>0:
+                for k in rule_02_time:
+                    if len(rule_02_time[k]) == 1:
+                        record[RULE_CODE_02 + 'score']+=2
+                        record['score']+=2
+                        
+
             rule_str = record[type_ + 'rule']
             record[type_ + 'rule'] = rule_str[0 : len(rule_str) - 2]
 

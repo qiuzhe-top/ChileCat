@@ -8,20 +8,21 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
 # DEBUG时是否连接本地sqlite3
-DEBUG_SQLITE = not True
+DEBUG_SQLITE =  True
 
 DB_NAME = ''
 HOST = '127.0.0.1'
 
-ENV_PROFILE = os.getenv("ENV") # 获取环境数值 因为  ENV  只有服务器才配置
+ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
     HOST = '47.102.215.230'
-    DB_NAME= 'ChileCat'
+    DB_NAME = 'ChileCat'
     DEBUG = False
 
 if DEBUG and not DEBUG_SQLITE:
     HOST = '47.102.215.230'
-    DB_NAME= 'ChileCatTest'
+    DB_NAME = 'TestChi'
+    # DB_NAME = 'ChileCatTest'
 
 
 ALLOWED_HOSTS = ["*"]
@@ -41,9 +42,11 @@ INSTALLED_APPS = [
     'Apps.SchoolInformation',
     'Apps.SchoolAttendance',
     'Manage',
+    'django_extensions',
     'corsheaders',
 ]
 
+AUTH_USER_MODEL = 'Manage.User'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # 跨域
     'django.middleware.common.CommonMiddleware',  # 跨域
@@ -62,7 +65,7 @@ ROOT_URLCONF = 'ChileCat.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,7 +85,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 
-print('DEBUG:', DEBUG, '数据库:', HOST,DB_NAME)
+print('DEBUG:', DEBUG, '数据库:', HOST, DB_NAME)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -135,14 +138,14 @@ USE_L10N = True
 
 USE_TZ = False
 
+APPEND_SLASH = False
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
 # 当访问静态文件时去哪里找
-STATICFILES_DIRS=(
-    os.path.join(BASE_DIR,"static"),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 # CORS
 CORS_ALLOW_CREDENTIALS = True
@@ -203,5 +206,23 @@ DJANGO_COOL = {
         ('ERR_TASK_ISOPEN_FALSE', (5022, '任务未开启')),
         ('ERR_UPDATE_BADS_IS_NULL', (5023, '床位使用中')),
         ('EXCEL_OUT_NO_DATA', (5024, 'Excel数据为空')),
+        ('DORMITORY_NOT_ARRANGED', (5025, '未安排寝室')),
+        ('CUSTOM_SCORE_ERROR', (5026, '自定义分数必须在1-10')),
+        ('TASK_SUBMISSION_FAILURE', (5027, '任务提交失败')),
+        ('THE_REASON_IS_EMPTY', (5028, '原因为空')),
+        ('NO_COLLEGE_CODE', (5029, '缺少分院代码/分院不存在')),
     )
 }
+# SimpleUi 配置
+# 服务器信息
+SIMPLEUI_HOME_INFO = True
+# 隐藏右侧SimpleUI广告链接和使用分析
+SIMPLEUI_HOME_INFO = False
+SIMPLEUI_ANALYSIS = False
+
+# 修改左侧菜单首页设置
+# SIMPLEUI_HOME_PAGE = '/api/manage/index'  # 指向页面
+# SIMPLEUI_HOME_TITLE = '百度欢迎你!' # 首页标题
+
+# 设置右上角Home图标跳转链接，会以另外一个窗口打开
+SIMPLEUI_INDEX = 'http://www.qiuzhe.top'
