@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-12 15:15:00
+LastEditTime: 2021-09-13 21:13:30
 Description: 
 '''
 import datetime
@@ -159,17 +159,26 @@ class Condition(TaskBase):
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
         now = datetime.datetime.now()
+        q_time = Q( star_time__date=datetime.date(now.year, now.month, now.day))
+
         records = (
             models.Record.objects.filter(
                 task=task,
                 manager=None,
-                star_time__date=datetime.date(now.year, now.month, now.day),
+                star_time__date=datetime.date(now.year, now.month, now.day)
             )
             .select_related('rule')
             .order_by('-last_time')
         )
 
         return serializers.ConditionRecord(records, request=request, many=True).data
+    class Meta:
+        param_fields = (
+            # ('roster', fields.CharField(label=_('寝室'),default=None)),
+            # ('roster', fields.CharField(label=_('班级'))),
+            ('building', fields.CharField(label=_('楼'),default=None)),
+            ('floor', fields.CharField(label=_('层'),default=None)),
+        )
 
 
 @site
@@ -542,7 +551,6 @@ class PersonalDisciplineQuery(PermissionView):
 @site
 class InzaoqianExcel(CoolBFFAPIView):
     name = _('导入早签数据')
-    # TODO 需要进行管理员身份验证  导入大量的情况有问题
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
     def get_context(self, request, *args, **kwargs):
@@ -683,8 +691,8 @@ class OutData(CoolBFFAPIView):
             rule = record['rule'].split(',')
             score_onn = record['score_onn'].split(',')
             time = record['time'].split(',')
-
             # 根据rule_type 把违纪情况拆分合并为 分数1 分数1 分数1 原因1 原因1 原因1
+            rule_02_time = {}
             for index in range(0, len(rule_type)):
                 type_ = rule_type[index]
 
@@ -708,9 +716,24 @@ class OutData(CoolBFFAPIView):
                 # 分数累加
                 record[type_ + 'score'] += int(score_onn[index])
 
-                # 规则拼接
                 t = time[index][5:10]
+                # 统计晚自修点名扣分
+                if type_ == RULE_CODE_02:
+                    if t not in rule_02_time.keys():
+                        rule_02_time[t] = []
+                    rule_02_time[t].append(rule[index])
+                    
+                # 规则拼接
                 record[type_ + 'rule'] += t + "：" + str(rule[index]) + '\r\n'
+            
+            # 计算晚自修点名扣分
+            if len(rule_02_time.keys())>0:
+                for k in rule_02_time:
+                    if len(rule_02_time[k]) == 1:
+                        record[RULE_CODE_02 + 'score']+=2
+                        record['score']+=2
+                        
+
             rule_str = record[type_ + 'rule']
             record[type_ + 'rule'] = rule_str[0 : len(rule_str) - 2]
 
