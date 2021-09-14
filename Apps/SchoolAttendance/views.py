@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-13 21:13:30
+LastEditTime: 2021-09-14 08:39:11
 Description: 
 '''
 import datetime
@@ -158,14 +158,29 @@ class Condition(TaskBase):
 
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
-        now = datetime.datetime.now()
-        q_time = Q( star_time__date=datetime.date(now.year, now.month, now.day))
+
+        # 时间区间
+        start_date = request.params.start_date
+        end_date = request.params.end_date
+        end_date = datetime.datetime(
+            end_date.year, end_date.month, end_date.day, 23, 59, 59
+        )
+
+        # 楼-层筛选
+        building = request.params.building
+        floor = request.params.floor
+        q_floor = Q()
+        if building and floor:
+            query_str = building + '#' + floor
+            q_floor = Q(room_str__startswith=query_str)
+
 
         records = (
             models.Record.objects.filter(
+                q_floor,
                 task=task,
                 manager=None,
-                star_time__date=datetime.date(now.year, now.month, now.day)
+                star_time__range=(start_date, end_date),
             )
             .select_related('rule')
             .order_by('-last_time')
@@ -173,11 +188,13 @@ class Condition(TaskBase):
 
         return serializers.ConditionRecord(records, request=request, many=True).data
     class Meta:
+        now = datetime.datetime.now()
+        t = datetime.datetime(now.year, now.month, now.day)
         param_fields = (
-            # ('roster', fields.CharField(label=_('寝室'),default=None)),
-            # ('roster', fields.CharField(label=_('班级'))),
             ('building', fields.CharField(label=_('楼'),default=None)),
             ('floor', fields.CharField(label=_('层'),default=None)),
+            ('start_date', fields.DateField(label=_('开始日期'), default=t)),
+            ('end_date', fields.DateField(label=_('结束日期'), default=t)),
         )
 
 
