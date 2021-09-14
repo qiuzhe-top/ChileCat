@@ -44,10 +44,11 @@ class TimeSerializer(views.BaseSerializer):
 class PersonalDisciplineQuery(TimeSerializer,views.BaseSerializer):
     '''获取个人违纪记录'''
     worker = serializers.CharField(source='worker.name')
+    student_approved = serializers.CharField(source='student_approved.name')
 
     class Meta:
         model = models.Record
-        fields =('rule_str','score','worker','star_time')  
+        fields =('rule_str','score','worker','student_approved','star_time')  
 class DormRoomInfo(views.BaseSerializer):
     '''层内房间列表'''
     status = serializers.SerializerMethodField()
