@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-14 08:39:11
+LastEditTime: 2021-09-14 09:02:17
 Description: 
 '''
 import datetime
@@ -157,8 +157,6 @@ class Condition(TaskBase):
     response_info_serializer_class = serializers.ConditionRecord
 
     def get_context(self, request, *args, **kwargs):
-        task = self.get_task_by_user()
-
         # 时间区间
         start_date = request.params.start_date
         end_date = request.params.end_date
@@ -178,7 +176,7 @@ class Condition(TaskBase):
         records = (
             models.Record.objects.filter(
                 q_floor,
-                task=task,
+                task=self.get_task_by_user(),
                 manager=None,
                 star_time__range=(start_date, end_date),
             )
@@ -555,14 +553,28 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        data = (
-            Record.objects.filter(student_approved=request.user)
-            .select_related('worker')
-            .order_by('-last_time')
+        q_user = Q(student_approved=request.user)
+        
+        # 查询我的寝室
+        room = request.params.room
+        q_room = Q()
+        if room:
+            q_user = Q()
+            try:
+                room = StuInRoom.objects.get(user=request.user).room.__str__()
+            except:
+                raise CoolAPIException(ErrorCode.DORMITORY_NOT_ARRANGED)
+            q_room = Q(room_str = room)
+
+        data =Record.objects.filter(q_user,q_room,).select_related('worker').order_by('-last_time')
+        return serializers.PersonalDisciplineQuery(instance=data, many=True, request=request).data
+    class Meta:
+        param_fields = (
+            ('room', fields.BooleanField(label=_('查询寝室'), default=False)),
         )
-        return serializers.PersonalDisciplineQuery(
-            instance=data, many=True, request=request
-        ).data
+
+
+
 
 
 @site

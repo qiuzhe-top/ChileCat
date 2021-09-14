@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:27:16
+LastEditTime: 2021-09-14 09:03:16
 Description: 
 '''
 from Apps.SchoolAttendance import models
@@ -75,6 +75,6 @@ class CollegeQuery(PermissionView):
     def get_context(self, request, *args, **kwargs):
         d =  models.College.objects.all().values('id','name')
         return list(d)
-        
+
 urls = site.urls
 urlpatterns = site.urlpatterns
