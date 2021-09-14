@@ -44,8 +44,13 @@ class TimeSerializer(views.BaseSerializer):
 class PersonalDisciplineQuery(TimeSerializer,views.BaseSerializer):
     '''获取个人违纪记录'''
     worker = serializers.CharField(source='worker.name')
-    student_approved = serializers.CharField(source='student_approved.name')
+    student_approved = serializers.SerializerMethodField()
 
+    def get_student_approved(self,obj):
+        try:
+            return obj.student_approved.name
+        except:
+            return '寝室'
     class Meta:
         model = models.Record
         fields =('rule_str','score','worker','student_approved','star_time')  
