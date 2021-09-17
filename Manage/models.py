@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-09-09 16:38:38
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-09 19:39:40
+LastEditTime: 2021-09-17 18:32:22
 Description: 
 '''
 from core.models_utils import TimeClass
@@ -51,7 +51,6 @@ class User(AbstractUser,TimeClass): # 自定义User
     card_id = models.CharField(max_length=30,verbose_name="身份证",null=True,blank=True)
     is_active = models.BooleanField(default=True,verbose_name="激活状态")
     is_staff = models.BooleanField(default=False,verbose_name="是否是员工")
-    # name = models.CharField(max_length=20, verbose_name="年级")
     photo = models.CharField(
         max_length=512, verbose_name="学生照片", null=True, blank=True
     )
@@ -64,6 +63,7 @@ class User(AbstractUser,TimeClass): # 自定义User
         null=True, blank=True,
         verbose_name="班级id",
     )
+
     USERNAME_FIELD = 'username' # 使用authenticate验证时使用的验证字段，可以换成其他字段，但验证字段必须是唯一的，即设置了unique=True
     REQUIRED_FIELDS = ['email'] # 创建用户时必须填写的字段，除了该列表里的字段还包括password字段以及USERNAME_FIELD中的字段
     EMAIL_FIELD = 'email' # 发送邮件时使用的字段

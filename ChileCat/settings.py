@@ -8,7 +8,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
 # DEBUG时是否连接本地sqlite3
-DEBUG_SQLITE =  True
+DEBUG_SQLITE =  not True
 
 DB_NAME = ''
 HOST = '127.0.0.1'
@@ -21,8 +21,7 @@ if ENV_PROFILE:
 
 if not DEBUG_SQLITE:
     HOST = '47.102.215.230'
-    DB_NAME = 'TestChi'
-    # DB_NAME = 'ChileCatTest'
+    DB_NAME = 'ChileCatTest'
 
 
 ALLOWED_HOSTS = ["*"]
