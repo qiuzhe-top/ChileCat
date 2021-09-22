@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:27:57
+LastEditTime: 2021-09-22 17:56:52
 Description: 用户模块
 '''
 from Apps.User.utils import auth
@@ -113,7 +113,7 @@ class EditPassword(CoolBFFAPIView):
 
 @site
 class Information(PermissionView):
-    name = '获取个人信息 '
+    name = '获取个人信息'
     response_info_serializer_class = serializers.UserInformationSerializer
 
     def get_context(self, request, *args, **kwargs):

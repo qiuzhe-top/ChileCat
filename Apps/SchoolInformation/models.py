@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:27:05
+LastEditTime: 2021-09-17 18:47:28
 Description: 
 '''
 from cool.admin import admin_register
@@ -33,9 +33,9 @@ class Grade(models.Model):
     """
     name = models.CharField(max_length=20, verbose_name="班级号", unique=True)
     college = models.ForeignKey(
-        "College",null=True, blank=True, related_name="grade", on_delete=models.CASCADE, verbose_name="学院")
+        "College",null=True, blank=True, related_name="college_grades", on_delete=models.CASCADE, verbose_name="学院")
     whole_grade = models.ForeignKey(
-        "WholeGrade", on_delete=models.CASCADE, related_name="grade", verbose_name="年级",
+        "WholeGrade", on_delete=models.CASCADE, related_name="whole_grades", verbose_name="年级",
         null=True, blank=True
     )
 

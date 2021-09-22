@@ -6,7 +6,6 @@ from cool.model import BaseModel
 from django.conf import settings
 from django.db import models
 
-
 @admin_register
 class Rule(models.Model):
     name = models.CharField(
