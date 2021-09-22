@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-14 09:03:16
+LastEditTime: 2021-09-22 18:16:39
 Description: 
 '''
 from Apps.SchoolAttendance import models
@@ -44,8 +44,8 @@ class UpdateBeds(PermissionView):
     name = _('修改床位')
     def get_context(self, request, *args, **kwargs):
         position = request.params.position
-        in_room = StuInRoom.objects.get(user=request.user)
-        bed = StuInRoom.objects.filter(room=in_room.room,bed_position=position)
+        in_room = StuInRoom.objects.get(user=request.user) # 我的床位
+        bed = StuInRoom.objects.filter(room=in_room.room,bed_position=position) # 他人的床位
         if bed.exists():
             bed = bed[0]
             bed.bed_position = in_room.bed_position
