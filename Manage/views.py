@@ -85,7 +85,7 @@ def group_user(request):
 # 导入学生
 def user_init(request):
     '''导入学生'''
-    excel = excel_to_list(request)
+    excel = excel_to_list(request,False)
     excel_users = {}
     excel_grades = {}
     # 获取分院实例
@@ -95,14 +95,19 @@ def user_init(request):
         raise CoolAPIException(ErrorCode.NO_COLLEGE_CODE)
 
     for row in excel:
+        row_len = len(row)
         grade = row[0]
         username = row[1]
         name = row[2]
+        tel =  row[3] if row_len > 3 and row[3] else None
         excel_users[username] = {
             "username": username,
             "grade": grade,
             "name": name,
+            "tel": tel,
         }
+        # if tel:
+        #     create_other_data(row)
         excel_grades[grade] = ''
 
     # 创建DB没有的班级
@@ -134,6 +139,14 @@ def user_init(request):
         wait_create_users.append(user)
     User.objects.bulk_create(wait_create_users)
     return {'create_user': username_list}
+
+# 测试维护时用来处理导入其它用户 信息
+def create_other_data(row):
+    row_len = len(row)
+    username = row[1]
+    tel =  row[3] if row_len > 3 else None
+    User.objects.filter(username=username).update(tel=tel)
+
 
 
 # 用户组初始化
@@ -181,8 +194,8 @@ def user_room(request):
 
             elif flg == '-':
                 user = User.objects.get(username=username_)
-                StuInRoom.objects.filter(user=user).delete()
-                message['flg-'].append(room_ + " 删除 " + username_)
+                StuInRoom.objects.filter(user=user).update(is_active=False)
+                message['flg-'].append(room_ + "软删除 " + username_)
 
             # 学生寝室绑定/删除
             elif flg == '+':

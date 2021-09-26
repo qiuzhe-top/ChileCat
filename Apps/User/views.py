@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-22 17:56:52
+LastEditTime: 2021-09-23 19:22:23
 Description: 用户模块
 '''
 from Apps.User.utils import auth
@@ -121,18 +121,18 @@ class Information(PermissionView):
         return serializers.UserInformationSerializer(request.user, request=request).data
 
 
-@site
-class BindGrade(CoolBFFAPIView):
-    name = '绑定班级'
+# @site
+# class BindGrade(CoolBFFAPIView):
+#     name = '绑定班级'
 
-    def get_context(self, request, *args, **kwargs):
-        return 1
+#     def get_context(self, request, *args, **kwargs):
+#         return 1
 
-    class Meta:
-        param_fields = (
-            ('grade_id', fields.CharField(label=_('班级ID'))),
+#     class Meta:
+#         param_fields = (
+#             ('grade_id', fields.CharField(label=_('班级ID'))),
 
-        )
+#         )
 
 
 # @site

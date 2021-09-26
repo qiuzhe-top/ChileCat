@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-14 09:02:17
+LastEditTime: 2021-09-26 19:24:46
 Description: 
 '''
 import datetime
@@ -578,7 +578,7 @@ class PersonalDisciplineQuery(PermissionView):
 
 
 @site
-class InzaoqianExcel(CoolBFFAPIView):
+class InzaoqianExcel(PermissionView):
     name = _('导入早签数据')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 

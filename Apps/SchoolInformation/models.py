@@ -3,12 +3,15 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-17 18:47:28
+LastEditTime: 2021-09-24 10:22:56
 Description: 
 '''
+from core.model_extension import ActiveBase
 from cool.admin import admin_register
 from django.conf import settings
 from django.db import models
+from django.db.models.manager import BaseManager
+from django.db.models.query import QuerySet
 
 # Create your models here.
 
@@ -140,8 +143,11 @@ class Room(models.Model):
         """返回房间号"""
         return self.get_room()
 
-class StuInRoom(models.Model):
+
+
+class StuInRoom(ActiveBase):
     """宿舍入住信息"""
+    
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE, verbose_name="房间id", related_name="stu_in_room"
     )
@@ -152,15 +158,10 @@ class StuInRoom(models.Model):
     bed_position = models.IntegerField(blank=True, null=True, verbose_name="床铺位置")
 
     def user_name(self):
-            return '%s' % self.user.name
+        return '%s' % self.user.name
+
     user_name.short_description = '姓名'
 
-    class Meta:
-        verbose_name = '宿舍入住信息'
-        verbose_name_plural = '宿舍入住信息'
-        permissions = [
-            ('operate-stu_in_room_view', "operate-查询学生位置权限")
-        ]
 
     def get_room(self):
         return self.room.floor.building.name + self.room.floor.name + self.room.name
@@ -168,3 +169,9 @@ class StuInRoom(models.Model):
     def __str__(self):
         """返回房间号"""
         return self.get_room()
+    class Meta:
+        verbose_name = '宿舍入住信息'
+        verbose_name_plural = '宿舍入住信息'
+        permissions = [
+            ('operate-stu_in_room_view', "operate-查询学生位置权限")
+        ]

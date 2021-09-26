@@ -3,14 +3,15 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-22 18:16:39
+LastEditTime: 2021-09-24 15:47:03
 Description: 
 '''
-from Apps.SchoolAttendance import models
+from cool.views.view import CoolBFFAPIView
+from Apps.SchoolAttendance.models import *
 from Apps.SchoolAttendance import serializers as attendance_serializers
 from Apps.SchoolInformation.models import StuInRoom
 from cool.views import CoolAPIException, ErrorCode, ViewSite
-from core.views import PermissionView
+from core.views import PermissionView, TaskBase
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields
@@ -73,8 +74,40 @@ class CollegeQuery(PermissionView):
     name = _('获取分院')
     
     def get_context(self, request, *args, **kwargs):
-        d =  models.College.objects.all().values('id','name')
+        d =  College.objects.all().values('id','name')
         return list(d)
 
+@site
+class StuRoomDelete(PermissionView):
+    name = _('寝室入住 软删除')
+   
+    def get_context(self, request, *args, **kwargs):
+        #TODO 无法区分分院
+        username_list = request.params.username_list
+        return StuInRoom.objects.filter(user__username__in=username_list,is_active=False).update(is_active=False)
+
+    class Meta:
+        param_fields = (
+            ('username_list', fields.ListField(label=_('用户名列表'), default=None)),
+        )
+@site
+class StuRoomRecover(PermissionView):
+    name = _('寝室入住 恢复')
+   
+    def get_context(self, request, *args, **kwargs):
+        username_list = request.params.username_list
+        task_id = int(request.params.task_id)
+        if request.params.is_all:
+            # 获取任务对应的楼层进行恢复
+            rooms = Task.objects.filter(id=task_id,admin=request.user).values_list('buildings__floor__room',flat=True)  
+            return StuInRoom.objects.filter(room__in=rooms,is_active=False).update(is_active=True)
+        else:
+            return StuInRoom.objects.filter(user__username__in=username_list,is_active=False).update(is_active=True)
+    class Meta:
+        param_fields = (
+            ('username_list', fields.ListField(label=_('用户名列表'), default=None)),
+            ('is_all', fields.BooleanField(label=_('是否全部恢复'))),
+            ('task_id', fields.CharField(label=_('任务id'))),
+        )
 urls = site.urls
 urlpatterns = site.urlpatterns

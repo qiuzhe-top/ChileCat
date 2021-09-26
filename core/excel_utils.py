@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-08-20 09:30:19
+LastEditTime: 2021-09-26 13:40:16
 Description: Excel 操作
 '''
 
@@ -20,7 +20,7 @@ from openpyxl import load_workbook
 from core.settings import *
 
 
-def excel_to_list(request):
+def excel_to_list(request,is_first_line=True):
     '''
         excel 转换为列表
         当一行的第一列为空时忽略这一行数据
@@ -33,9 +33,15 @@ def excel_to_list(request):
             if row[0].value:
                 l = []
                 for i in row:
-                    l.append(str(i.value))
+                    if i.value:
+                        l.append(str(i.value))
+                    else:
+                        l.append(None)
                 data.append(l)
-    return data
+    if is_first_line:
+        return data
+    else:
+        return data[1:]
 
 
 

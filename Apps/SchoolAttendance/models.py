@@ -86,6 +86,8 @@ def get_manager_user():
 def get_student_approved_user():
     return get_user_model().objects.get_or_create(id="studentapproved00CUSTEM00USERT",name='默认被执行者',username='studentapproved00CUSTEM00USERT')[0]
 
+def get_student_approved():
+    return
 class Record(models.Model):
     """考勤记录"""
     task = models.ForeignKey(
@@ -104,6 +106,8 @@ class Record(models.Model):
         max_length=20, verbose_name="寝室", null=True, blank=True)
     grade_str = models.CharField(
         max_length=20, verbose_name="班级", null=True, blank=True)
+        
+
 
     student_approved = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET(get_student_approved_user), null=True, blank=True,
@@ -121,11 +125,37 @@ class Record(models.Model):
         related_name="销假人",
     )
     
+    student_approved_username = models.CharField(
+        max_length=20, verbose_name="被执行者学号", null=True, blank=True)
+    student_approved_name = models.CharField(
+        max_length=20, verbose_name="被执行者姓名", null=True, blank=True)
+
+    manager_username = models.CharField(
+        max_length=20, verbose_name="销假人学号", null=True, blank=True)
+    manager_name = models.CharField(
+        max_length=20, verbose_name="销假人姓名", null=True, blank=True)
+
     # 确保在save或者update的时候手动更新最后修改时间 因为某些批量操作不会触发
     star_time = models.DateTimeField(default = timezone.now, verbose_name=u'创建日期')
     last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
 
+  
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.student_approved:
+            self.student_approved_username = self.student_approved.username
+            self.student_approved_name = self.student_approved.name
+        if self.manager:
+            self.manager_username = self.manager.username
+            self.manager_name = self.manager.name
 
+        # 执行 save(), 将数据保存进数据库
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields
+        )
     class Meta:
         verbose_name = '任务-考勤记录'
         verbose_name_plural = '任务-考勤记录'

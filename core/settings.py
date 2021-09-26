@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 09:06:00
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-13 19:15:33
+LastEditTime: 2021-09-26 18:51:06
 Description: 配置
 '''
 
@@ -138,9 +138,6 @@ INIT_RULES = [
                 'name': '直接认定为不合格',
                 'score': '400',
                 'child': [
-                    {'name': '拥有或使用违章电器', 'score': '100'},
-                    {'name': '私拉电线', 'score': '100'},
-                    {'name': '饲养宠物', 'score': '100'},
                     {'name': '其他违反学生手册行为', 'score': '100'},
                 ],
             },
@@ -170,6 +167,9 @@ INIT_RULES = [
             {'name': '床边悬挂衣物', 'score': '5'},
             {'name': '桌面物品摆放', 'score': '10'},
             {'name': '桌面整洁', 'score': '5'},
+            {'name': '拥有或使用违章电器', 'score': '100'},
+            {'name': '私拉电线', 'score': '100'},
+            {'name': '饲养宠物', 'score': '100'},
         ],
     },
 ]

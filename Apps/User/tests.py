@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:08:34
+LastEditTime: 2021-09-23 19:22:12
 Description: 
 '''
 from django.contrib import auth
@@ -26,7 +26,7 @@ class AuthTest(TestCase):
         self.username = '195101'
         self.password = '123456'
         self.password_repaet = self.password
-        self.grade_id = 1
+        # self.grade_id = 1
         self.room_id = 1
         self.api = '/api/user/'
         self.http_api = 'http://127.0.0.1:8000' + self.api
