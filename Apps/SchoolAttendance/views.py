@@ -416,7 +416,7 @@ class DormRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()  # TODO 可以优化查询
         floor_id = request.params.floor_id
-        rooms = models.Room.objects.filter(floor_id=floor_id).order_by('name')
+        rooms = models.Room.objects.filter(floor_id=floor_id,stu_in_room__is_active=True).distinct().order_by('name')
         return serializers.DormRoomInfo(rooms, many=True, request=request).data
 
     class Meta:
