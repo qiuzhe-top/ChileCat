@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 09:06:00
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-26 18:51:06
+LastEditTime: 2021-09-30 12:41:41
 Description: 配置
 '''
 
@@ -46,6 +46,7 @@ INIT_RULES = [
         "rules": [
             {'name': '请假', 'score': '1'},
             {'name': '无故', 'score': '1'},
+            {'name': RULE_NAME_01_01, 'score': '1'},
         ],
     },
     {
@@ -69,6 +70,7 @@ INIT_RULES = [
             {'name': '睡觉', 'score': '1'},
             {'name': '玩手机', 'score': '1'},
             {'name': '讲话', 'score': '1'},
+            {'name': RULE_NAME_03_01, 'score': '1'},
         ],
     },
     {
@@ -150,18 +152,6 @@ INIT_RULES = [
             'is_person': True,
         },
         "rules": [
-            # {
-            #     'name': '床铺整洁',
-            #     'score': '15',
-            #     'child': [
-            #     ],
-            # },
-            # {
-            #     'name': '桌椅整洁',
-            #     'score': '15',
-            #     'child': [
-            #     ],
-            # },
             {'name': '被子未叠', 'score': '5'},
             {'name': '床上有插线板', 'score': '5'},
             {'name': '床边悬挂衣物', 'score': '5'},
@@ -170,6 +160,8 @@ INIT_RULES = [
             {'name': '拥有或使用违章电器', 'score': '100'},
             {'name': '私拉电线', 'score': '100'},
             {'name': '饲养宠物', 'score': '100'},
+            {'name': RULE_NAME_07_01, 'score': '1'},
+
         ],
     },
 ]
