@@ -250,7 +250,7 @@ def uinitialization_rules(request=None):
         rule_f = item['rule_f']
         rules = item['rules']
         
-        rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f) # i一级规则
+        rule, flg = SchoolAttendanceModels.Rule.objects.get_or_create(**rule_f) # 一级规则
         if flg:
             res.append('创建：' + rule_f['name'])
         else:
@@ -258,27 +258,20 @@ def uinitialization_rules(request=None):
 
         for r in rules:
             rule_detail = SchoolAttendanceModels.RuleDetails.objects.get_or_create(
-                name=r['name'], score=r['score'], rule=rule
+                id=r['id'], name=r['name'], score=r['score'], rule=rule
             )[0] # 二级规则
             if 'child' in r.keys():
                 for child_rule in r['child']:
-                    SchoolAttendanceModels.RuleDetails.objects.get_or_create(
-                        name=child_rule['name'],
-                        score=child_rule['score'],
-                        rule=rule,
-                        parent_id=rule_detail,
-                    ) # 三级规则
+                    child_rule['rule'] = rule
+                    child_rule['parent_id'] = rule_detail
+                    SchoolAttendanceModels.RuleDetails.objects.get_or_create(**child_rule) # 三级规则
     return res
 
 
 def init_college():
-    colleges = [
-        {"name": ZHJT_NAME, 'codename': ZHJT_CODENAM},
-        {"name": LQ_NAME, 'codename': LQ_CODENAM},
-    ]
-    for c in colleges:
+    for c in COLLEGE_LIST:
         College.objects.get_or_create(name=c['name'], code_name=c['codename'])
-    return colleges
+    return COLLEGE_LIST
 
 
 def run_init(request):
