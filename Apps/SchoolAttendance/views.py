@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-26 19:24:46
+LastEditTime: 2021-10-09 10:13:16
 Description: 
 '''
 import datetime
@@ -11,6 +11,7 @@ import datetime
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
 from Apps.User.utils.auth import get_token_by_user
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
+from core.common import get_end_date, get_start_date
 from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
 from core.query_methods import Concat
 from core.settings import *
@@ -157,12 +158,9 @@ class Condition(TaskBase):
     response_info_serializer_class = serializers.ConditionRecord
 
     def get_context(self, request, *args, **kwargs):
-        # 时间区间
-        start_date = request.params.start_date
-        end_date = request.params.end_date
-        end_date = datetime.datetime(
-            end_date.year, end_date.month, end_date.day, 23, 59, 59
-        )
+        # 开始时间和结束时间
+        start_date = get_start_date(request)
+        end_date = get_end_date(request)
 
         # 楼-层筛选
         building = request.params.building
@@ -186,13 +184,12 @@ class Condition(TaskBase):
 
         return serializers.ConditionRecord(records, request=request, many=True).data
     class Meta:
-        now = datetime.datetime.now()
-        t = datetime.datetime(now.year, now.month, now.day)
+
         param_fields = (
             ('building', fields.CharField(label=_('楼'),default=None)),
             ('floor', fields.CharField(label=_('层'),default=None)),
-            ('start_date', fields.DateField(label=_('开始日期'), default=t)),
-            ('end_date', fields.DateField(label=_('结束日期'), default=t)),
+            ('start_date', fields.DateField(label=_('开始日期'), default=None)),
+            ('end_date', fields.DateField(label=_('结束日期'), default=None)),
         )
 
 
@@ -665,16 +662,10 @@ class OutData(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         ret = {}
         # 获取用户所属分院
-        # TODO 优化时间查询默认值
-
         username = request.params.username
         college_id = request.params.college_id
-        start_date = request.params.start_date
-        end_date = request.params.end_date
-        end_date = datetime.datetime(
-            end_date.year, end_date.month, end_date.day, 23, 59, 59
-        )
-
+        start_date = get_start_date(request)
+        end_date = get_end_date(request)
         # 筛选条件
         q1 = Q(manager__isnull=True)  # 是否销假
         q2 = Q(star_time__range=(start_date, end_date))  # 时间
@@ -774,14 +765,11 @@ class OutData(CoolBFFAPIView):
         return at_all_out_xls(records)
 
     class Meta:
-        now = datetime.datetime.now()
-        t = datetime.datetime(now.year, now.month, now.day)
-        t = datetime.datetime.strftime(t, "%Y-%m-%d")
         param_fields = (
             ('username', fields.CharField(label=_('用户名'), default=None)),
             ('college_id', fields.IntegerField(label=_('分院ID'), default=None)),
-            ('start_date', fields.DateField(label=_('开始日期'), default=t)),
-            ('end_date', fields.DateField(label=_('结束日期'), default=t)),
+            ('start_date', fields.DateField(label=_('开始日期'), default=None)),
+            ('end_date', fields.DateField(label=_('结束日期'), default=None)),
         )
 
 
