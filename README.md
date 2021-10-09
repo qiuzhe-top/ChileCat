@@ -3,7 +3,7 @@
  * @Date: 2021-07-04 13:27:27
  * @Email: 2810201146@qq.com
  * @LastEditors:  
- * @LastEditTime: 2021-09-30 13:42:23
+ * @LastEditTime: 2021-10-09 10:30:24
  * @Description: 
 -->
 # 智慧彩云
@@ -15,6 +15,7 @@
 - 优化excel转列表选择是否处理第一行
 - 初始化系统时 创建自定义规则 的数据记录
 - 优化 DormRoomInfo 当寝室没人时不在就不输出这个寝室
+- 解决按默认时间筛选BUG
 ### V 1.1.0
 - 继承User拷贝UserAdmin完成注册
 - 完成自定义User移植
