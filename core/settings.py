@@ -12,6 +12,7 @@ PASSWOED_123456 = (
 )
 # 早签
 MORNING_SIGN = '早签'
+MORNING_POINT = '晨点'
 
 # 分院数据初始化
 ZHJT_NAME = '智慧交通学院'
@@ -37,6 +38,7 @@ RULE_CODE_04 = '0#004'
 RULE_CODE_05 = '0#005'
 RULE_CODE_06 = '0#006'
 RULE_CODE_07 = '0#007'
+RULE_CODE_08 = '0#008'
 # 初始化规则
 INIT_RULES = [
     {
@@ -86,7 +88,18 @@ INIT_RULES = [
             'is_person': True,
         },
         "rules": [
-            {'id': 401, 'name': MORNING_SIGN, 'score': '1'},
+            {'id': 401, 'name': MORNING_SIGN, 'score': 0.5},
+        ],
+    },
+    {
+        "rule_f": {
+            'id': 800,
+            'name': MORNING_POINT,
+            'codename': RULE_CODE_08,
+            'is_person': True,
+        },
+        "rules": [
+            {'id': 801, 'name': MORNING_POINT,'score': 1},
         ],
     },
     {

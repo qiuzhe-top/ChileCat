@@ -61,8 +61,8 @@ def at_all_out_xls(data):
             k.get('usernames',''),
             k.get('name',''),
             # 晨点
-            '',
-            '',
+            k.get(RULE_CODE_08+'score',0),
+            k.get(RULE_CODE_08+'rule',''),
             # 早签
             k.get(RULE_CODE_04+'score',0),
             k.get(RULE_CODE_04+'rule',''),
@@ -125,3 +125,4 @@ def out_knowing_data(ser_records):
         output.seek(0)
         response.write(output.getvalue())
     return response
+

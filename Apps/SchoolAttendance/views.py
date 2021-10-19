@@ -3,11 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-<<<<<<< HEAD
 LastEditTime: 2021-10-09 10:32:26
-=======
-LastEditTime: 2021-10-09 10:26:45
->>>>>>> Develop
 Description: 
 '''
 import datetime
@@ -518,7 +514,7 @@ class RecordQuery(CoolBFFAPIView):
         end_date = datetime.datetime(
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
-        q4 = Q(task__types__in=['2', '0']) | Q(rule_str='早签')  # 任务类型限制
+        q4 = Q(task__types__in=['2', '0','3']) | Q(rule_str='早签')  # 任务类型限制
         q5 = Q(task__college__id=college_id)  # 分院
         records = (
             models.Record.objects.filter(
@@ -588,11 +584,12 @@ class InzaoqianExcel(PermissionView):
         user = request.user
         college = user.grade.college
         task, task_t = Task.objects.get_or_create(types='3', college=college)
-        rule = models.RuleDetails.objects.get(name=MORNING_SIGN)
+        d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT}
+        rule = models.RuleDetails.objects.get(name = d[request.params.codename])
         error_list = []
 
         # 获取历史早签记录
-        query = Record.objects.filter(task=task).values(
+        query = Record.objects.filter(task=task, rule=rule).values(
             name=F('student_approved__username'), time=F('star_time')
         )
         db_records = []
@@ -627,15 +624,17 @@ class InzaoqianExcel(PermissionView):
                             'username': name,
                             'name': name,
                             'str_time': time,
-                            'message': '用户信息不完整',
+                            'message': '用户不完整或者没有班级信息',
                         }
                     )
                     continue
                 star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
                 record = Record(
-                    rule_str = '早签',
+                    rule_str = rule.name,
                     student_approved = u,
-                    score = 1,
+                    student_approved_username = u.username,
+                    student_approved_name = u.name,
+                    score = rule.score,
                     grade_str = grade_str,
                     star_time = star_time,
                     worker = user,
@@ -656,7 +655,11 @@ class InzaoqianExcel(PermissionView):
         return error_list
 
     class Meta:
-        param_fields = (('file', fields.FileField(label=_('Excel文件'),default=None)),)
+        param_fields = (
+            ('file', fields.FileField(label=_('Excel文件'),default=None)),
+            ('codename', fields.CharField(label=_('规则代码'), default=None)),
+
+        )
 
 
 @site
@@ -726,19 +729,19 @@ class OutData(CoolBFFAPIView):
                     record[RULE_CODE_03 + 'score'] = 0
                     record[RULE_CODE_04 + 'score'] = 0
                     record[RULE_CODE_05 + 'score'] = 0
-                    # record[RULE_CODE_06+'score'] = 0
                     # record[RULE_CODE_07+'score'] = 0
+                    record[RULE_CODE_08+'score'] = 0
                 if not type_ + 'rule' in record:
                     record[RULE_CODE_01 + 'rule'] = ''
                     record[RULE_CODE_02 + 'rule'] = ''
                     record[RULE_CODE_03 + 'rule'] = ''
                     record[RULE_CODE_04 + 'rule'] = ''
                     record[RULE_CODE_05 + 'rule'] = ''
-                    # record[RULE_CODE_06+'rule'] = ''
                     # record[RULE_CODE_07+'rule'] = ''
+                    record[RULE_CODE_08+'rule'] = ''
 
                 # 分数累加
-                record[type_ + 'score'] += int(score_onn[index])
+                record[type_ + 'score'] += float(score_onn[index])
 
                 t = time[index][5:10]
                 # 统计晚自修点名扣分
@@ -748,7 +751,7 @@ class OutData(CoolBFFAPIView):
                     rule_02_time[t].append(rule[index])
                     
                 # 规则拼接
-                record[type_ + 'rule'] += t + "：" + str(rule[index]) + '\r\n'
+                record[type_ + 'rule'] += t + ":" + str(rule[index]) + '\r\n'
             
             # 计算晚自修点名扣分
             if len(rule_02_time.keys())>0:

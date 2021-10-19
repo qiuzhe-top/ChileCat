@@ -26,7 +26,7 @@ class Rule(models.Model):
 class RuleDetails(models.Model):
     '''二级规则'''
     name = models.CharField(max_length=20, verbose_name=u'名称')
-    score = models.IntegerField(verbose_name=u'分值', null=True, blank=True)
+    score = models.FloatField(verbose_name=u'分值', null=True, blank=True)
     rule = models.ForeignKey(
         'Rule', on_delete=models.CASCADE, verbose_name=u'一级分类')
     parent_id = models.ForeignKey(
@@ -94,7 +94,7 @@ class Record(models.Model):
         Task, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="任务")
     rule_str = models.CharField(
         max_length=150, verbose_name="原因", null=True, blank=True)
-    score = models.IntegerField(null=True, blank=True, verbose_name="分值") 
+    score = models.FloatField(null=True, blank=True, verbose_name="分值") 
     rule = models.ForeignKey("RuleDetails",
                                 on_delete=models.SET_NULL,
                                 verbose_name="原因规则",
