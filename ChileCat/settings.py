@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 if DB_TYPE == 1:
     USER = 'root'
     HOST = '47.102.215.230'
-    DB_NAME = 'ChileCat'
+    DB_NAME = 'ChileCatTest'
 elif DB_TYPE == 2:
     USER = 'ChileCatTest'
     HOST = '127.0.0.1'
