@@ -7,23 +7,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
-# DEBUG时是否连接本地sqlite3
-DEBUG_SQLITE = not True
 
-DB_NAME = ''
-HOST = '127.0.0.1'
+# 数据类型 1 线上数据库  2 本地Mysql  3 本地Sqlite
+DB_TYPE = 1
 
 ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
-    HOST = '47.102.215.230'
-    DB_NAME = 'ChileCat'
-    USER = 'root'
     DEBUG = False
+    DB_TYPE = 1
+    print('线上环境')
 
-if DEBUG and not DEBUG_SQLITE:
-    USER = 'ChileCatTest'
-    HOST = '127.0.0.1'
-    DB_NAME = 'ChileCatTest'
 
 
 ALLOWED_HOSTS = ["*"]
@@ -86,20 +79,16 @@ WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 
-print('DEBUG:', DEBUG, '数据库:', HOST, DB_NAME)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': DB_NAME,
-        'USER': USER,
-        'PASSWORD': 'zhou24272592',
-        'HOST': HOST,
-        'PORT': '3306',
-        'OPTIONS': {'isolation_level': None},
-    }
-}
+if DB_TYPE == 1:
+    USER = 'root'
+    HOST = '47.102.215.230'
+    DB_NAME = 'ChileCat'
+elif DB_TYPE == 2:
+    USER = 'ChileCatTest'
+    HOST = '127.0.0.1'
+    DB_NAME = 'ChileCatTest'
 
-if DEBUG and DEBUG_SQLITE:
+if DB_TYPE == 3:
     print('Sqlite 连接中...')
     DATABASES = {
         'default': {
@@ -107,7 +96,19 @@ if DEBUG and DEBUG_SQLITE:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-
+else:
+    print('DEBUG:', DEBUG, '数据库:', HOST, DB_NAME)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': DB_NAME,
+            'USER': USER,
+            'PASSWORD': 'zhou24272592',
+            'HOST': HOST,
+            'PORT': '3306',
+            'OPTIONS': {'isolation_level': None},
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
