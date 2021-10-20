@@ -579,6 +579,18 @@ class InzaoqianExcel(PermissionView):
     name = _('导入早签数据')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
+    def get_name(self,name):
+        try:
+            return self.db_users[name].name
+        except:
+            return name
+
+    def time_formatting(self,time):
+        if '-' in time:
+            time = time.split(' ')[0]
+            return time.replace('-','/')
+        return time
+        
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
         user = request.user
@@ -601,34 +613,47 @@ class InzaoqianExcel(PermissionView):
 
         # 获取涉及的学生对象列表
         user_usernams = []
-        db_users = {}
+        self.db_users = {}
         for row in rows:
             username = row[0]
             user_usernams.append(username)
         query = User.objects.filter(username__in=user_usernams)
         for u in query:
-            db_users[u.username] = u
+            self.db_users[u.username] = u
 
         wait_create_record = []  # 等待批量获取的记录实例
         for row in rows:
             time = row[1]
             name = row[0]
+            time = self.time_formatting(time)
             if (name + time) not in db_records:
                 
                 try:
-                    u = db_users[name]
+                    u = self.db_users[name]
                     grade_str = u.grade.name
+                except:
+                    error_list.append(
+                        {
+                            'username': name,
+                            'name': self.get_name(name),
+                            'str_time': time,
+                            'message': '用户不在系统 或 没有班级信息',
+                        }
+                    )
+                    continue
+                try:
+                    star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
                 except:
                     error_list.append(
                         {
                             'username': name,
                             'name': name,
                             'str_time': time,
-                            'message': '用户不完整或者没有班级信息',
+                            'message': '日期格式错误',
                         }
                     )
                     continue
-                star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
+
                 record = Record(
                     rule_str = rule.name,
                     student_approved = u,
@@ -646,7 +671,7 @@ class InzaoqianExcel(PermissionView):
                 error_list.append(
                     {
                         'username': name,
-                        'name': name,
+                        'name': self.get_name(name),
                         'str_time': time,
                         'message': '已经存在',
                     }
