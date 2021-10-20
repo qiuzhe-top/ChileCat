@@ -17,10 +17,12 @@ ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务�
 if ENV_PROFILE:
     HOST = '47.102.215.230'
     DB_NAME = 'ChileCat'
+    USER = 'root'
     DEBUG = False
 
 if DEBUG and not DEBUG_SQLITE:
-    HOST = '47.102.215.230'
+    USER = 'ChileCatTest'
+    HOST = '127.0.0.1'
     DB_NAME = 'ChileCatTest'
 
 
@@ -89,7 +91,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': DB_NAME,
-        'USER': 'root',
+        'USER': USER,
         'PASSWORD': 'zhou24272592',
         'HOST': HOST,
         'PORT': '3306',
