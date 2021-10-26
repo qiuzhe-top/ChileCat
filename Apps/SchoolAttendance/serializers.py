@@ -41,8 +41,10 @@ class TimeSerializer(views.BaseSerializer):
         hour = t.hour
         minute = t.minute
         return '{}-{}-{} {}:{}'.format(year,month,day,hour,minute)
+
 class PersonalDisciplineQuery(TimeSerializer,views.BaseSerializer):
     '''获取个人违纪记录'''
+    
     worker = serializers.CharField(source='worker.name')
     student_approved = serializers.SerializerMethodField()
 

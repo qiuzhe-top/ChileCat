@@ -17,7 +17,7 @@ from core.query_methods import Concat
 from core.settings import *
 from core.views import *
 from django.contrib.auth import get_user_model
-from django.db.models import F, query
+from django.db.models import F, manager, query
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q
 from django.utils.translation import gettext_lazy as _
@@ -550,7 +550,8 @@ class PersonalDisciplineQuery(PermissionView):
     response_info_serializer_class = serializers.PersonalDisciplineQuery
 
     def get_context(self, request, *args, **kwargs):
-        q_user = Q(student_approved=request.user)
+        # 用户过滤条件
+        q_user = Q(student_approved=request.user,manager__isnull=True)
         
         # 查询我的寝室
         room = request.params.room
