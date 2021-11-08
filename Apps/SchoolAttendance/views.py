@@ -611,6 +611,7 @@ class InzaoqianExcel(PermissionView):
             time = str(time.year) + '/' + str(time.month) + '/' + str(time.day)
             name = q['name']
             db_records.append(name + time)
+        print(db_records)      
 
         # 获取涉及的学生对象列表
         user_usernams = []
@@ -626,7 +627,7 @@ class InzaoqianExcel(PermissionView):
         for row in rows:
             time = row[1]
             name = row[0]
-            time = self.time_formatting(time)
+            time = self.time_formatting(time)  
             if (name + time) not in db_records:
                 
                 try:
