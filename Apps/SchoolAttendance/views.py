@@ -577,7 +577,7 @@ class PersonalDisciplineQuery(PermissionView):
 
 @site
 class InzaoqianExcel(PermissionView):
-    name = _('导入早签数据')
+    name = _('导入早签/晨点数据')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
     def get_name(self,name):

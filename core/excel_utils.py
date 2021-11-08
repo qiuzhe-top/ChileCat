@@ -20,6 +20,40 @@ from openpyxl import load_workbook
 from core.settings import *
 
 
+def list_to_excel(data,name,header,is_first_line=True):
+    '''
+    '''
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    filename = datetime.date.today().strftime("%Y-%m-%d") + name + '.xls'
+    response['Content-Disposition'] = (
+        'attachment; filename={}'.format(escape_uri_path(filename))
+    )
+    if data:
+        ws = xlwt.Workbook(encoding='utf-8')
+        w = ws.add_sheet('sheet1')
+        index = 0
+        for i in header:
+            w.write(0, index, i)
+            index+=1
+            # w.write(0, 1, u'楼号')
+            # w.write(0, 2, u'班级')
+            # w.write(0, 3, u'学号')
+            # w.write(0, 4, u'姓名')
+            # w.write(0, 5, u'原因')
+        row = 1
+        for item in data:
+            column = 0
+            for j in item:
+                w.write(row, column, j)
+                column += 1
+            row += 1
+        # 循环完成
+        output = BytesIO()
+        ws.save(output)
+        output.seek(0)
+        response.write(output.getvalue())
+    return response
+
 def excel_to_list(request,is_first_line=True):
     '''
         excel 转换为列表

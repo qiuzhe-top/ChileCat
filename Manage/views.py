@@ -7,7 +7,7 @@ from Apps.User.models import College, Grade
 from cool import views
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
 from cool.views.view import CoolBFFAPIView
-from core.excel_utils import excel_to_list
+from core.excel_utils import at_all_out_xls, excel_to_list, list_to_excel
 from core.models_utils import search_room
 from core.permission_group import user_group
 from core.settings import *
@@ -523,6 +523,24 @@ class Apitouviews(CoolBFFAPIView):
             api_str += t
         return HttpResponse(api_str)
 
+
+# 导出系统数据1
+@site
+class OutExcel(CoolBFFAPIView):
+    name = '导出系统数据1'
+
+    def get_context(self, request, *args, **kwargs):
+        sr = StuInRoom.objects.all().select_related('room__floor__building','user__grade')
+        data = []
+        for d in sr:
+            data.append([
+                d.user.grade.name,
+                d.user.username,
+                d.user.name,
+                d.room.get_room(),
+                d.bed_position
+            ])
+        return list_to_excel(data,'学生数据1',['班级','学号','姓名','寝室','床位'])
 
 # 可以慢慢淘汰的代码
 
