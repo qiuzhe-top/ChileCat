@@ -629,12 +629,12 @@ class InzaoqianExcel(PermissionView):
             user_usernams.append(username)
         query = User.objects.filter(username__in=user_usernams)
         for u in query:
-            self.db_users[u.username] = u
+            self.db_users[u.username.upper()] = u
 
         wait_create_record = []  # 等待批量获取的记录实例
         for row in rows:
             time = row[1]
-            name = row[0]
+            name = row[0].upper()
             time = self.time_formatting(time)  
             if (name + time) not in db_records:
                 
