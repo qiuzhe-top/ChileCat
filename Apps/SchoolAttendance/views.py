@@ -589,8 +589,17 @@ class InzaoqianExcel(PermissionView):
     def time_formatting(self,time):
         if '-' in time:
             time = time.split(' ')[0]
-            return time.replace('-','/')
-        return time
+            time = time.replace('-','/')
+            year = time.split('/')[0]
+            month = int(time.split('/')[1])
+            data = int(time.split('/')[2])
+            time = year + '/' +str(month) +'/'+ str(data)
+        else:
+            year = time.split('/')[0]
+            month = int(time.split('/')[1])
+            data = int(time.split('/')[2])
+            time = year + '/' +str(month) +'/'+ str(data)   
+        return time       
         
     def get_context(self, request, *args, **kwargs):
         rows = excel_to_list(request)
@@ -611,7 +620,6 @@ class InzaoqianExcel(PermissionView):
             time = str(time.year) + '/' + str(time.month) + '/' + str(time.day)
             name = q['name']
             db_records.append(name + time)
-        print(db_records)      
 
         # 获取涉及的学生对象列表
         user_usernams = []
