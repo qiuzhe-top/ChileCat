@@ -640,6 +640,18 @@ class InzaoqianExcel(PermissionView):
                 
                 try:
                     u = self.db_users[name]
+                except:
+                    error_list.append(
+                        {
+                            'username': name,
+                            'name': self.get_name(name),
+                            'str_time': time,
+                            'message': '用户不在系统',
+                        }
+                    )
+                    continue
+                
+                try:
                     grade_str = u.grade.name
                 except:
                     error_list.append(
@@ -647,10 +659,12 @@ class InzaoqianExcel(PermissionView):
                             'username': name,
                             'name': self.get_name(name),
                             'str_time': time,
-                            'message': '用户不在系统 或 没有班级信息',
+                            'message': '用户没有班级信息异常',
                         }
                     )
                     continue
+
+
                 try:
                     star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
                 except:
