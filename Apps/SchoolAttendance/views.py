@@ -573,47 +573,32 @@ class PersonalDisciplineQuery(PermissionView):
 
 
 
+@site
+class InClassRoomExcel(ExcelInData):
+    name = _('导入白天课堂考勤')
+
+    def get_context(self, request, *args, **kwargs):
+        self.init(request)
+        user = request.user
+        # task, task_t = Task.objects.get_or_create(types='3', college=college)
+
 
 
 @site
-class InzaoqianExcel(PermissionView):
+class InzaoqianExcel(ExcelInData):
     name = _('导入早签/晨点数据')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
-    def get_name(self,name):
-        try:
-            return self.db_users[name].name
-        except:
-            return name
 
-    def time_formatting(self,time):
-        if '-' in time:
-            time = time.split(' ')[0]
-            time = time.replace('-','/')
-            year = time.split('/')[0]
-            month = int(time.split('/')[1])
-            data = int(time.split('/')[2])
-            time = year + '/' +str(month) +'/'+ str(data)
-        else:
-            year = time.split('/')[0]
-            month = int(time.split('/')[1])
-            data = int(time.split('/')[2])
-            time = year + '/' +str(month) +'/'+ str(data)   
-        return time       
-        
     def get_context(self, request, *args, **kwargs):
-        rows = excel_to_list(request)
+        self.init(request)
         user = request.user
         college = user.grade.college
         task, task_t = Task.objects.get_or_create(types='3', college=college)
         d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT}
         rule = models.RuleDetails.objects.get(name = d[request.params.codename])
-        error_list = []
 
-        # 获取历史早签记录
-        query = Record.objects.filter(task=task, rule=rule).values(
-            name=F('student_approved__username'), time=F('star_time')
-        )
+         
         db_records = []
         for q in query:
             time = q['time']
@@ -621,18 +606,9 @@ class InzaoqianExcel(PermissionView):
             name = q['name']
             db_records.append(name + time)
 
-        # 获取涉及的学生对象列表
-        user_usernams = []
-        self.db_users = {}
-        for row in rows:
-            username = row[0]
-            user_usernams.append(username)
-        query = User.objects.filter(username__in=user_usernams)
-        for u in query:
-            self.db_users[u.username.upper()] = u
 
         wait_create_record = []  # 等待批量获取的记录实例
-        for row in rows:
+        for row in self.rows:
             time = row[1]
             name = row[0].upper()
             time = self.time_formatting(time)  
@@ -641,41 +617,20 @@ class InzaoqianExcel(PermissionView):
                 try:
                     u = self.db_users[name]
                 except:
-                    error_list.append(
-                        {
-                            'username': name,
-                            'name': self.get_name(name),
-                            'str_time': time,
-                            'message': '用户不在系统',
-                        }
-                    )
+                    self.add_error(name,self.get_name(name),time,'用户不在系统')
                     continue
                 
                 try:
                     grade_str = u.grade.name
                 except:
-                    error_list.append(
-                        {
-                            'username': name,
-                            'name': self.get_name(name),
-                            'str_time': time,
-                            'message': '用户没有班级信息异常',
-                        }
-                    )
+                    self.add_error(name,self.get_name(name),time,'用户没有班级信息异常')
                     continue
 
 
                 try:
                     star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
                 except:
-                    error_list.append(
-                        {
-                            'username': name,
-                            'name': name,
-                            'str_time': time,
-                            'message': '日期格式错误',
-                        }
-                    )
+                    self.add_error(name,self.get_name(name),time,'日期格式错误')
                     continue
 
                 record = Record(
@@ -692,16 +647,10 @@ class InzaoqianExcel(PermissionView):
                 )
                 wait_create_record.append(record)
             else:
-                error_list.append(
-                    {
-                        'username': name,
-                        'name': self.get_name(name),
-                        'str_time': time,
-                        'message': '已经存在',
-                    }
-                )
+                self.add_error(name,self.get_name(name),time,'已经存在')
+
         Record.objects.bulk_create(wait_create_record)
-        return error_list
+        return self.error_list
 
     class Meta:
         param_fields = (
