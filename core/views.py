@@ -18,6 +18,7 @@ from cool.views.view import CoolBFFAPIView
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
+from core.excel_utils import excel_to_list
 from core.models_utils import create_custom_rule
 
 # from django.conf import settings
@@ -275,3 +276,54 @@ class SubmitBase(TaskBase):
         )
         path = '/'
         
+
+    
+class ExcelInData(PermissionView):
+
+    def init(self,request):
+        self.db_users = {}
+        self.error_list = []
+        self.rows = excel_to_list(request)
+        self.init_excel_user()
+    
+    def init_excel_user(self):
+        # 获取涉及的学生对象列表
+        user_usernams = []
+        for row in self.rows:
+            username = row[0]
+            user_usernams.append(username)
+        query = User.objects.filter(username__in=user_usernams)
+        for u in query:
+            self.db_users[u.username.upper()] = u
+            
+    def add_error(self,username,name,time,message):
+        self.error_list.append(
+            {
+                'username': username,
+                'name': name,
+                'str_time': time,
+                'message': message,
+            }
+        )
+
+    def get_name(self,name):
+        # 获取用户实例
+        try:
+            return self.db_users[name].name
+        except:
+            return name
+
+    def time_formatting(self,time):
+        # 表格时间格式化为 2000/1/1 
+        if '-' in time:
+            time = time.split(' ')[0]
+            time = time.replace('-','/')
+
+        year = time.split('/')[0]
+        month = int(time.split('/')[1])
+        data = int(time.split('/')[2])
+        time = year + '/' +str(month) +'/'+ str(data)   
+        return time  
+
+    class Meta:
+        path = '/'

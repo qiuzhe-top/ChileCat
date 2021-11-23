@@ -35,7 +35,7 @@ urlpatterns = [
     path('cool/', include('cool.urls')),
     path('admin/', admin.site.urls),
     path('api/', include(apipatterns)),
-    path('api_doc.html', get_api_doc_html),
+    path('doc', get_api_doc_html),
 ]
 # if settings.DEBUG:
 #     urlpatterns.append(
