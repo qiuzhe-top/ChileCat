@@ -84,9 +84,9 @@ if DB_TYPE == 1:
     HOST = '47.102.215.230'
     DB_NAME = 'ChileCatTest'
 elif DB_TYPE == 2:
-    USER = 'ChileCatTest'
+    USER = 'root'
     HOST = '127.0.0.1'
-    DB_NAME = 'ChileCatTest'
+    DB_NAME = 'ChileCat'
 
 if DB_TYPE == 3:
     print('Sqlite 连接中...')
