@@ -194,14 +194,16 @@ class Condition(TaskBase):
 
 
 @site
-class UndoRecord(TaskBase):
+class UndoRecord(TaskBase,RecordBase):
     name = _('销假(当前任务管理员)')
 
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
-        record = models.Record.objects.get(task=task, id=request.params.record_id)
-        record.manager = request.user
-        record.save()
+        id = request.params.record_id
+        user = request.user
+        record = self.get_record_by_id_task(id,task)
+        self.undo_record(record,user)
+
 
     class Meta:
         param_fields = (
@@ -210,15 +212,15 @@ class UndoRecord(TaskBase):
 
 
 @site
-class UndoRecordAdmin(PermissionView):
+class UndoRecordAdmin(PermissionView,RecordBase):
     name = _('销假(分院管理员)')
     need_permissions = ('SchoolAttendance.undo_record_admin',)
 
     def get_context(self, request, *args, **kwargs):
-        # TODO 需要进行管理员身份验证
-        record = models.Record.objects.get(id=request.params.record_id)
-        record.manager = request.user
-        record.save()
+        # TODO 需要进行管理员身份验证,并且只能对自己分院有效
+        id = request.params.record_id
+        record = self.get_record_by_id(id)
+        self.undo_record(record)
 
     class Meta:
         param_fields = (
@@ -288,7 +290,7 @@ class SubmitLateDiscipline(SubmitBase):
         '''获取自定义规则'''
         return create_custom_rule(RULE_CODE_03, RULE_NAME_03_01)
 
-    def submit_user_record(self, record_model, record):
+    def submit_check(self, record_model, record):
         '''提交学生考勤记录'''
         if record['reason_is_custom']:
             if len(record_model['rule_str']) <= 0:
@@ -305,7 +307,7 @@ class SubmitLateDiscipline(SubmitBase):
 class SubmitLate(SubmitBase):
     name = _('晚自修考勤 点名提交')
 
-    def submit_user_record(self, record_model, record):
+    def submit_check(self, record_model, record):
         '''提交学生考勤记录'''
         call, status = models.UserCall.objects.get_or_create(
             task=self.task,
@@ -349,20 +351,27 @@ class SubmitKnowing(SubmitBase):
                 flg=True
             )
 
-    def undo_record(self, record_model, user):
+    def submit_undo_record(self, record_model, user):
         '''撤销对学生的违纪记录'''
         self.updata_user_in_room(user, True)
         record_model['rule_str'] = '查寝：误操作撤销'
-
+        manager_user = record_model['manager']
         # 定位记录 时间 任务 被撤销学生
         now = datetime.datetime.now()
         records = models.Record.objects.filter(
             task=self.task,
             student_approved=record_model['student_approved'],
             star_time__date=datetime.date(now.year, now.month, now.day),
-        ).update(manager=record_model['manager'])
+        )
 
-    def submit_user_record(self, record_model, record):
+        if len(records) == 1:
+            record = records[0]
+            self.undo_record(record,manager_user)
+        elif len(records) > 1:
+            records.update(manager=manager_user)
+
+
+    def submit_check(self, record_model, record):
         '''提交学生考勤记录'''
         return self.updata_user_in_room(record_model['student_approved'], False)
 
@@ -378,7 +387,7 @@ class SubmitHealth(SubmitBase):
         '''获取自定义宿舍卫生规则'''
         return create_custom_rule(RULE_CODE_07, RULE_NAME_07_01)
 
-    def submit_user_record(self, record_model, record):
+    def submit_check(self, record_model, record):
         '''提交学生考勤记录'''
         pass
 
