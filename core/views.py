@@ -6,6 +6,7 @@ LastEditors:
 LastEditTime: 2021-09-22 17:55:32
 Description: 父类
 '''
+from typing import Any
 from core.common import is_number
 import json
 
@@ -93,6 +94,7 @@ class TaskBase(PermissionView):
         raise NotImplementedError
     
 
+        
     def is_open(self):
         if not self.task.is_open:
             raise CoolAPIException(ErrorCode.ERR_TASK_ISOPEN_FALSE)
@@ -108,7 +110,7 @@ class TaskBase(PermissionView):
             raise CoolAPIException(ErrorCode.ERR_TAKS_IS_NO)
 
     def get_task_by_user(self):
-        '''通过用户和任务id获取任务'''
+        '''通过管理用户和任务id获取任务'''
         try:
             id = self.request.params.task_id
             user = self.request.user
@@ -119,7 +121,7 @@ class TaskBase(PermissionView):
             raise CoolAPIException(ErrorCode.ERR_TAKS_USER_HAS_NO_TASK)
     
     def get_task_player_by_user(self):
-        '''通过用户和任务id获取任务'''
+        '''通过工作用户和任务id获取任务'''
         try:
             id = self.request.params.task_id
             user = self.request.user
@@ -150,16 +152,81 @@ class TaskBase(PermissionView):
         )
         path = '/'
 
+class RecordBase():
 
-class SubmitBase(TaskBase):
+    def __init__(self) -> None:
+        self.record_model = {}
+        self.custom_rule = None
 
     def init_custom_rule(self):
-        '''获取自定义规则 所属父类'''
+        '''构建规则（自定义）'''
         if self.custom_rule:
             return self.custom_rule
         else:
             self.custom_rule =self.get_custom_rule()
             return self.custom_rule
+
+    def get_custom_rule(self):
+        '''获取规则（自定义）'''
+        pass
+
+    def get_record_by_id(self,id):
+        '''
+        通过ID获取考勤记录
+
+        Parameters
+        ----------
+        id : int
+            考勤记录在数据库中的id
+
+        Returns
+        -------
+        models.Record
+            考勤记录对象
+        '''
+        return Record.objects.get(id=id)
+        
+    def get_record_by_id_task(self,id,task):
+        '''
+        通过ID获取考勤记录
+
+        Parameters
+        ----------
+        id : int
+            考勤记录在数据库中的id
+        task : models.Task
+            考勤任务实例
+
+        Returns
+        -------
+        models.Record
+            考勤记录对象
+        '''
+        return Record.objects.get(task=task, id=id)
+
+    def undo_record(self,record,user):
+        '''
+        单个 核销考勤记录
+        通过给manager属性来表示已经核销
+        这个属性记录了是谁核销
+        核销判断逻辑就是根据是否存在这个属性
+
+        Parameters
+        ----------
+        record : models.Record
+            任务记录实例
+        user : models.User
+            用户模型实例
+        '''             
+        record.manager = user
+        record.save()
+
+    def submit_record(self):
+        '''单个  提交考勤记录'''
+        Record.objects.create(**self.record_model)
+
+class SubmitBase(TaskBase,RecordBase):
+
 
     def get_room(self):
         '''获取房间'''
@@ -178,24 +245,7 @@ class SubmitBase(TaskBase):
         except:
             self.room_str = None
             return None
-
-    def get_custom_rule(self):
-        '''获取自定义规则'''
-        pass
-
-    def undo_record(self,record_model,user):
-        '''撤销对学生的违纪记录'''
-        record_model['rule_str'] = '操作撤销'
-        # 更新数据
-
-    def submit_user_record(self,record_model,record):
-        '''提交学生考勤记录'''
-        return True
-
-
-
-    def init_data(self):
-        '''初始化所用数据'''
+    def submit_check(self):
         pass
 
     def get_context(self, request, *args, **kwargs):
@@ -204,7 +254,6 @@ class SubmitBase(TaskBase):
         self.is_open()
         self.custom_rule = None
         self.get_room()
-        self.init_data()
         records = request.params.records
 
 
@@ -217,23 +266,20 @@ class SubmitBase(TaskBase):
                 pass
 
             # 构建 考勤记录模型
-            record_model = {}
-            record_model['task'] = self.task
-            record_model['room_str'] = self.room_str
+            self.record_model['task'] = self.task
+            self.record_model['room_str'] = self.room_str
             try:
-                record_model['grade_str'] =  user.grade.name
+                self.record_model['grade_str'] =  user.grade.name
             except:
-                record_model['grade_str'] =  None
-            record_model['student_approved'] = user
-            record_model['worker'] = self.request.user
-
+                self.record_model['grade_str'] =  None
+            self.record_model['student_approved'] = user
+            self.record_model['worker'] = self.request.user
 
             status = str(record['status'])
             # 撤销记录
             if status == '1':
-                record_model['manager'] = self.request.user
-                self.undo_record(record_model,user)
-                          
+                self.record_model['manager'] = self.request.user
+                self.submit_undo_record(self.record_model,user)                          
 
             # 提交记录
             elif status == '0':
@@ -254,14 +300,15 @@ class SubmitBase(TaskBase):
                         rule = self.init_custom_rule()
                         rule_str = reason
 
-                record_model['rule_str'] = rule_str
-                record_model['score'] = 1 # 默认扣一分
+                self.record_model['rule_str'] = rule_str
+                self.record_model['score'] = 1 # 默认扣一分
                 if rule:
-                    record_model['rule'] = rule
-                    record_model['score'] = rule.score
+                    self.record_model['rule'] = rule
+                    self.record_model['score'] = rule.score
 
-                if self.submit_user_record(record_model,record) != False:
-                    Record.objects.create(**record_model)
+                if self.submit_check(self.record_model,record) != False:
+                    self.submit_record()
+                    
 
     class Meta:
         records= {}
