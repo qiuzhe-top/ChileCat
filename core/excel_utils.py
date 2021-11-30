@@ -97,6 +97,9 @@ def at_all_out_xls(data):
             # 晨点
             k.get(RULE_CODE_08+'score',0),
             k.get(RULE_CODE_08+'rule',''),
+            # 晨跑
+            k.get(RULE_CODE_09+'score',0),
+            k.get(RULE_CODE_09+'rule',''),
             # 早签
             k.get(RULE_CODE_04+'score',0),
             k.get(RULE_CODE_04+'rule',''),
