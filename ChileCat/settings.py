@@ -9,7 +9,7 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 DEBUG = True
 
 # 数据类型 1 线上数据库  2 本地Mysql  3 本地Sqlite
-DB_TYPE = 2
+DB_TYPE = 1
 
 ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
