@@ -13,6 +13,7 @@ PASSWOED_123456 = (
 # 早签
 MORNING_SIGN = '早签'
 MORNING_POINT = '晨点'
+MORNING_RUNNING = '晨跑'
 
 # 分院数据初始化
 ZHJT_NAME = '智慧交通学院'
@@ -39,6 +40,7 @@ RULE_CODE_05 = '0#005'
 RULE_CODE_06 = '0#006'
 RULE_CODE_07 = '0#007'
 RULE_CODE_08 = '0#008'
+RULE_CODE_09 = '0#009'
 # 初始化规则
 INIT_RULES = [
     {
@@ -91,17 +93,7 @@ INIT_RULES = [
             {'id': 401, 'name': MORNING_SIGN, 'score': 0.5},
         ],
     },
-    {
-        "rule_f": {
-            'id': 800,
-            'name': MORNING_POINT,
-            'codename': RULE_CODE_08,
-            'is_person': True,
-        },
-        "rules": [
-            {'id': 801, 'name': MORNING_POINT,'score': 1},
-        ],
-    },
+
     {
         "rule_f": {
             'id': 500,
@@ -188,6 +180,28 @@ INIT_RULES = [
             {'id': 707, 'name': '私拉电线', 'score': '100'},
             {'id': 708, 'name': '饲养宠物', 'score': '100'},
             {'id': 709, 'name': RULE_NAME_07_01, 'score': '1'},
+        ],
+    },
+    {
+        "rule_f": {
+            'id': 800,
+            'name': MORNING_POINT,
+            'codename': RULE_CODE_08,
+            'is_person': True,
+        },
+        "rules": [
+            {'id': 801, 'name': MORNING_POINT,'score': 1},
+        ],
+    },
+        {
+        "rule_f": {
+            'id': 900,
+            'name': MORNING_RUNNING,
+            'codename': RULE_CODE_09,
+            'is_person': True,
+        },
+        "rules": [
+            {'id': 901, 'name': MORNING_RUNNING,'score': 3},
         ],
     },
 ]

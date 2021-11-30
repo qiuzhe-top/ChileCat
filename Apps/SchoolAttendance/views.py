@@ -516,9 +516,11 @@ class RecordQuery(CoolBFFAPIView):
         )
         q4 = Q(task__types__in=['2', '0','3']) | Q(rule_str='早签')  # 任务类型限制
         q5 = Q(task__college__id=college_id)  # 分院
+        q6 = Q(rule__isnull=False)
+
         records = (
             models.Record.objects.filter(
-                q4, q5, star_time__range=(start_date, end_date), manager__isnull=True
+                q4, q5,  star_time__range=(start_date, end_date), manager__isnull=True
             )
             .select_related('student_approved', 'worker', 'rule', 'task__college')
             .order_by('-last_time')
@@ -577,7 +579,7 @@ class PersonalDisciplineQuery(PermissionView):
 
 @site
 class InzaoqianExcel(PermissionView):
-    name = _('导入早签/晨点数据')
+    name = _('导入早签/晨点数据/晨跑')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 
     def get_name(self,name):
@@ -606,7 +608,7 @@ class InzaoqianExcel(PermissionView):
         user = request.user
         college = user.grade.college
         task, task_t = Task.objects.get_or_create(types='3', college=college)
-        d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT}
+        d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT,'MORNING_RUNNING':MORNING_RUNNING}
         rule = models.RuleDetails.objects.get(name = d[request.params.codename])
         error_list = []
 
@@ -736,9 +738,9 @@ class OutData(CoolBFFAPIView):
         )  # 是否名称搜索
         q4 = Q(task__types__in=['2', '0', '3'])  # 任务类型限制
         q5 = Q(task__college__id=college_id)  # 分院
-
+        q6 = Q(rule__isnull=False)
         records = (
-            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5)
+            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6)
             .values(
                 grade=F('grade_str'),
                 name=F('student_approved__name'),
@@ -780,6 +782,7 @@ class OutData(CoolBFFAPIView):
                     record[RULE_CODE_05 + 'score'] = 0
                     # record[RULE_CODE_07+'score'] = 0
                     record[RULE_CODE_08+'score'] = 0
+                    record[RULE_CODE_09+'score'] = 0
                 if not type_ + 'rule' in record:
                     record[RULE_CODE_01 + 'rule'] = ''
                     record[RULE_CODE_02 + 'rule'] = ''
@@ -788,6 +791,7 @@ class OutData(CoolBFFAPIView):
                     record[RULE_CODE_05 + 'rule'] = ''
                     # record[RULE_CODE_07+'rule'] = ''
                     record[RULE_CODE_08+'rule'] = ''
+                    record[RULE_CODE_09+'rule'] = ''
 
                 # 分数累加
                 record[type_ + 'score'] += float(score_onn[index])
