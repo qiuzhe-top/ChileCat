@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-10-09 10:32:26
+LastEditTime: 2021-12-01 14:26:17
 Description: 
 '''
 import datetime
@@ -465,7 +465,7 @@ class StudentDisciplinary(CoolBFFAPIView):
 
 @site
 class LateClass(TaskBase):
-    name = _('晚自修数据')
+    name = _('晚自修点名 名单数据')
 
     def get_context(self, request, *args, **kwargs):
         self.get_task_player_by_user()
@@ -596,7 +596,7 @@ class InClassRoomExcel(ExcelInData):
 
 
 @site
-class InzaoqianExcel(PermissionView):
+class InzaoqianExcel(ExcelInData):
     name = _('导入早签/晨点数据/晨跑')
     need_permissions = ('SchoolAttendance.zq_data_import',)
 

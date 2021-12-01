@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-22 17:55:32
+LastEditTime: 2021-12-01 14:04:38
 Description: 父类
 '''
 from typing import Any
@@ -21,9 +21,6 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
 from core.excel_utils import excel_to_list
 from core.models_utils import create_custom_rule
-
-# from django.conf import settings
-# User = settings.AUTH_USER_MODEL
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -154,10 +151,6 @@ class TaskBase(PermissionView):
 
 class RecordBase():
 
-    def __init__(self) -> None:
-        self.record_model = {}
-        self.custom_rule = None
-
     def init_custom_rule(self):
         '''构建规则（自定义）'''
         if self.custom_rule:
@@ -221,9 +214,9 @@ class RecordBase():
         record.manager = user
         record.save()
 
-    def submit_record(self):
+    def submit_record(self,record_model):
         '''单个  提交考勤记录'''
-        Record.objects.create(**self.record_model)
+        Record.objects.create(**record_model)
 
 class SubmitBase(TaskBase,RecordBase):
 
@@ -247,7 +240,20 @@ class SubmitBase(TaskBase,RecordBase):
             return None
     def submit_check(self):
         pass
-
+        
+    def submit_undo_record(self,record_model,manager_user):
+        '''
+        单个 核销考勤记录
+        
+        Parameters
+        ----------
+        record_model : models.Record
+            任务记录实例
+        manager_user : models.User
+            用户模型实例
+        '''       
+        self.undo_record(record_model,manager_user)
+        
     def get_context(self, request, *args, **kwargs):
         # TODO 优化提交数度
         self.get_task_player_by_user()
@@ -266,20 +272,21 @@ class SubmitBase(TaskBase,RecordBase):
                 pass
 
             # 构建 考勤记录模型
-            self.record_model['task'] = self.task
-            self.record_model['room_str'] = self.room_str
+            record_model = {}
+            record_model['task'] = self.task
+            record_model['room_str'] = self.room_str
             try:
-                self.record_model['grade_str'] =  user.grade.name
+                record_model['grade_str'] =  user.grade.name
             except:
-                self.record_model['grade_str'] =  None
-            self.record_model['student_approved'] = user
-            self.record_model['worker'] = self.request.user
+                record_model['grade_str'] =  None
+            record_model['student_approved'] = user
+            record_model['worker'] = self.request.user
 
             status = str(record['status'])
             # 撤销记录
             if status == '1':
-                self.record_model['manager'] = self.request.user
-                self.submit_undo_record(self.record_model,user)                          
+                record_model['manager'] = self.request.user
+                self.submit_undo_record(record_model,user)                          
 
             # 提交记录
             elif status == '0':
@@ -300,14 +307,14 @@ class SubmitBase(TaskBase,RecordBase):
                         rule = self.init_custom_rule()
                         rule_str = reason
 
-                self.record_model['rule_str'] = rule_str
-                self.record_model['score'] = 1 # 默认扣一分
+                record_model['rule_str'] = rule_str
+                record_model['score'] = 1 # 默认扣一分
                 if rule:
-                    self.record_model['rule'] = rule
-                    self.record_model['score'] = rule.score
+                    record_model['rule'] = rule
+                    record_model['score'] = rule.score
 
-                if self.submit_check(self.record_model,record) != False:
-                    self.submit_record()
+                if self.submit_check(record_model,record) != False:
+                    self.submit_record(record_model)
                     
 
     class Meta:

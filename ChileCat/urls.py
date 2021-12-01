@@ -3,22 +3,9 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 13:30:11
+LastEditTime: 2021-12-01 13:50:49
 Description: file information
 '''
-# from django.contrib import admin
-# from django.urls import include, pathDORMITORY_NOT_ARRANGED
-
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-#     path('api/user/', include(('Apps.User.urls', 'Apps.User'), namespace='User')),
-#     path('api/school_information/', include(('Apps.SchoolInformation.urls',
-#          'Apps.SchoolInformation'), namespace='SchoolInformation')),
-#     path('api/school_attendance/', include(('Apps.SchoolAttendance.urls',
-#          'Apps.SchoolAttendance'), namespace='SchoolAttendance')),
-#     path('api/manage/', include(('Manage.urls', 'Manage'), namespace='Manage')),
-# ]
-
 
 from cool.views import get_api_doc_html
 from django.conf import settings
