@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-01 14:04:38
+LastEditTime: 2021-12-01 14:45:16
 Description: 父类
 '''
 from typing import Any
@@ -152,7 +152,14 @@ class TaskBase(PermissionView):
 class RecordBase():
 
     def init_custom_rule(self):
-        '''构建规则（自定义）'''
+        '''
+        构建规则（自定义）
+
+        Returns
+        -------
+        models.Rule
+            规则实例
+        '''        
         if self.custom_rule:
             return self.custom_rule
         else:
@@ -161,7 +168,7 @@ class RecordBase():
 
     def get_custom_rule(self):
         '''获取规则（自定义）'''
-        pass
+        return None
 
     def get_record_by_id(self,id):
         '''
@@ -197,7 +204,7 @@ class RecordBase():
         '''
         return Record.objects.get(task=task, id=id)
 
-    def undo_record(self,record,user):
+    def undo_record(self,record,manager_user):
         '''
         单个 核销考勤记录
         通过给manager属性来表示已经核销
@@ -208,14 +215,17 @@ class RecordBase():
         ----------
         record : models.Record
             任务记录实例
-        user : models.User
-            用户模型实例
+        manager_user : models.User
+            用户模型实例,Record表中manager字段
         '''             
-        record.manager = user
+        record.manager = manager_user
         record.save()
 
     def submit_record(self,record_model):
-        '''单个  提交考勤记录'''
+        '''
+        单个 提交考勤记录
+        
+        '''
         Record.objects.create(**record_model)
 
 class SubmitBase(TaskBase,RecordBase):
@@ -239,6 +249,11 @@ class SubmitBase(TaskBase,RecordBase):
             self.room_str = None
             return None
     def submit_check(self):
+        '''
+        提交前数据检查
+        在这里可以对考勤记录数据做最后的修改
+        执行完后就进入任务提交，但如果返回False时将不会提交
+        '''        
         pass
         
     def submit_undo_record(self,record_model,manager_user):
@@ -262,7 +277,6 @@ class SubmitBase(TaskBase,RecordBase):
         self.get_room()
         records = request.params.records
 
-
         for record in records:
             # 获取用户
             user = None
@@ -271,8 +285,8 @@ class SubmitBase(TaskBase,RecordBase):
             except:
                 pass
 
-            # 构建 考勤记录模型
             record_model = {}
+            # 构建 考勤记录模型
             record_model['task'] = self.task
             record_model['room_str'] = self.room_str
             try:

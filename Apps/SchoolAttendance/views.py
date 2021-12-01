@@ -8,6 +8,8 @@ Description:
 '''
 import datetime
 
+from django.http import request
+
 from Apps.SchoolAttendance.pagination import RecordQueryrPagination
 from Apps.User.utils.auth import get_token_by_user
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
@@ -200,9 +202,8 @@ class UndoRecord(TaskBase,RecordBase):
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
         id = request.params.record_id
-        user = request.user
         record = self.get_record_by_id_task(id,task)
-        self.undo_record(record,user)
+        self.undo_record(record,request.user)
 
 
     class Meta:
@@ -220,7 +221,7 @@ class UndoRecordAdmin(PermissionView,RecordBase):
         # TODO 需要进行管理员身份验证,并且只能对自己分院有效
         id = request.params.record_id
         record = self.get_record_by_id(id)
-        self.undo_record(record)
+        self.undo_record(record,request.user)
 
     class Meta:
         param_fields = (
@@ -351,11 +352,10 @@ class SubmitKnowing(SubmitBase):
                 flg=True
             )
 
-    def submit_undo_record(self, record_model, user):
-        '''撤销对学生的违纪记录'''
-        self.updata_user_in_room(user, True)
+    def submit_undo_record(self,record_model):
+        self.updata_user_in_room(record_model['student_approved'], True)
         record_model['rule_str'] = '查寝：误操作撤销'
-        manager_user = record_model['manager']
+
         # 定位记录 时间 任务 被撤销学生
         now = datetime.datetime.now()
         records = models.Record.objects.filter(
@@ -364,6 +364,7 @@ class SubmitKnowing(SubmitBase):
             star_time__date=datetime.date(now.year, now.month, now.day),
         )
 
+        manager_user = record_model['manager']
         if len(records) == 1:
             record = records[0]
             self.undo_record(record,manager_user)
