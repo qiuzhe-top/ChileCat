@@ -154,12 +154,15 @@ class TaskBase(PermissionView):
 
 class RecordBase():
 
-    def __init__(self) -> None:
-        self.record_model = {}
-        self.custom_rule = None
-
     def init_custom_rule(self):
-        '''构建规则（自定义）'''
+        '''
+        构建规则（自定义）
+
+        Returns
+        -------
+        models.Rule
+            规则实例
+        '''        
         if self.custom_rule:
             return self.custom_rule
         else:
@@ -168,7 +171,7 @@ class RecordBase():
 
     def get_custom_rule(self):
         '''获取规则（自定义）'''
-        pass
+        return None
 
     def get_record_by_id(self,id):
         '''
@@ -204,7 +207,7 @@ class RecordBase():
         '''
         return Record.objects.get(task=task, id=id)
 
-    def undo_record(self,record,user):
+    def undo_record(self,record,manager_user):
         '''
         单个 核销考勤记录
         通过给manager属性来表示已经核销
@@ -215,15 +218,18 @@ class RecordBase():
         ----------
         record : models.Record
             任务记录实例
-        user : models.User
-            用户模型实例
+        manager_user : models.User
+            用户模型实例,Record表中manager字段
         '''             
-        record.manager = user
+        record.manager = manager_user
         record.save()
 
-    def submit_record(self):
-        '''单个  提交考勤记录'''
-        Record.objects.create(**self.record_model)
+    def submit_record(self,record_model):
+        '''
+        单个 提交考勤记录
+        
+        '''
+        Record.objects.create(**record_model)
 
 class SubmitBase(TaskBase,RecordBase):
 
@@ -246,7 +252,23 @@ class SubmitBase(TaskBase,RecordBase):
             self.room_str = None
             return None
     def submit_check(self):
+        '''
+        提交前数据检查
+        在这里可以对考勤记录数据做最后的修改
+        执行完后就进入任务提交，但如果返回False时将不会提交
+        '''        
         pass
+    
+    def submit_undo_record(self,record_model):
+        '''
+        撤销对学生的考勤记录（查寝2 
+
+        Parameters
+        ----------
+        record_model : dict
+            任务记录字典对象
+        '''   
+        self.undo_record(record_model,self.request.user)
 
     def get_context(self, request, *args, **kwargs):
         # TODO 优化提交数度
@@ -256,7 +278,6 @@ class SubmitBase(TaskBase,RecordBase):
         self.get_room()
         records = request.params.records
 
-
         for record in records:
             # 获取用户
             user = None
@@ -265,21 +286,22 @@ class SubmitBase(TaskBase,RecordBase):
             except:
                 pass
 
+            record_model = {}
             # 构建 考勤记录模型
-            self.record_model['task'] = self.task
-            self.record_model['room_str'] = self.room_str
+            record_model['task'] = self.task
+            record_model['room_str'] = self.room_str
             try:
-                self.record_model['grade_str'] =  user.grade.name
+                record_model['grade_str'] =  user.grade.name
             except:
-                self.record_model['grade_str'] =  None
-            self.record_model['student_approved'] = user
-            self.record_model['worker'] = self.request.user
+                record_model['grade_str'] =  None
+            record_model['student_approved'] = user
+            record_model['worker'] = self.request.user
 
             status = str(record['status'])
             # 撤销记录
             if status == '1':
-                self.record_model['manager'] = self.request.user
-                self.submit_undo_record(self.record_model,user)                          
+                record_model['manager'] = self.request.user
+                self.submit_undo_record(record_model)                          
 
             # 提交记录
             elif status == '0':
@@ -300,14 +322,14 @@ class SubmitBase(TaskBase,RecordBase):
                         rule = self.init_custom_rule()
                         rule_str = reason
 
-                self.record_model['rule_str'] = rule_str
-                self.record_model['score'] = 1 # 默认扣一分
+                record_model['rule_str'] = rule_str
+                record_model['score'] = 1 # 默认扣一分
                 if rule:
-                    self.record_model['rule'] = rule
-                    self.record_model['score'] = rule.score
+                    record_model['rule'] = rule
+                    record_model['score'] = rule.score
 
-                if self.submit_check(self.record_model,record) != False:
-                    self.submit_record()
+                if self.submit_check(record_model,record) != False:
+                    self.submit_record(record_model)
                     
 
     class Meta:
