@@ -8,16 +8,10 @@ SECRET_KEY = 'b-u)^cel(1#+=&ian1b2m0e07hr*k8^96fuh*tq+cf^+!!__qd'
 
 DEBUG = True
 
-# 数据类型 1 线上数据库  2 本地Mysql  3 本地Sqlite
-DB_TYPE = 2
-
 ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务器才配置
 if ENV_PROFILE:
     DEBUG = False
-    DB_TYPE = 1
     print('线上环境')
-
-
 
 ALLOWED_HOSTS = ["*"]
 
@@ -75,44 +69,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ChileCat.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
-
-if DB_TYPE == 1:
-    USER = 'root'
-    HOST = '47.100.95.58'
-    # HOST = '47.102.215.230'
-    DB_NAME = 'ChileCat'
-elif DB_TYPE == 2:
-    USER = 'root'
-    HOST = '127.0.0.1'
-    DB_NAME = 'ChileCat'
-
-if DB_TYPE == 3:
-    print('Sqlite 连接中...')
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ChileCat',
+        'USER': 'root',
+        'PASSWORD': 'zhou24272592',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {'isolation_level': None},
     }
-else:
-    print('DEBUG:', DEBUG, '数据库:', HOST, DB_NAME)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': DB_NAME,
-            'USER': USER,
-            'PASSWORD': 'zhou24272592',
-            'HOST': HOST,
-            'PORT': '3306',
-            'OPTIONS': {'isolation_level': None},
-        }
-    }
-# Password validation
-# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
+}
 
+# print('Sqlite 连接中...')
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -128,9 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/3.1/topics/i18n/
-
 LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'Asia/Shanghai'
@@ -142,9 +114,6 @@ USE_L10N = True
 USE_TZ = False
 
 APPEND_SLASH = False
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
 # 当访问静态文件时去哪里找
