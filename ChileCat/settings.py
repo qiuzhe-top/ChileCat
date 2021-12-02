@@ -68,13 +68,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ChileCat.wsgi.application'
-
+print(os.getenv('MYSQL_PASSWORD'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ChileCat',
         'USER': 'root',
-        'PASSWORD': 'zhou24272592',
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {'isolation_level': None},
