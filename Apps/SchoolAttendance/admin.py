@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-11 16:20:57
+LastEditTime: 2021-12-01 20:11:28
 Description: 
 '''
 from django.contrib import admin
@@ -61,8 +61,9 @@ class RecordAdmin(admin.ModelAdmin):
             else:
                 continue
         if flag:
-            u = request.user
-            queryset.update(manager = u,manager_username=u.username,manager_name=u.name)
+            for q in queryset:
+                q.manager  = request.user
+                q.save()
             self.message_user(request, '批量销假成功！！')
 
     batch_pin.short_description = '批量销假'

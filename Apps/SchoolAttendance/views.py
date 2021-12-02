@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-01 14:26:17
+LastEditTime: 2021-12-02 10:16:39
 Description: 
 '''
 import datetime
@@ -352,7 +352,7 @@ class SubmitKnowing(SubmitBase):
                 flg=True
             )
 
-    def submit_undo_record(self,record_model):
+    def submit_undo_record(self,record_model,user):
         self.updata_user_in_room(record_model['student_approved'], True)
         record_model['rule_str'] = '查寝：误操作撤销'
 
@@ -530,7 +530,7 @@ class RecordQuery(CoolBFFAPIView):
 
         records = (
             models.Record.objects.filter(
-                q4, q5,  star_time__range=(start_date, end_date), manager__isnull=True
+                q4, q5,q6,  star_time__range=(start_date, end_date), manager__isnull=True
             )
             .select_related('student_approved', 'worker', 'rule', 'task__college')
             .order_by('-last_time')
@@ -538,10 +538,12 @@ class RecordQuery(CoolBFFAPIView):
 
         if username:
             try:
-                user = User.objects.get(Q(username=username) | Q(name=username))
-                records = records.filter(student_approved=user)
+                user = User.objects.filter(Q(username=username) | Q(name=username))
+                records = records.filter(student_approved__in=user)
             except:
                 records = []
+                raise CoolAPIException(ErrorCode.ABNORMAL_ATTENDANCE)
+                
         pg = RecordQueryrPagination()
         page_roles = pg.paginate_queryset(queryset=records, request=request, view=self)
         ser = serializers.RecordQuery(instance=page_roles, many=True).data
@@ -610,6 +612,10 @@ class InzaoqianExcel(ExcelInData):
         d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT,'MORNING_RUNNING':MORNING_RUNNING}
         rule = models.RuleDetails.objects.get(name = d[request.params.codename])
 
+        # 获取历史早签记录
+        query = Record.objects.filter(task=task, rule=rule).values(
+            name=F('student_approved__username'), time=F('star_time')
+        )
          
         db_records = []
         for q in query:
@@ -699,10 +705,11 @@ class OutData(CoolBFFAPIView):
         q5 = Q(task__college__id=college_id)  # 分院
         q6 = Q(rule__isnull=False)
         records = (
-            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6)
+            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6 )
             .values(
                 grade=F('grade_str'),
                 name=F('student_approved__name'),
+
             )
             .annotate(
                 rule=Concat('rule_str'),
@@ -720,19 +727,23 @@ class OutData(CoolBFFAPIView):
                 'score',
                 'time',
                 usernames=F('student_approved__username'),
+
             )
         )
-
         for record in records:
-            rule_type = record['rule_type'].split(',')
-            rule = record['rule'].split(',')
-            score_onn = record['score_onn'].split(',')
-            time = record['time'].split(',')
-            # 根据rule_type 把违纪情况拆分合并为 分数1 分数1 分数1 原因1 原因1 原因1
+            rule_type_ = record['rule_type'].split(',')
+            rule_ = record['rule'].split(',')
+            score_onn_ = record['score_onn'].split(',')
+            time_ = record['time'].split(',')
             rule_02_time = {}
-            for index in range(0, len(rule_type)):
-                type_ = rule_type[index]
 
+            if len(time_) != len(rule_):
+               record['name'] += ' 异常'
+
+            for index in range(0, len(rule_type_)):
+                type_ = rule_type_[index]
+                if index > len(time_)-1:
+                    break
                 if not type_ + 'score' in record:
                     record[RULE_CODE_01 + 'score'] = 0
                     record[RULE_CODE_02 + 'score'] = 0
@@ -753,17 +764,17 @@ class OutData(CoolBFFAPIView):
                     record[RULE_CODE_09+'rule'] = ''
 
                 # 分数累加
-                record[type_ + 'score'] += float(score_onn[index])
+                record[type_ + 'score'] += float(score_onn_[index])
 
-                t = time[index][5:10]
+                t = time_[index][5:10]
                 # 统计晚自修点名扣分
                 if type_ == RULE_CODE_02:
                     if t not in rule_02_time.keys():
                         rule_02_time[t] = []
-                    rule_02_time[t].append(rule[index])
+                    rule_02_time[t].append(rule_[index])
                     
                 # 规则拼接
-                record[type_ + 'rule'] += t + ":" + str(rule[index]) + '\r\n'
+                record[type_ + 'rule'] += t + ":" + str(rule_[index]) + '\r\n'
             
             # 计算晚自修点名扣分
             if len(rule_02_time.keys())>0:

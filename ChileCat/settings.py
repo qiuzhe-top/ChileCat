@@ -214,6 +214,7 @@ DJANGO_COOL = {
         ('TASK_SUBMISSION_FAILURE', (5027, '任务提交失败')),
         ('THE_REASON_IS_EMPTY', (5028, '原因为空')),
         ('NO_COLLEGE_CODE', (5029, '缺少分院代码/分院不存在')),
+        ('ABNORMAL_ATTENDANCE', (5030, '查询异常')),
     )
 }
 # SimpleUi 配置
