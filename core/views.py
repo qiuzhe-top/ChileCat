@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-01 14:45:16
+LastEditTime: 2021-12-05 14:41:57
 Description: 父类
 '''
 from typing import Any
@@ -19,7 +19,7 @@ from cool.views.view import CoolBFFAPIView
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
-from core.excel_utils import excel_to_list
+from core.excel_utils import ExcelBase
 from core.models_utils import create_custom_rule
 
 from django.contrib.auth import get_user_model
@@ -346,33 +346,55 @@ class SubmitBase(TaskBase,RecordBase):
         
 
     
-class ExcelInData(PermissionView):
-
+class ExcelInData(PermissionView,ExcelBase):
+    '''
+    获取和学生有关的Excel表格
+    '''
     def init(self,request):
         self.db_users = {}
         self.error_list = []
-        self.rows = excel_to_list(request)
+        self.rows = self.excel_to_list(request)
         self.init_excel_user()
     
     def init_excel_user(self):
         # 获取涉及的学生对象列表
+
         user_usernams = []
         for row in self.rows:
-            username = row[0]
+            username = row['username']
             user_usernams.append(username)
+
         query = User.objects.filter(username__in=user_usernams)
         for u in query:
             self.db_users[u.username.upper()] = u
+
+        rows_ = []
+        for row in self.rows:
+            username = row['username']
+            name = row['name']
+            # TODO 检查是否包含关键数据
+            try:
+                u = self.db_users[username]
+            except:
+                self.add_error(username,self.get_name(username),'用户不在系统')
+                continue
             
-    def add_error(self,username,name,time,message):
-        self.error_list.append(
-            {
-                'username': username,
-                'name': name,
-                'str_time': time,
-                'message': message,
-            }
-        )
+            if name != None and name != u.name:
+                self.add_error(username,name,'学号与姓名不一致 系统坚持为:'+u.name)
+                continue
+
+            try:
+                u.grade.name
+            except:
+                self.add_error(username,self.get_name(username),'用户没有班级信息异常')
+                continue
+
+            row['username'] = row['username'].upper()
+            rows_.append(row)
+        self.rows = rows_
+
+    def add_error(self,*d):
+        self.error_list.append(d)
 
     def get_name(self,name):
         # 获取用户实例

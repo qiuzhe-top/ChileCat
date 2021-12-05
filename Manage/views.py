@@ -7,7 +7,6 @@ from Apps.User.models import College, Grade
 from cool import views
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
 from cool.views.view import CoolBFFAPIView
-from core.excel_utils import at_all_out_xls, excel_to_list, list_to_excel
 from core.models_utils import search_room
 from core.permission_group import user_group
 from core.settings import *

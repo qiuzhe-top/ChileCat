@@ -1,0 +1,22 @@
+<!--
+ * @Author: 邹洋
+ * @Date: 2021-09-09 13:57:29
+ * @Email: 2810201146@qq.com
+ * @LastEditors:  
+ * @LastEditTime: 2021-09-09 13:57:59
+ * @Description: 
+-->
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+  {% if has_add_permission %}
+  <li>
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink">
+      {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+    </a>
+  </li>
+  {% endif %}
+
+  <li>11</li>
+{% endblock %}

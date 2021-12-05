@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-19 23:35:55
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-01 13:50:49
+LastEditTime: 2021-12-05 11:19:15
 Description: file information
 '''
 
@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(apipatterns)),
     path('doc', get_api_doc_html),
+    path('silk/', include('silk.urls', namespace='silk')),
 ]
 # if settings.DEBUG:
 #     urlpatterns.append(

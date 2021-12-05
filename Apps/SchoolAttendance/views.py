@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-02 10:16:39
+LastEditTime: 2021-12-05 15:27:43
 Description: 
 '''
 import datetime
@@ -14,7 +14,7 @@ from Apps.SchoolAttendance.pagination import RecordQueryrPagination
 from Apps.User.utils.auth import get_token_by_user
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from core.common import get_end_date, get_start_date
-from core.excel_utils import at_all_out_xls, excel_to_list, out_knowing_data
+from core.excel_utils import ExcelBase
 from core.query_methods import Concat
 from core.settings import *
 from core.views import *
@@ -240,7 +240,7 @@ class TaskExecutor(PermissionView):
 
 
 @site
-class knowingExcelOut(TaskBase):
+class knowingExcelOut(TaskBase,ExcelBase):
     name = _('当天考勤数据导出')
     response_info_serializer_class = serializers.TaskRecordExcelSerializer
 
@@ -261,7 +261,8 @@ class knowingExcelOut(TaskBase):
         ser_records = serializers.TaskRecordExcelSerializer(
             instance=records, many=True
         ).data
-        return out_knowing_data(ser_records)
+        header = ['日期','楼号','班级','学号','姓名','原因']
+        return self.download_excel(ser_records,'学生考勤表',header,2)
 
     class Meta:
         param_fields = (('token', fields.CharField(label=_('token'))),)
@@ -599,24 +600,21 @@ class InClassRoomExcel(ExcelInData):
 
 
 @site
-class InzaoqianExcel(ExcelInData):
-    name = _('导入早签/晨点数据/晨跑')
+class BatchAttendance(ExcelInData):
+    name = _('批量考勤')
     need_permissions = ('SchoolAttendance.zq_data_import',)
-
+            
 
     def get_context(self, request, *args, **kwargs):
-        self.init(request)
         user = request.user
-        college = user.grade.college
-        task, task_t = Task.objects.get_or_create(types='3', college=college)
-        d = {'MORNING_SIGN':MORNING_SIGN,'MORNING_POINT':MORNING_POINT,'MORNING_RUNNING':MORNING_RUNNING}
-        rule = models.RuleDetails.objects.get(name = d[request.params.codename])
+        task = Task.objects.get_or_create(types=request.params.task_type, college=user.grade.college)[0]
+        rule = models.RuleDetails.objects.get(id = request.params.rule_id)
+        self.init(request)
 
-        # 获取历史早签记录
+        # 获取所有历史早签记录
         query = Record.objects.filter(task=task, rule=rule).values(
             name=F('student_approved__username'), time=F('star_time')
         )
-         
         db_records = []
         for q in query:
             time = q['time']
@@ -627,45 +625,36 @@ class InzaoqianExcel(ExcelInData):
 
         wait_create_record = []  # 等待批量获取的记录实例
         for row in self.rows:
-            time = row[1]
-            name = row[0].upper()
+            username = row['username']
+            time = row['time']
+
+            if time == None:
+                self.add_error(username,time,'日期不能为空')
+                continue
+
             time = self.time_formatting(time)  
-            if (name + time) not in db_records:
-                
-                try:
-                    u = self.db_users[name]
-                except:
-                    self.add_error(name,self.get_name(name),time,'用户不在系统')
-                    continue
-                
-                try:
-                    grade_str = u.grade.name
-                except:
-                    self.add_error(name,self.get_name(name),time,'用户没有班级信息异常')
-                    continue
-
-
+            if (username + time) not in db_records:
+                u = self.db_users[username]
                 try:
                     star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
                 except:
-                    self.add_error(name,self.get_name(name),time,'日期格式错误')
+                    self.add_error(username,self.get_name(username),time,'日期格式错误')
                     continue
 
-                record = Record(
+                wait_create_record.append(Record(
                     rule_str = rule.name,
                     student_approved = u,
                     student_approved_username = u.username,
                     student_approved_name = u.name,
                     score = rule.score,
-                    grade_str = grade_str,
+                    grade_str = u.grade.name,
                     star_time = star_time,
                     worker = user,
                     task = task,
                     rule = rule,
-                )
-                wait_create_record.append(record)
+                ))
             else:
-                self.add_error(name,self.get_name(name),time,'已经存在')
+                self.add_error(username,self.get_name(username),time,'已经存在')
 
         Record.objects.bulk_create(wait_create_record)
         return self.error_list
@@ -673,13 +662,14 @@ class InzaoqianExcel(ExcelInData):
     class Meta:
         param_fields = (
             ('file', fields.FileField(label=_('Excel文件'),default=None)),
-            ('codename', fields.CharField(label=_('规则代码'), default=None)),
+            ('rule_id', fields.CharField(label=_('规则id'), default=None)),
+            ('task_type', fields.CharField(label=_('任务类型'), default=None)),
 
         )
 
 
 @site
-class OutData(CoolBFFAPIView):
+class OutData(CoolBFFAPIView,ExcelBase):
     name = _('筛选导出记录情况')
 
     def get_context(self, request, *args, **kwargs):
@@ -791,8 +781,42 @@ class OutData(CoolBFFAPIView):
             del record['rule_type']
             del record['rule']
             del record['score_onn']
-
-        return at_all_out_xls(records)
+            
+        # 导出
+        ws = self.open_excel("/core/file/学生考勤信息记录.xlsx")
+        for i in records:
+            k = dict(i)
+            ws.append([
+                k.get('grade',''),
+                k.get('usernames',''),
+                k.get('name',''),
+                # 晨点
+                k.get(RULE_CODE_08+'score',0),
+                k.get(RULE_CODE_08+'rule',''),
+                # 晨跑
+                k.get(RULE_CODE_09+'score',0),
+                k.get(RULE_CODE_09+'rule',''),
+                # 早签
+                k.get(RULE_CODE_04+'score',0),
+                k.get(RULE_CODE_04+'rule',''),
+                # 晚签
+                k.get(RULE_CODE_02+'score',0),
+                k.get(RULE_CODE_02+'rule',''),
+                # 晚自修违纪
+                k.get(RULE_CODE_03+'score',0),
+                k.get(RULE_CODE_03+'rule',0),
+                # 查寝
+                k.get(RULE_CODE_01+'score',0),
+                k.get(RULE_CODE_01+'rule',''),
+                # 课堂
+                k.get(RULE_CODE_05+'score',0),
+                k.get(RULE_CODE_05+'rule',''),
+                k.get('score','')
+            ])
+        TIME = datetime.datetime.now()#.strftime("%H:%M:%S")
+        ws.append(['统计时间:',TIME])
+        response = self.create_excel_response('学生缺勤表')
+        return self.write_file(response,ws)
 
     class Meta:
         param_fields = (

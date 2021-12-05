@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'silk',
     'rest_framework',
     'cool',
     'Apps.User',
@@ -46,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'Manage.utils.middleware.LoadUserObject',
+     'silk.middleware.SilkyMiddleware'
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -116,8 +118,8 @@ APPEND_SLASH = False
 
 STATIC_URL = '/static/'
 # 当访问静态文件时去哪里找
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
-
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 # CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True

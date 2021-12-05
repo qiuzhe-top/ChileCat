@@ -49,6 +49,8 @@ class Task(BaseModel):
         (u'2', u'晚自修'),
         (u'3', u'早签'),
     )
+    # GENDER_CHOICES1的修改需要注意BatchAttendance类的修改
+    
     is_open = models.BooleanField(verbose_name='是否开启',default=False)
     types = models.CharField(
         max_length=20, choices=GENDER_CHOICES1, verbose_name=u'任务类型')

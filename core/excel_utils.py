@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-26 13:40:16
+LastEditTime: 2021-12-05 15:25:44
 Description: Excel 操作
 '''
 
@@ -20,146 +20,195 @@ from openpyxl import load_workbook
 from core.settings import *
 
 
-def list_to_excel(data,name,header,is_first_line=True):
-    '''
-    '''
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    filename = datetime.date.today().strftime("%Y-%m-%d") + name + '.xls'
-    response['Content-Disposition'] = (
-        'attachment; filename={}'.format(escape_uri_path(filename))
-    )
-    if data:
-        ws = xlwt.Workbook(encoding='utf-8')
-        w = ws.add_sheet('sheet1')
-        index = 0
+class ExcelBase:
+    
+    def excel_to_list(self,request):
+        """Excel转列表
+
+        Args:
+            request ()): [请求]
+
+        Returns:
+            [List]]: [列表]
+        """        
+        file = request.data['file']
+        data = []
+        wb = load_workbook(file,read_only=True)
+        header = None
+        for rows in wb:
+            for row in rows:#遍历行
+                if row[0].value:
+                    if not header:
+                        header = self.get_header(row)
+                        header_len = len(header)
+                        continue
+                    dict_ = {}
+                    for index in range(header_len):
+                        value = row[index].value
+                        if value != None:
+                            dict_[header[index]] = str(value)
+                        else:
+                            dict_[header[index]] = None
+                    data.append(dict_)
+        return data
+
+    def get_header(self,row):
+        '''
+        excel行对象转为列表
+
+        Args:
+            row : 一行数据
+
+        Returns:
+            List: 列表
+        '''
+        d = []
+        for k in row:
+            d.append(str(k.value))
+        return d
+
+    def create_excel_response(self,name):
+        '''
+        创建返回
+
+        Args:
+            name (str): 文件名
+
+        Returns:
+            HttpResponse: HttpResponse对象
+        '''
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        filename = name + datetime.date.today().strftime("%Y-%m-%d") + '.xls'
+        response['Content-Disposition'] = (
+            'attachment; filename={}'.format(escape_uri_path(filename))
+        )
+        return response
+    
+    def write_file(self,response,ws):
+        '''
+        通过IO流在网络中输出Excel文件
+
+        Args:
+            response (HttpResponse): HttpResponse对象
+            ws (xlwt.Workbook): 表
+
+        Returns:
+            HttpResponse: HttpResponse对象 浏览器直接下载
+        '''
+        output = BytesIO()
+        ws.save(output)
+        output.seek(0)
+        response.write(output.getvalue())
+        return response
+
+    def set_header(self,w,header):
+        '''
+        向w表对象第一行插入列表
+
+        Args:
+            w ([type]): [description]
+            header ([type]): [description]
+        '''
+        column = 0
         for i in header:
-            w.write(0, index, i)
-            index+=1
-            # w.write(0, 1, u'楼号')
-            # w.write(0, 2, u'班级')
-            # w.write(0, 3, u'学号')
-            # w.write(0, 4, u'姓名')
-            # w.write(0, 5, u'原因')
-        row = 1
+            w.write(0, column, i)
+            column+=1
+
+    def download_excel(self,data,name='',header=[],type=1):
+        '''
+        创建excel进行下载
+
+        Args:
+            name (str): 文件名
+            header (list): 列表第一行
+            data (list): 数据
+            type (str): 主体数据格式 1.list[list[]] 2.serializers.data[{}]
+        '''
+        response = self.create_excel_response(name)
+        if not data:
+            return
+        ws,w = self.create_excel()
+
+        #头部
+        row = 0
+        if len(header)>=1:
+            row+=1
+            self.set_header(w,header)
+            
+        # 主体数据
+        for item in data:
+            column = 0
+
+            # 不同格式读取
+            if type == 1:
+                write_data = item
+            elif type == 2:
+                write_data = dict(item).values()
+
+            for j in write_data:
+                w.write(row, column, j)
+                column += 1
+            row += 1
+
+        return self.write_file(response,ws)
+
+    def dicts_create_excel(self,data,name='',header=[]):
+        '''
+        通过list创建excel进行下载
+
+        Args:
+            name (str): 文件名
+            header (list): 列表第一行
+            data (list): 数据
+        '''
+        response = self.create_excel_response(name)
+        if not data:
+            return
+        ws,w = self.create_excel()
+
+        #头部
+        row = 0
+        if len(header)>=1:
+            row+=1
+            self.set_header(w,header)
+            
+        # 主体数据
         for item in data:
             column = 0
             for j in item:
                 w.write(row, column, j)
                 column += 1
             row += 1
-        # 循环完成
-        output = BytesIO()
-        ws.save(output)
-        output.seek(0)
-        response.write(output.getvalue())
-    return response
 
-def excel_to_list(request,is_first_line=True):
-    '''
-        excel 转换为列表
-        当一行的第一列为空时忽略这一行数据
-    '''
-    file = request.data['file']
-    data = []
-    wb = load_workbook(file,read_only=True)
-    for rows in wb:
-        for row in rows:#遍历行
-            if row[0].value:
-                l = []
-                for i in row:
-                    if i.value:
-                        l.append(str(i.value))
-                    else:
-                        l.append(None)
-                data.append(l)
-    if is_first_line:
-        return data
-    else:
-        return data[1:]
+        self.write_file(response,ws)
 
+    def create_excel(self,sheet='sheet1'):
+        '''
+        创建Excel对象
 
+        Args:
+            sheet (str, optional): 工作表名称. Defaults to 'sheet1'.
 
-def at_all_out_xls(data):
-    '''学生考勤信息记录.xls模板'''
-    addr = os.getcwd()+ "/core/file/学生考勤信息记录.xlsx"
-    # 设置文件 mingc
-    # 打开文件
-    wb = load_workbook(addr)
-    # 创建一张新表
-    ws = wb[wb.sheetnames[0]]
-    # 第一行输入
-    for i in data:
-        k = dict(i)
-        ws.append([
-            k.get('grade',''),
-            k.get('usernames',''),
-            k.get('name',''),
-            # 晨点
-            k.get(RULE_CODE_08+'score',0),
-            k.get(RULE_CODE_08+'rule',''),
-            # 晨跑
-            k.get(RULE_CODE_09+'score',0),
-            k.get(RULE_CODE_09+'rule',''),
-            # 早签
-            k.get(RULE_CODE_04+'score',0),
-            k.get(RULE_CODE_04+'rule',''),
-            # 晚签
-            k.get(RULE_CODE_02+'score',0),
-            k.get(RULE_CODE_02+'rule',''),
-            # 晚自修违纪
-            k.get(RULE_CODE_03+'score',0),
-            k.get(RULE_CODE_03+'rule',0),
-            # 查寝
-            k.get(RULE_CODE_01+'score',0),
-            k.get(RULE_CODE_01+'rule',''),
-            # 课堂
-            k.get(RULE_CODE_05+'score',0),
-            k.get(RULE_CODE_05+'rule',''),
-            k.get('score','')
-        ])
-    TIME = datetime.datetime.now()#.strftime("%H:%M:%S")
-    ws.append(['统计时间:',TIME])
-    # wb.save(addr)
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = (
-        'attachment; filename={}'.format(escape_uri_path("学生缺勤表.xls"))
-    )
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-    response.write(output.getvalue())
-    return response
-
-# 晚查寝当日数据导出
-def out_knowing_data(ser_records):
-    '''晚查寝当日数据导出
-    '''
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    filename = datetime.date.today().strftime("%Y-%m-%d") + ' 学生考勤表.xls'
-    response['Content-Disposition'] = (
-        'attachment; filename={}'.format(escape_uri_path(filename))
-    )
-    if ser_records:
+        Returns:
+            ws,w: 下载，
+        '''
         ws = xlwt.Workbook(encoding='utf-8')
         w = ws.add_sheet('sheet1')
-        w.write(0, 0, u'日期')
-        w.write(0, 1, u'楼号')
-        w.write(0, 2, u'班级')
-        w.write(0, 3, u'学号')
-        w.write(0, 4, u'姓名')
-        w.write(0, 5, u'原因')
-        row = 1
-        for i in ser_records:
-            k = dict(i)
-            column = 0
-            for j in k.values():
-                w.write(row, column, j)
-                column += 1
-            row += 1
-        # 循环完成
-        output = BytesIO()
-        ws.save(output)
-        output.seek(0)
-        response.write(output.getvalue())
-    return response
+        return ws,w
+        
+    def open_excel(self,path):
+        '''
+        打开并使用本地excel文件作为模板
 
+        Args:
+            path (str): 文件路径
+
+        Returns:
+            ws: 表sheet对象
+        '''
+        addr = os.getcwd()+ path
+        # 打开文件
+        wb = load_workbook(addr)
+        # 创建一张新表
+        ws = wb[wb.sheetnames[0]]
+        return ws
