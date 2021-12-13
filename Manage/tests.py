@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-20 10:31:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:08:40
+LastEditTime: 2021-12-05 19:14:02
 Description: 
 '''
 
@@ -15,9 +15,3 @@ from rest_framework.test import RequestsClient
 User = get_user_model()
 
 
-# Create your tests here.
-class Task(TestCase):
-    
-    
-    def test_api(self):
-        print(000)

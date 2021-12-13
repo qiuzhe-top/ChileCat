@@ -76,7 +76,8 @@ DATABASES = {
         'NAME': 'ChileCat',
         'USER': 'root',
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': '127.0.0.1',
+        # 'HOST': '127.0.0.1',
+        'HOST': '47.100.95.58',
         'PORT': '3306',
         'OPTIONS': {'isolation_level': None},
     }

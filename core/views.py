@@ -3,26 +3,28 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-05 14:41:57
+LastEditTime: 2021-12-11 17:50:33
 Description: 父类
 '''
-from typing import Any
-from core.common import is_number
+import datetime
 import json
-
-from django.db.models.query_utils import Q
+import re
+from typing import Any
 
 from Apps.SchoolAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
+from django.contrib.auth import get_user_model
+from django.db.models.query_utils import Q
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
+
+from core.common import is_number
 from core.excel_utils import ExcelBase
 from core.models_utils import create_custom_rule
 
-from django.contrib.auth import get_user_model
 User = get_user_model()
 class EditMixin:
 
@@ -352,7 +354,7 @@ class ExcelInData(PermissionView,ExcelBase):
     '''
     def init(self,request):
         self.db_users = {}
-        self.error_list = []
+        self.message_list = []
         self.rows = self.excel_to_list(request)
         self.init_excel_user()
     
@@ -376,25 +378,25 @@ class ExcelInData(PermissionView,ExcelBase):
             try:
                 u = self.db_users[username]
             except:
-                self.add_error(username,self.get_name(username),'用户不在系统')
+                self.add_message(username,self.get_name(username),'用户不在系统')
                 continue
             
             if name != None and name != u.name:
-                self.add_error(username,name,'学号与姓名不一致 系统坚持为:'+u.name)
+                self.add_message(username,name,'学号与姓名不一致 系统内部为:'+u.name)
                 continue
 
             try:
                 u.grade.name
             except:
-                self.add_error(username,self.get_name(username),'用户没有班级信息异常')
+                self.add_message(username,self.get_name(username),'用户没有班级信息异常')
                 continue
 
             row['username'] = row['username'].upper()
             rows_.append(row)
         self.rows = rows_
 
-    def add_error(self,*d):
-        self.error_list.append(d)
+    def add_message(self,*d):
+        self.message_list.append(d)
 
     def get_name(self,name):
         # 获取用户实例
@@ -415,5 +417,21 @@ class ExcelInData(PermissionView,ExcelBase):
         time = year + '/' +str(month) +'/'+ str(data)   
         return time  
 
+    def time_format_one(self,time):
+        '''
+        字符串转datetime对象
+
+        Args:
+            time (str): '2021-10-01 13:59:59.999'
+
+        Returns:
+            [type]: [description]
+        '''
+        time = time.split('.')[0]
+        f = '%Y-%m-%d %H:%M:%S'
+        t = datetime.datetime.strptime(time,f)
+        if t.minute==59 and t.second == 59:
+            t += datetime.timedelta(seconds=1)
+        return t
     class Meta:
         path = '/'

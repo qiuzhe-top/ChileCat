@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-05 15:25:44
+LastEditTime: 2021-12-11 18:44:03
 Description: Excel 操作
 '''
 
@@ -26,10 +26,10 @@ class ExcelBase:
         """Excel转列表
 
         Args:
-            request ()): [请求]
+            request ()): 请求
 
         Returns:
-            [List]]: [列表]
+            list: 
         """        
         file = request.data['file']
         data = []
@@ -51,6 +51,44 @@ class ExcelBase:
                             dict_[header[index]] = None
                     data.append(dict_)
         return data
+    def download_excel(self,data,name='',header=[],type=1):
+        '''
+        创建excel进行下载
+
+        Args:
+            name (str): 文件名
+            header (list): 列表第一行
+            data (list): 数据
+            type (str): 主体数据格式 1.list[list[]] 2.serializers.data[{}]
+        '''
+        response = self.create_excel_response(name)
+        if not data:
+            return
+        wb,ws = self.create_excel()
+
+        #头部
+        row = 0
+        if len(header)>=1:
+            row+=1
+            self.set_header(ws,header)
+            
+        # 主体数据
+        for item in data:
+            column = 0
+
+            # 不同格式读取
+            if type == 1:
+                write_data = item
+            elif type == 2:
+                write_data = dict(item).values()
+
+            for j in write_data:
+                ws.write(row, column, j)
+                column += 1
+            row += 1
+
+        return self.write_file(response,wb)
+
 
     def get_header(self,row):
         '''
@@ -84,19 +122,19 @@ class ExcelBase:
         )
         return response
     
-    def write_file(self,response,ws):
+    def write_file(self,response,wb):
         '''
         通过IO流在网络中输出Excel文件
 
         Args:
             response (HttpResponse): HttpResponse对象
-            ws (xlwt.Workbook): 表
+            wb (xlwt.Workbook): 表
 
         Returns:
             HttpResponse: HttpResponse对象 浏览器直接下载
         '''
         output = BytesIO()
-        ws.save(output)
+        wb.save(output)
         output.seek(0)
         response.write(output.getvalue())
         return response
@@ -114,73 +152,7 @@ class ExcelBase:
             w.write(0, column, i)
             column+=1
 
-    def download_excel(self,data,name='',header=[],type=1):
-        '''
-        创建excel进行下载
 
-        Args:
-            name (str): 文件名
-            header (list): 列表第一行
-            data (list): 数据
-            type (str): 主体数据格式 1.list[list[]] 2.serializers.data[{}]
-        '''
-        response = self.create_excel_response(name)
-        if not data:
-            return
-        ws,w = self.create_excel()
-
-        #头部
-        row = 0
-        if len(header)>=1:
-            row+=1
-            self.set_header(w,header)
-            
-        # 主体数据
-        for item in data:
-            column = 0
-
-            # 不同格式读取
-            if type == 1:
-                write_data = item
-            elif type == 2:
-                write_data = dict(item).values()
-
-            for j in write_data:
-                w.write(row, column, j)
-                column += 1
-            row += 1
-
-        return self.write_file(response,ws)
-
-    def dicts_create_excel(self,data,name='',header=[]):
-        '''
-        通过list创建excel进行下载
-
-        Args:
-            name (str): 文件名
-            header (list): 列表第一行
-            data (list): 数据
-        '''
-        response = self.create_excel_response(name)
-        if not data:
-            return
-        ws,w = self.create_excel()
-
-        #头部
-        row = 0
-        if len(header)>=1:
-            row+=1
-            self.set_header(w,header)
-            
-        # 主体数据
-        for item in data:
-            column = 0
-            for j in item:
-                w.write(row, column, j)
-                column += 1
-            row += 1
-
-        self.write_file(response,ws)
 
     def create_excel(self,sheet='sheet1'):
         '''
@@ -190,25 +162,25 @@ class ExcelBase:
             sheet (str, optional): 工作表名称. Defaults to 'sheet1'.
 
         Returns:
-            ws,w: 下载，
+            wb,ws: 
         '''
-        ws = xlwt.Workbook(encoding='utf-8')
-        w = ws.add_sheet('sheet1')
-        return ws,w
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet('sheet1')
+        return wb,ws
         
     def open_excel(self,path):
         '''
         打开并使用本地excel文件作为模板
 
         Args:
-            path (str): 文件路径
+            path (str): 文件路径 + '.xlsx'
 
         Returns:
-            ws: 表sheet对象
+            wb,ws: ws表sheet对象
         '''
-        addr = os.getcwd()+ path
+        addr = os.getcwd() + path + '.xlsx'
         # 打开文件
         wb = load_workbook(addr)
         # 创建一张新表
         ws = wb[wb.sheetnames[0]]
-        return ws
+        return wb,ws
