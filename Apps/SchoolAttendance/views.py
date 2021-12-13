@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-05 15:27:43
+LastEditTime: 2021-12-11 19:43:50
 Description: 
 '''
 import datetime
@@ -172,7 +172,6 @@ class Condition(TaskBase):
             query_str = building + '#' + floor
             q_floor = Q(room_str__startswith=query_str)
 
-
         records = (
             models.Record.objects.filter(
                 q_floor,
@@ -185,26 +184,26 @@ class Condition(TaskBase):
         )
 
         return serializers.ConditionRecord(records, request=request, many=True).data
+
     class Meta:
 
         param_fields = (
-            ('building', fields.CharField(label=_('楼'),default=None)),
-            ('floor', fields.CharField(label=_('层'),default=None)),
+            ('building', fields.CharField(label=_('楼'), default=None)),
+            ('floor', fields.CharField(label=_('层'), default=None)),
             ('start_date', fields.DateField(label=_('开始日期'), default=None)),
             ('end_date', fields.DateField(label=_('结束日期'), default=None)),
         )
 
 
 @site
-class UndoRecord(TaskBase,RecordBase):
+class UndoRecord(TaskBase, RecordBase):
     name = _('销假(当前任务管理员)')
 
     def get_context(self, request, *args, **kwargs):
         task = self.get_task_by_user()
         id = request.params.record_id
-        record = self.get_record_by_id_task(id,task)
-        self.undo_record(record,request.user)
-
+        record = self.get_record_by_id_task(id, task)
+        self.undo_record(record, request.user)
 
     class Meta:
         param_fields = (
@@ -213,7 +212,7 @@ class UndoRecord(TaskBase,RecordBase):
 
 
 @site
-class UndoRecordAdmin(PermissionView,RecordBase):
+class UndoRecordAdmin(PermissionView, RecordBase):
     name = _('销假(分院管理员)')
     need_permissions = ('SchoolAttendance.undo_record_admin',)
 
@@ -221,7 +220,7 @@ class UndoRecordAdmin(PermissionView,RecordBase):
         # TODO 需要进行管理员身份验证,并且只能对自己分院有效
         id = request.params.record_id
         record = self.get_record_by_id(id)
-        self.undo_record(record,request.user)
+        self.undo_record(record, request.user)
 
     class Meta:
         param_fields = (
@@ -240,9 +239,10 @@ class TaskExecutor(PermissionView):
 
 
 @site
-class knowingExcelOut(TaskBase,ExcelBase):
+class knowingExcelOut(TaskBase, ExcelBase):
     name = _('当天考勤数据导出')
     response_info_serializer_class = serializers.TaskRecordExcelSerializer
+    header = ['日期', '楼号', '班级', '学号', '姓名', '原因']
 
     def check_api_permissions(self, request, *args, **kwargs):
         pass
@@ -261,8 +261,7 @@ class knowingExcelOut(TaskBase,ExcelBase):
         ser_records = serializers.TaskRecordExcelSerializer(
             instance=records, many=True
         ).data
-        header = ['日期','楼号','班级','学号','姓名','原因']
-        return self.download_excel(ser_records,'学生考勤表',header,2)
+        return self.download_excel(ser_records, '学生考勤表', knowingExcelOut.header, 2)
 
     class Meta:
         param_fields = (('token', fields.CharField(label=_('token'))),)
@@ -353,7 +352,7 @@ class SubmitKnowing(SubmitBase):
                 flg=True
             )
 
-    def submit_undo_record(self,record_model,user):
+    def submit_undo_record(self, record_model, user):
         self.updata_user_in_room(record_model['student_approved'], True)
         record_model['rule_str'] = '查寝：误操作撤销'
 
@@ -368,10 +367,9 @@ class SubmitKnowing(SubmitBase):
         manager_user = record_model['manager']
         if len(records) == 1:
             record = records[0]
-            self.undo_record(record,manager_user)
+            self.undo_record(record, manager_user)
         elif len(records) > 1:
             records.update(manager=manager_user)
-
 
     def submit_check(self, record_model, record):
         '''提交学生考勤记录'''
@@ -424,7 +422,11 @@ class DormRoomInfo(TaskBase):
     def get_context(self, request, *args, **kwargs):
         self.get_task()  # TODO 可以优化查询
         floor_id = request.params.floor_id
-        rooms = models.Room.objects.filter(floor_id=floor_id,stu_in_room__is_active=True).distinct().order_by('name')
+        rooms = (
+            models.Room.objects.filter(floor_id=floor_id, stu_in_room__is_active=True)
+            .distinct()
+            .order_by('name')
+        )
         return serializers.DormRoomInfo(rooms, many=True, request=request).data
 
     class Meta:
@@ -525,13 +527,17 @@ class RecordQuery(CoolBFFAPIView):
         end_date = datetime.datetime(
             end_date.year, end_date.month, end_date.day, 23, 59, 59
         )
-        q4 = Q(task__types__in=['2', '0','3']) | Q(rule_str='早签')  # 任务类型限制
+        q4 = Q(task__types__in=['2', '0', '3']) | Q(rule_str='早签')  # 任务类型限制
         q5 = Q(task__college__id=college_id)  # 分院
         q6 = Q(rule__isnull=False)
 
         records = (
             models.Record.objects.filter(
-                q4, q5,q6,  star_time__range=(start_date, end_date), manager__isnull=True
+                q4,
+                q5,
+                q6,
+                star_time__range=(start_date, end_date),
+                manager__isnull=True,
             )
             .select_related('student_approved', 'worker', 'rule', 'task__college')
             .order_by('-last_time')
@@ -544,7 +550,7 @@ class RecordQuery(CoolBFFAPIView):
             except:
                 records = []
                 raise CoolAPIException(ErrorCode.ABNORMAL_ATTENDANCE)
-                
+
         pg = RecordQueryrPagination()
         page_roles = pg.paginate_queryset(queryset=records, request=request, view=self)
         ser = serializers.RecordQuery(instance=page_roles, many=True).data
@@ -566,8 +572,8 @@ class PersonalDisciplineQuery(PermissionView):
 
     def get_context(self, request, *args, **kwargs):
         # 用户过滤条件
-        q_user = Q(student_approved=request.user,manager__isnull=True)
-        
+        q_user = Q(student_approved=request.user, manager__isnull=True)
+
         # 查询我的寝室
         room = request.params.room
         q_room = Q()
@@ -577,15 +583,22 @@ class PersonalDisciplineQuery(PermissionView):
                 room = StuInRoom.objects.get(user=request.user).room.__str__()
             except:
                 raise CoolAPIException(ErrorCode.DORMITORY_NOT_ARRANGED)
-            q_room = Q(room_str = room)
+            q_room = Q(room_str=room)
 
-        data =Record.objects.filter(q_user,q_room,).select_related('worker').order_by('-last_time')
-        return serializers.PersonalDisciplineQuery(instance=data, many=True, request=request).data
-    class Meta:
-        param_fields = (
-            ('room', fields.BooleanField(label=_('查询寝室'), default=False)),
+        data = (
+            Record.objects.filter(
+                q_user,
+                q_room,
+            )
+            .select_related('worker')
+            .order_by('-last_time')
         )
+        return serializers.PersonalDisciplineQuery(
+            instance=data, many=True, request=request
+        ).data
 
+    class Meta:
+        param_fields = (('room', fields.BooleanField(label=_('查询寝室'), default=False)),)
 
 
 @site
@@ -598,23 +611,97 @@ class InClassRoomExcel(ExcelInData):
         # task, task_t = Task.objects.get_or_create(types='3', college=college)
 
 
+@site
+class BatchUndo(ExcelInData, RecordBase):
+    name = _('批量核销')
+    header = [
+        '学号',
+        '姓名',
+        '原因',
+        '状态',
+        '记录ID',
+        '核销人学号',
+        '核销人姓名',
+        '创建时间',
+        '最后修改时间',
+    ]
+    def main_body(self, item, user):
+        username = item['username']
+        start_time = item['start_time']
+        end_time = item['end_time']
+        start_time = self.time_format_one(start_time)
+        end_time = self.time_format_one(end_time)
+        q1 = Q(star_time__range=(start_time, end_time))
+        q2 = Q(student_approved__username=username)
+        q3 = Q(task__types__in=['0', '2', '3'])
+        q4 = Q(manager__isnull=True)
+        records = models.Record.objects.filter(q1, q2, q3)
+        for record in records:
+            if record.manager == None:
+                self.undo_record(record, user)
+                self.add_message(
+                    username,
+                    record.student_approved_name,
+                    record.rule_str,
+                    '销假完成',
+                    record.id,
+                )
+            else:
+                self.add_message(
+                    username,
+                    record.student_approved_name,
+                    record.rule_str,
+                    '已被核销',
+                    record.id,
+                    record.manager_username,
+                    record.manager_name,
+                    str(record.star_time),
+                    str(record.last_time),
+                )
+
+    def get_context(self, request, *args, **kwargs):
+        user = request.user
+        self.init(request)
+
+        line = 1
+        for item in self.rows:
+            try:
+                self.main_body(item, user)
+            except:
+                self.add_message('第',line,'行执行异常')
+            line+=1
+
+        if request.params.is_down_excel:
+            
+            return self.download_excel(self.message_list, '核销记录', BatchUndo.header)
+        else:
+            return self.message_list
+
+    class Meta:
+        param_fields = (
+            ('file', fields.FileField(label=_('Excel文件'), default=None)),
+            ('is_down_excel', fields.CharField(label=_('是否导出Excel'), default=False)),
+        )
+
 
 @site
 class BatchAttendance(ExcelInData):
     name = _('批量考勤')
     need_permissions = ('SchoolAttendance.zq_data_import',)
-            
 
     def get_context(self, request, *args, **kwargs):
         user = request.user
-        task = Task.objects.get_or_create(types=request.params.task_type, college=user.grade.college)[0]
-        rule = models.RuleDetails.objects.get(id = request.params.rule_id)
+        task = Task.objects.get_or_create(
+            types=request.params.task_type, college=user.grade.college
+        )[0]
+        rule = models.RuleDetails.objects.get(id=request.params.rule_id)
         self.init(request)
 
         # 获取所有历史早签记录
         query = Record.objects.filter(task=task, rule=rule).values(
             name=F('student_approved__username'), time=F('star_time')
         )
+
         db_records = []
         for q in query:
             time = q['time']
@@ -622,54 +709,64 @@ class BatchAttendance(ExcelInData):
             name = q['name']
             db_records.append(name + time)
 
-
         wait_create_record = []  # 等待批量获取的记录实例
         for row in self.rows:
             username = row['username']
-            time = row['time']
+            try:
+                time = row['time']
 
-            if time == None:
-                self.add_error(username,time,'日期不能为空')
-                continue
-
-            time = self.time_formatting(time)  
-            if (username + time) not in db_records:
-                u = self.db_users[username]
-                try:
-                    star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
-                except:
-                    self.add_error(username,self.get_name(username),time,'日期格式错误')
+                if time == None:
+                    self.add_message(username, time, '日期不能为空')
                     continue
 
-                wait_create_record.append(Record(
-                    rule_str = rule.name,
-                    student_approved = u,
-                    student_approved_username = u.username,
-                    student_approved_name = u.name,
-                    score = rule.score,
-                    grade_str = u.grade.name,
-                    star_time = star_time,
-                    worker = user,
-                    task = task,
-                    rule = rule,
-                ))
-            else:
-                self.add_error(username,self.get_name(username),time,'已经存在')
+                time = self.time_formatting(time)
+                if (username + time) not in db_records:
+                    u = self.db_users[username]
+                    try:
+                        star_time = datetime.datetime.strptime(time, '%Y/%m/%d')
+                    except:
+                        self.add_message(
+                            username, self.get_name(username), time, '日期格式错误'
+                        )
+                        continue
+
+                    wait_create_record.append(
+                        Record(
+                            rule_str=rule.name,
+                            student_approved=u,
+                            student_approved_username=u.username,
+                            student_approved_name=u.name,
+                            score=rule.score,
+                            grade_str=u.grade.name,
+                            star_time=star_time,
+                            worker=user,
+                            task=task,
+                            rule=rule,
+                        )
+                    )
+                else:
+                    self.add_message(username, self.get_name(username), time, '已经存在')
+            except:
+                self.add_message(username, '数据异常')
 
         Record.objects.bulk_create(wait_create_record)
-        return self.error_list
+
+        if request.params.is_down_excel:
+            return self.download_excel(self.message_list, '考勤记录')
+        else:
+            return self.message_list
 
     class Meta:
         param_fields = (
-            ('file', fields.FileField(label=_('Excel文件'),default=None)),
+            ('file', fields.FileField(label=_('Excel文件'), default=None)),
             ('rule_id', fields.CharField(label=_('规则id'), default=None)),
             ('task_type', fields.CharField(label=_('任务类型'), default=None)),
-
+            ('is_down_excel', fields.CharField(label=_('是否导出Excel'), default=False)),
         )
 
 
 @site
-class OutData(CoolBFFAPIView,ExcelBase):
+class OutData(CoolBFFAPIView, ExcelBase):
     name = _('筛选导出记录情况')
 
     def get_context(self, request, *args, **kwargs):
@@ -695,11 +792,10 @@ class OutData(CoolBFFAPIView,ExcelBase):
         q5 = Q(task__college__id=college_id)  # 分院
         q6 = Q(rule__isnull=False)
         records = (
-            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6 )
+            models.Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6)
             .values(
                 grade=F('grade_str'),
                 name=F('student_approved__name'),
-
             )
             .annotate(
                 rule=Concat('rule_str'),
@@ -717,7 +813,6 @@ class OutData(CoolBFFAPIView,ExcelBase):
                 'score',
                 'time',
                 usernames=F('student_approved__username'),
-
             )
         )
         for record in records:
@@ -728,11 +823,11 @@ class OutData(CoolBFFAPIView,ExcelBase):
             rule_02_time = {}
 
             if len(time_) != len(rule_):
-               record['name'] += ' 异常'
+                record['name'] += ' 异常'
 
             for index in range(0, len(rule_type_)):
                 type_ = rule_type_[index]
-                if index > len(time_)-1:
+                if index > len(time_) - 1:
                     break
                 if not type_ + 'score' in record:
                     record[RULE_CODE_01 + 'score'] = 0
@@ -741,8 +836,8 @@ class OutData(CoolBFFAPIView,ExcelBase):
                     record[RULE_CODE_04 + 'score'] = 0
                     record[RULE_CODE_05 + 'score'] = 0
                     # record[RULE_CODE_07+'score'] = 0
-                    record[RULE_CODE_08+'score'] = 0
-                    record[RULE_CODE_09+'score'] = 0
+                    record[RULE_CODE_08 + 'score'] = 0
+                    record[RULE_CODE_09 + 'score'] = 0
                 if not type_ + 'rule' in record:
                     record[RULE_CODE_01 + 'rule'] = ''
                     record[RULE_CODE_02 + 'rule'] = ''
@@ -750,8 +845,8 @@ class OutData(CoolBFFAPIView,ExcelBase):
                     record[RULE_CODE_04 + 'rule'] = ''
                     record[RULE_CODE_05 + 'rule'] = ''
                     # record[RULE_CODE_07+'rule'] = ''
-                    record[RULE_CODE_08+'rule'] = ''
-                    record[RULE_CODE_09+'rule'] = ''
+                    record[RULE_CODE_08 + 'rule'] = ''
+                    record[RULE_CODE_09 + 'rule'] = ''
 
                 # 分数累加
                 record[type_ + 'score'] += float(score_onn_[index])
@@ -762,17 +857,16 @@ class OutData(CoolBFFAPIView,ExcelBase):
                     if t not in rule_02_time.keys():
                         rule_02_time[t] = []
                     rule_02_time[t].append(rule_[index])
-                    
+
                 # 规则拼接
                 record[type_ + 'rule'] += t + ":" + str(rule_[index]) + '\r\n'
-            
+
             # 计算晚自修点名扣分
-            if len(rule_02_time.keys())>0:
+            if len(rule_02_time.keys()) > 0:
                 for k in rule_02_time:
                     if len(rule_02_time[k]) == 1:
-                        record[RULE_CODE_02 + 'score']+=2
-                        record['score']+=2
-                        
+                        record[RULE_CODE_02 + 'score'] += 2
+                        record['score'] += 2
 
             rule_str = record[type_ + 'rule']
             record[type_ + 'rule'] = rule_str[0 : len(rule_str) - 2]
@@ -781,42 +875,44 @@ class OutData(CoolBFFAPIView,ExcelBase):
             del record['rule_type']
             del record['rule']
             del record['score_onn']
-            
+
         # 导出
-        ws = self.open_excel("/core/file/学生考勤信息记录.xlsx")
+        wb, ws = self.open_excel("/core/file/学生考勤信息记录")
         for i in records:
             k = dict(i)
-            ws.append([
-                k.get('grade',''),
-                k.get('usernames',''),
-                k.get('name',''),
-                # 晨点
-                k.get(RULE_CODE_08+'score',0),
-                k.get(RULE_CODE_08+'rule',''),
-                # 晨跑
-                k.get(RULE_CODE_09+'score',0),
-                k.get(RULE_CODE_09+'rule',''),
-                # 早签
-                k.get(RULE_CODE_04+'score',0),
-                k.get(RULE_CODE_04+'rule',''),
-                # 晚签
-                k.get(RULE_CODE_02+'score',0),
-                k.get(RULE_CODE_02+'rule',''),
-                # 晚自修违纪
-                k.get(RULE_CODE_03+'score',0),
-                k.get(RULE_CODE_03+'rule',0),
-                # 查寝
-                k.get(RULE_CODE_01+'score',0),
-                k.get(RULE_CODE_01+'rule',''),
-                # 课堂
-                k.get(RULE_CODE_05+'score',0),
-                k.get(RULE_CODE_05+'rule',''),
-                k.get('score','')
-            ])
-        TIME = datetime.datetime.now()#.strftime("%H:%M:%S")
-        ws.append(['统计时间:',TIME])
+            ws.append(
+                [
+                    k.get('grade', ''),
+                    k.get('usernames', ''),
+                    k.get('name', ''),
+                    # 晨点
+                    k.get(RULE_CODE_08 + 'score', 0),
+                    k.get(RULE_CODE_08 + 'rule', ''),
+                    # 晨跑
+                    k.get(RULE_CODE_09 + 'score', 0),
+                    k.get(RULE_CODE_09 + 'rule', ''),
+                    # 早签
+                    k.get(RULE_CODE_04 + 'score', 0),
+                    k.get(RULE_CODE_04 + 'rule', ''),
+                    # 晚签
+                    k.get(RULE_CODE_02 + 'score', 0),
+                    k.get(RULE_CODE_02 + 'rule', ''),
+                    # 晚自修违纪
+                    k.get(RULE_CODE_03 + 'score', 0),
+                    k.get(RULE_CODE_03 + 'rule', 0),
+                    # 查寝
+                    k.get(RULE_CODE_01 + 'score', 0),
+                    k.get(RULE_CODE_01 + 'rule', ''),
+                    # 课堂
+                    k.get(RULE_CODE_05 + 'score', 0),
+                    k.get(RULE_CODE_05 + 'rule', ''),
+                    k.get('score', ''),
+                ]
+            )
+        TIME = datetime.datetime.now()  # .strftime("%H:%M:%S")
+        ws.append(['统计时间:', TIME])
         response = self.create_excel_response('学生缺勤表')
-        return self.write_file(response,ws)
+        return self.write_file(response, wb)
 
     class Meta:
         param_fields = (

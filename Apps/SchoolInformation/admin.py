@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-09-08 19:34:17
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-10 18:26:51
+LastEditTime: 2021-12-08 09:46:03
 Description: 
 '''
 from django.contrib import admin
@@ -35,6 +35,7 @@ class StuInRoomAdmin(AjaxAdmin):
     list_filter = ("room__floor__building__name","room__floor__name","room__name",)
      # 增加自定义按钮
     list_per_page = 20
+    search_fields = ("user__username","user__name")
     actions = ('upload_file',)
 
     def upload_file(self, request, queryset):

@@ -7,6 +7,7 @@ from Apps.User.models import College, Grade
 from cool import views
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
 from cool.views.view import CoolBFFAPIView
+from core.excel_utils import ExcelBase
 from core.models_utils import search_room
 from core.permission_group import user_group
 from core.settings import *
@@ -16,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.reader.excel import ExcelReader
 from rest_framework.views import APIView
+from rest_framework import fields
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -46,7 +48,7 @@ def create_class(class_name, college_name):
 def group_user(request):
     '''用户与组的管理'''
     ret = {}
-    list_ = excel_to_list(request)
+    list_ = ExcelBase().excel_to_list(request)
     for row in list_:
         group = row[0]
         username = row[1]
@@ -84,7 +86,7 @@ def group_user(request):
 # 导入学生
 def user_init(request):
     '''导入学生'''
-    excel = excel_to_list(request,False)
+    excel = ExcelBase().excel_to_list(request,False)
     excel_users = {}
     excel_grades = {}
     # 获取分院实例
@@ -172,7 +174,7 @@ def group_init(request=None):
 # 用户寝室关联
 def user_room(request):
     '''用户寝室关联'''
-    rows = excel_to_list(request)
+    rows = ExcelBase().excel_to_list(request)
     message = {}
     message['username-'] = []
     message['flg-'] = []
@@ -525,10 +527,10 @@ class Apitouviews(CoolBFFAPIView):
 
 # 导出系统数据1
 @site
-class OutExcel(CoolBFFAPIView):
-    name = '导出系统数据1'
+class OutExcel(CoolBFFAPIView,ExcelBase):
+    name = '导出系统数据'
 
-    def get_context(self, request, *args, **kwargs):
+    def dormitory(self,request):
         sr = StuInRoom.objects.all().select_related('room__floor__building','user__grade')
         data = []
         for d in sr:
@@ -539,179 +541,26 @@ class OutExcel(CoolBFFAPIView):
                 d.room.get_room(),
                 d.bed_position
             ])
-        return list_to_excel(data,'学生数据1',['班级','学号','姓名','寝室','床位'])
+        return self.download_excel(data,'学生数据1',['班级','学号','姓名','寝室','床位'])
 
-# 可以慢慢淘汰的代码
+    def excel_template(self,request):
+        name = request.params.name
+        wb, ws = self.open_excel('/core/file/' + name)
+        r = self.create_excel_response(name)
+        return self.write_file(r,wb)
 
-# def put_stu_room(stu, room, ret):
-#     """把学生放入寝室,注意第二个参数目前只支持xx#xxx形式"""
-#     history = StuInRoom.objects.filter(room=search_room(room), user=stu)
-#     try:
-#         if history.exists():
-#             ret.append(
-#                 "学生" + stu.userinfo.name + "->" + history.first().get_room() + "已存在"
-#             )
-#         else:
-#             room = search_room(room)
-#             stu_in_room = StuInRoom.objects.get_or_create(room=room, user=stu)
-#             ret.append(
-#                 "记录("
-#                 + "学号:"
-#                 + stu.username
-#                 + "姓名:"
-#                 + stu.userinfo.name
-#                 + "->"
-#                 + stu_in_room[0].get_room()
-#                 + "寝室)已创建"
-#             )
-#     except:
-#         ret.append(str(stu) + "异常")
+    def get_context(self, request, *args, **kwargs):
+        type_ = request.params.type
+        if type_ == 'dormitory':
+            return self.dormitory(request)
+        elif type_ == 'excel_template':
+            return self.excel_template(request)
 
-
-# def import_stu_data(request):
-#     """寝室表导入"""
-#     file = request.data['file']
-#     work_book = load_workbook(file)
-#     ret = []
-#     for sheet in work_book:
-#         room_name = ""
-#         for info in sheet.values:
-#             if info[0] == "寝室日".strip():
-#                 continue
-#             try:
-#                 if info[0]:
-#                     room_name = str(info[0])[0 : info[0].find("#") + 3 + 1]
-#                 name = ''.join(re.findall('[\u4e00-\u9fa5]', str(info[2]))).strip()
-#                 if len(name) == 0 or not name:
-#                     continue
-#                 grade = str(info[3]).strip()
-#                 stu_id = str(info[4]).strip()
-#                 tel = str(info[5]).strip()
-#                 user = User.objects.get_or_create(username=stu_id)
-#                 user_info, flg0 = UserInfo.objects.get_or_create(user=user[0])
-#                 user_info.name = name
-#                 user_info.tel = tel
-#                 user_info.save()
-
-#                 grade = Grade.objects.get_or_create(name=grade)
-#                 stu_info, flg1 = StudentInfo.objects.get_or_create(
-#                     user=user[0], defaults={"grade": grade[0]}
-#                 )
-#                 if not flg1:
-#                     stu_info.grade = grade[0]
-#                     stu_info.save()
-#                 put_stu_room(user[0], room_name, ret)
-#             except User.DoesNotExist:
-#                 ret.append(info[2] + name + "异常")
-#             except UserInfo.DoesNotExist:
-#                 ret.append(info[2] + name + "异常")
-#             except:
-#                 ret.append(info[2] + "---获取数据异常")
-
-#     return ret
-
-# # 导入学生
-# def user_init(request):
-#     '''导入学生'''
-#     message_list = {}
-#     message_list['create'] = []
-#     message_list['update'] = []
-#     excel = excel_to_list(request)
-#     grade_list = list()
-#     user_list = list()
-#     user_info_list = list()
-#     stu_info_list = list()
-#     for row in excel:
-#         grade = row[0]
-#         username = row[1]
-#         name = row[2]
-#         # 创建/获取 班级
-#         grade = Grade(name=grade)
-#         grade_list.append(grade)
-#         # 创建/获取 用户对象
-#         user = User(username=username)
-#         user.set_password(username)
-#         user_list.append(user)
-#         user_info = UserInfo(user=user, name=name)
-#         stu_info = StudentInfo (user=user, grade=grade)
-#         user_info_list.append(user_info)
-#         stu_info_list.append(stu_info)
-#     Grade.objects.bulk_create(grade_list)
-#     User.objects.bulk_create(user_info_list)
-#     UserInfo.objects.bulk_create(user_info_list)
-#     StudentInfo.objects.bulk_create(stu_info_list)
-#     return message_list
-# class In_zaoqian_excel(APIView):
-#     def post(self, request):
-#         """针对寝室表"""
-#         file = request.data['file']
-
-#         file_name = str(time.time()) + '__' + file.name
-#         file_path = os.path.join('upload', file_name)
-#         f = open(file_path, 'wb')
-#         for i in file.chunks():  # chunks方法是一点点获取上传的文件内容
-#             f.write(i)
-#         f.close()
-
-#         file_name = 'upload//' + file_name
-
-#         # return JsonResponse({})
-
-#         wb = load_workbook(file, read_only=True)
-
-#         error_list = []
-#         for rows in wb:
-#             for row in rows:  # 遍历行
-#                 username = row[0].internal_value
-#                 name = row[1].internal_value
-#                 str_time = row[3].internal_value
-#                 is_header = (
-#                     username.find('考勤') != -1
-#                     or username.find('统计') != -1
-#                     or username.find('员工号') != -1
-#                 )
-#                 if (
-#                     not (username == None or name == None or str_time == None)
-#                     and not is_header
-#                 ):
-#                     print(username)
-#                     try:
-#                         u = User.objects.get(username=username)
-#                         try:
-#                             str_time = datetime.datetime.strptime(str_time, '%Y/%m/%d')
-#                             d = {
-#                                 'rule_str': '旷早签',
-#                                 'student_approved': u,
-#                                 'score': 1,
-#                                 'star_time': str_time,
-#                             }
-#                             (
-#                                 sa,
-#                                 flg,
-#                             ) = SchoolAttendanceModels.Record.objects.get_or_create(**d)
-#                             sa.worker = request.user
-#                             sa.save()
-#                         except:
-#                             error_list.append(
-#                                 {
-#                                     'username': username,
-#                                     'name': name,
-#                                     'str_time': str_time,
-#                                     'message': '导入记录失败',
-#                                 }
-#                             )
-#                     except:
-#                         error_list.append(
-#                             {
-#                                 'username': username,
-#                                 'name': name,
-#                                 'str_time': str_time,
-#                                 'message': '用户不存在',
-#                             }
-#                         )
-
-#         ret = {'message': '添加成功 请检查添加结果', 'code': '2000', 'data': error_list}
-#         return JsonResponse(ret)
+    class Meta:
+        param_fields = (
+            ('type', fields.CharField(label=_('类型'),default=None)),
+            ('name', fields.CharField(label=_('名称'),default=None)),
+        )
 
 
 urls = site.urls
