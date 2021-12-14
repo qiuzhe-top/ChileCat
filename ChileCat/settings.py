@@ -47,7 +47,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'Manage.utils.middleware.LoadUserObject',
-     'silk.middleware.SilkyMiddleware'
+     'silk.middleware.SilkyMiddleware',
+     'core.middleware.exception.ExceptionMiddleware'
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
