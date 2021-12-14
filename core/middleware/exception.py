@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-12-14 11:31:14
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-14 12:07:30
+LastEditTime: 2021-12-14 12:20:45
 Description: 全局异常
 '''
 from rest_framework import status

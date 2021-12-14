@@ -585,7 +585,6 @@ class PushWx(CoolBFFAPIView):
     def get_context(self, request, *args, **kwargs):
         title = request.params.title
         content = request.params.content
-        a = 1/0
         push_wx(title,content)
 
     class Meta:
