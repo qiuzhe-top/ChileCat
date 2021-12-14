@@ -587,8 +587,8 @@ class PushWx(CoolBFFAPIView):
 
     class Meta:
         param_fields = (
-            ('title', fields.CharField(label=_('标题'),default=None)),
-            ('content', fields.CharField(label=_('内容'),default=None)),
+            ('title', fields.CharField(label=_('标题'),default='标题')),
+            ('content', fields.CharField(label=_('内容'),default='默认内容')),
         )
 urls = site.urls
 urlpatterns = site.urlpatterns
