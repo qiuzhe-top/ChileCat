@@ -575,6 +575,8 @@ class ResetTask(CoolBFFAPIView):
         SchoolAttendanceModels.Task.objects.all().update(is_open=False) # 关闭所有任务
         SchoolAttendanceModels.UserCall.objects.all().update(flg=None)# 重置晚自修点名任务状态
         SchoolAttendanceModels.RoomHistory.objects.all().update(is_health=False) #重置卫生检查任务状态
+        push_wx('定时任务','重置任务状态')
+
 
 @site
 class PushWx(CoolBFFAPIView):
