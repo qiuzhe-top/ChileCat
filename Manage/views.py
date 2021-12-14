@@ -10,6 +10,7 @@ from cool.views.view import CoolBFFAPIView
 from core.excel_utils import ExcelBase
 from core.models_utils import search_room
 from core.permission_group import user_group
+from core.push_plus import push_wx
 from core.settings import *
 from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
@@ -575,6 +576,19 @@ class ResetTask(CoolBFFAPIView):
         SchoolAttendanceModels.UserCall.objects.all().update(flg=None)# 重置晚自修点名任务状态
         SchoolAttendanceModels.RoomHistory.objects.all().update(is_health=False) #重置卫生检查任务状态
 
+@site
+class PushWx(CoolBFFAPIView):
+    name = _('微信推送')
+    method = 'get'
+    def get_context(self, request, *args, **kwargs):
+        title = request.params.title
+        content = request.params.content
+        push_wx(title,content)
 
+    class Meta:
+        param_fields = (
+            ('title', fields.CharField(label=_('标题'),default=None)),
+            ('content', fields.CharField(label=_('内容'),default=None)),
+        )
 urls = site.urls
 urlpatterns = site.urlpatterns
