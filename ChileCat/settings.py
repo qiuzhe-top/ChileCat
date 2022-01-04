@@ -12,6 +12,8 @@ ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务�
 if ENV_PROFILE:
     DEBUG = False
     print('线上环境')
+    print('SECRET_KEY',SECRET_KEY)
+    print('MYSQL_PASSWORD',os.getenv('MYSQL_PASSWORD'))
 
 ALLOWED_HOSTS = ["*"]
 
