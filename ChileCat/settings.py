@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'silk',
+    # 'silk',
     'rest_framework',
     'cool',
     'Apps.User',
@@ -47,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'Manage.utils.middleware.LoadUserObject',
-     'silk.middleware.SilkyMiddleware',
+    #  'silk.middleware.SilkyMiddleware',
      'core.middleware.exception.ExceptionMiddleware'
 ]
 
@@ -77,8 +77,7 @@ DATABASES = {
         'NAME': 'ChileCat',
         'USER': 'root',
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        # 'HOST': '127.0.0.1',
-        'HOST': '8.136.80.119',
+        'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {'isolation_level': None},
     }
