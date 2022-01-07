@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'silk',
     'rest_framework',
     'cool',
     'Apps.User',
@@ -49,7 +48,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'Manage.utils.middleware.LoadUserObject',
-    #  'silk.middleware.SilkyMiddleware',
      'core.middleware.exception.ExceptionMiddleware'
 ]
 
