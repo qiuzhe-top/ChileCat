@@ -12,8 +12,8 @@ ENV_PROFILE = os.getenv("ENV")  # 获取环境数值 因为  ENV  只有服务�
 if ENV_PROFILE:
     DEBUG = False
     print('线上环境')
-    print('SECRET_KEY',SECRET_KEY)
-    print('MYSQL_PASSWORD',os.getenv('MYSQL_PASSWORD'))
+    print('SECRET_KEY:',SECRET_KEY)
+    print('MYSQL_PASSWORD:',os.getenv('MYSQL_PASSWORD'))
 
 ALLOWED_HOSTS = ["*"]
 
@@ -90,6 +90,7 @@ DATABASES = {
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

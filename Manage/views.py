@@ -42,7 +42,6 @@ def create_class(class_name, college_name):
     print("班级已存在,无需创建!")
     return None
 
-
 # excel 转 列表 当第一个单元格为空是过滤这行数据
 
 # 用户与组的管理
@@ -87,7 +86,7 @@ def group_user(request):
 # 导入学生
 def user_init(request):
     '''导入学生'''
-    excel = ExcelBase().excel_to_list(request,False)
+    excel = ExcelBase().excel_to_list(request)
     excel_users = {}
     excel_grades = {}
     # 获取分院实例
@@ -98,10 +97,10 @@ def user_init(request):
 
     for row in excel:
         row_len = len(row)
-        grade = row[0]
-        username = row[1]
-        name = row[2]
-        tel =  row[3] if row_len > 3 and row[3] else None
+        grade = row['grade']
+        username = row['username']
+        name = row['name']
+        tel =  row['tel'] if row_len > 3 and row['tel'] else None
         excel_users[username] = {
             "username": username,
             "grade": grade,
@@ -178,38 +177,38 @@ def user_room(request):
     rows = ExcelBase().excel_to_list(request)
     message = {}
     message['username-'] = []
-    message['flg-'] = []
-    message['flg+'] = []
+    message['type-'] = []
+    message['type+'] = []
     message['update'] = []
     message['error'] = []
     for row in rows:
         try:
-            room_ = row[0]
-            username_ = row[1]
-            flg = row[2]
+            room_ = row['room']
+            username_ = row['username']
+            type = row['type']
 
             # 清空寝室内的学生
             if username_ == "-":
                 room = search_room(room_)
                 room.stu_in_room.all().delete()
                 message['username-'].append(room_ + "：清空")
-
-            elif flg == '-':
+            # 删除学生对应的寝室
+            elif type == '-':
                 user = User.objects.get(username=username_)
-                StuInRoom.objects.filter(user=user).update(is_active=False)
-                message['flg-'].append(room_ + "软删除 " + username_)
+                StuInRoom.objects.filter(user=user).delete()
+                message['type-'].append('删除' +username_+'对应的寝室' )
 
             # 学生寝室绑定/删除
-            elif flg == '+':
+            elif type == '+':
                 user = User.objects.get(username=username_)
                 room = search_room(room_)
-                st, flg = StuInRoom.objects.get_or_create(
+                st, type = StuInRoom.objects.get_or_create(
                     user=user, defaults={"room": room}
                 )
                 st.room = room
                 st.save()
-                if flg:
-                    message['flg+'].append(room_ + " 添加 " + username_)
+                if type:
+                    message['type+'].append(room_ + " 添加 " + username_)
                 else:
                     message['update'].append(username_ + " 更新为 " + room_)
 
@@ -290,7 +289,7 @@ def run_init(request):
 class DataInit(CoolBFFAPIView):
     name = "系统数据初始化"
 
-    def get_context(self, request):
+    def get_context(self, request, *args, **kwargs):
         init_dict = {
             "init": run_init,
             # 导入学生
@@ -300,8 +299,11 @@ class DataInit(CoolBFFAPIView):
             # 用户与组的管理
             "group_user": group_user,
         }
-        type_ = request.data['type']
-        data = init_dict[type_](request)
+        if request.method=='POST':
+            type_ = request.data['type']
+            data = init_dict[type_](request)
+        elif request.method=='GET':
+            data = run_init(request)
         return data
 
 
