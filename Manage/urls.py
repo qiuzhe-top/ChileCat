@@ -3,12 +3,12 @@ Author: 邹洋
 Date: 2021-12-01 08:08:08
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-01-08 19:23:15
+LastEditTime: 2022-02-06 22:04:08
 Description: 
 '''
 from django.urls import path
 from . import views
-from core.rest_permission.init_api_url import init_api_permissions
+from core.system.init_api_url import init_api_permissions
 
 # manage
 urlpatterns = [

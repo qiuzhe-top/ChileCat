@@ -7,9 +7,9 @@ from Apps.User.models import College, Grade
 from cool import views
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
 from cool.views.view import CoolBFFAPIView
-from core.excel_utils import ExcelBase
+from core.common.excel import ExcelBase
 from core.models_utils import search_room
-from core.permission_group import user_group
+from core.common import group
 from core.push_plus import push_wx
 from core.settings import *
 from django.contrib.auth import get_user_model
@@ -59,12 +59,12 @@ def group_user(request):
             pass
         # 当 学号为'-'组有参 时 清空组内的用户
         elif username == '-' and group != None:
-            error = user_group.group_clean(group)
+            error = group.group_clean(group)
         # 根据flg的状态执行删除/添加
         elif group != None and username != None and flg != None:
             if flg == '+':
                 # 组里面添加学生
-                error = user_group.group_add_user(
+                error = group.group_add_user(
                     group,
                     [
                         username,
@@ -72,7 +72,7 @@ def group_user(request):
                 )
             elif flg == '-':
                 # pass
-                error = user_group.group_remove_user(
+                error = group.group_remove_user(
                     group,
                     [
                         username,
@@ -166,7 +166,7 @@ def group_init(request=None):
         # 晚查寝
         'knowing_admin',
     ]
-    d = user_group.group_init(names)
+    d = group.group_init(names)
     ret = {"message": d, "names": names}
     return ret
 
@@ -227,7 +227,7 @@ def init_Attendance_group(request=None):
         'undo_record_admin',
         'zq_data_import',
     ]
-    user_group.group_add_permission(name3, per3)
+    group.group_add_permission(name3, per3)
     return 2000
 
 

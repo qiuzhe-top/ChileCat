@@ -1,18 +1,16 @@
 '''
 Author: 邹洋
-Date: 2021-07-04 13:57:48
+Date: 2022-02-06 21:58:29
 Email: 2810201146@qq.com
-LastEditors: OBKoro1
-LastEditTime: 2021-07-04 14:12:43
-Description: 验证是否登录
+LastEditors:  
+LastEditTime: 2022-02-06 21:58:29
+Description: 
 '''
-from django.contrib.auth.models import AnonymousUser
-from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from Apps.User import models as UserModel
+from django.contrib.auth.models import AnonymousUser
 
 
-# from Apps.Permission.models import ApiPermission
 class AuthPermission(BaseAuthentication):
 
     def authenticate(self, request):

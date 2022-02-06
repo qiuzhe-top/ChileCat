@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-12-11 17:50:33
+LastEditTime: 2022-02-06 22:00:38
 Description: 父类
 '''
 import datetime
@@ -22,10 +22,38 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
 
 from core.common import is_number
-from core.excel_utils import ExcelBase
+from core.common.excel import ExcelBase
 from core.models_utils import create_custom_rule
 
 User = get_user_model()
+
+
+def create_custom_rule(codename,name,score=1):
+        '''创建自定义规则'''
+        rule_obj = Rule.objects.get(codename=codename)
+        rule_obj, f = RuleDetails.objects.get_or_create(
+            name=name, defaults={'rule': rule_obj, 'score': score}
+        )
+        
+        return rule_obj
+
+def get_end_date(request):
+    end_date = request.params.end_date
+    if end_date:
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day, 23, 59, 59)
+    else:
+        now = datetime.datetime.now()
+        t = datetime.datetime(now.year, now.month, now.day)
+        end_date = datetime.datetime(t.year, t.month, t.day, 23, 59, 59) #默认今天24点
+    return end_date
+
+def get_start_date(request):
+    start_date = request.params.start_date
+    if not start_date:
+        now = datetime.datetime.now()
+        t = datetime.datetime(now.year, now.month, now.day)
+        start_date = datetime.datetime(t.year, t.month, t.day) #默认今天
+    return start_date
 class EditMixin:
 
     model = None

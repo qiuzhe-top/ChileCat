@@ -1,12 +1,11 @@
 '''
 Author: 邹洋
-Date: 2021-09-23 19:31:58
+Date: 2022-02-06 21:30:49
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-09-24 10:24:19
-Description: 
+LastEditTime: 2022-02-06 21:45:49
+Description: 公共模型
 '''
-
 
 from django.db import models
 
@@ -37,3 +36,8 @@ class ActiveBase(models.Model):
 
     class Meta:
         abstract = True 
+
+
+class TimeClass():
+    star_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    last_time = models.DateTimeField(auto_now=True, verbose_name=u'最后修改日期')
