@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'cool',
     'Apps.User',
-    'Apps.SchoolInformation',
+    'SchoolInformation',
     'Apps.SchoolAttendance',
     'Manage',
     'django_extensions',
@@ -48,7 +48,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'Manage.utils.middleware.LoadUserObject',
-     'core.middleware.exception.ExceptionMiddleware'
+     'Core.system.exception.ExceptionMiddleware'
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -117,6 +117,7 @@ USE_L10N = True
 USE_TZ = False
 
 APPEND_SLASH = False
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 STATIC_URL = '/static/'
 # 当访问静态文件时去哪里找
@@ -159,7 +160,7 @@ SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 # 全局权限控制
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        "core.rest_permission.authentication.AuthPermission",
+        "Core.system.authentication.AuthPermission",
     ],
     'EXCEPTION_HANDLER': 'core.rest_permission.exception_handler.custom_exception_handler',
 }

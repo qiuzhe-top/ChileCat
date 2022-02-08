@@ -3,11 +3,11 @@ Author: 邹洋
 Date: 2021-09-09 16:38:38
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-11-23 10:29:46
+LastEditTime: 2022-02-07 11:14:40
 Description: 
 '''
-from core.models_utils import TimeClass
-from Apps.SchoolInformation.models import Grade
+from SchoolInformation.models import Grade
+
 from django.contrib.auth.models import BaseUserManager,AbstractUser
 from shortuuidfield import ShortUUIDField # 使用shortuuid作为User表的主键，使数据更加的安全
 from django.db import models
@@ -35,7 +35,7 @@ class UserManager(BaseUserManager): #自定义Manager管理器
         kwargs['is_staff'] = True
         return self._create_user(username,password,email,**kwargs)
 # @admin_register()
-class User(AbstractUser,TimeClass): # 自定义User
+class User(AbstractUser): # 自定义User
     GENDER_TYPE = (
         ("1","男"),
         ("2","女")

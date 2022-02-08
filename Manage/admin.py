@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-09-09 16:49:49
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2021-11-23 10:30:02
+LastEditTime: 2022-02-07 10:51:09
 Description: 
 '''
 from django.conf import settings
@@ -54,7 +54,7 @@ class UserAdmin(admin.ModelAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     change_password_form = AdminPasswordChangeForm
-    list_display = ('username','name','grade')
+    # list_display = ('username','name','grade')
 
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('username', 'name','grade__name' ,'email')
