@@ -49,6 +49,9 @@ class Task(BaseModel):
         (u'2', u'晚自修'),
         (u'3', u'签到'),
     )
+    COLLEGE_CHOICE = (
+        (u'ZHJT', u'智慧交通'),
+    )
     # GENDER_CHOICES1的修改需要注意BatchAttendance类的修改
     
     is_open = models.BooleanField(verbose_name='是否开启',default=False)
@@ -57,7 +60,7 @@ class Task(BaseModel):
     roster = models.TextField(
         verbose_name=u'班表', null=True, blank=True, default=u'[]')
     
-    college = models.CharField(max_length=10, verbose_name=u'分院编号')
+    college = models.CharField(max_length=10,choices=COLLEGE_CHOICE, verbose_name=u'分院编号')
 
     admin = models.ManyToManyField(settings.AUTH_USER_MODEL,blank=True,related_name='admin',  verbose_name=u'管理员')
     player = models.ManyToManyField(settings.AUTH_USER_MODEL,blank=True,related_name='player',  verbose_name=u'工作人员')

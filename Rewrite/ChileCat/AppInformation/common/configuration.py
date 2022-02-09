@@ -24,9 +24,3 @@ GRADE_DATA = [
     {"id":'195101',"college":100},
     {"id":'195102',"college":100},
 ]
-
-GRADE_USER_DATA = [
-    {"grade":101,"username":'19510146'},
-    {"grade":101,"username":'19510145'},
-    {"grade":101,"username":'19510144'},
-]

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-06 22:12:06
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 20:37:54
+LastEditTime: 2022-02-09 10:54:35
 Description: 启动运行
 '''
 
@@ -14,7 +14,7 @@ def uinitialization_rules():
     '''考勤规则初始化
     codename:系统内部使用不能随意修改 导出Excel会使用
     '''
-    print('晚自修规则初始化:')
+    print('晚自修规则初始化完成')
     # TODO 效率低
     res = []
     for item in INIT_RULES:
@@ -39,8 +39,7 @@ def uinitialization_rules():
     return res
 
 def run_init():
-    print('初始化')
-    # uinitialization_rules()
-    UserCallCache().update_grades_call_cache()
-    DormCallCache().init_data()
+    uinitialization_rules()
+    # UserCallCache().update_grades_call_cache()
+    # DormCallCache().init_data()
     

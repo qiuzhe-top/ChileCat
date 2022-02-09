@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-06 22:12:06
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 15:19:42
+LastEditTime: 2022-02-09 10:55:21
 Description: 启动运行
 '''
 from .configuration import *
@@ -11,7 +11,7 @@ from .  import group
 # 用户组初始化
 def group_init():
     '''用户组初始化'''
-    print('用户组初始化:')
+    print('用户组初始化完成')
     names = [
         # 考勤任务管理 # 后台导航栏是否展示 <考勤系统> 父选项
         'task_admin',
@@ -31,7 +31,7 @@ def group_init():
 
 def init_Attendance_group():
     '''考勤权限分组'''
-    print('考勤权限分组:')
+    print('考勤权限分组初始化完成')
     # task_data 组
     name3 = 'task_data'
     per3 = [
@@ -45,8 +45,5 @@ def init_Attendance_group():
 def run_init():
     print(group_init())
     print(init_Attendance_group())
-
     # UseCache().init_data()
-    pass
-
 
