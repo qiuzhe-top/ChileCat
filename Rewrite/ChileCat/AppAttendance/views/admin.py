@@ -3,11 +3,12 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 21:01:28
+LastEditTime: 2022-02-09 10:19:02
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
 import json
+from urllib.request import Request
 
 from AppAttendance import serializers
 from AppAttendance.common.configuration import *
@@ -389,10 +390,10 @@ class BatchAttendance(ExcelInData):
                     wait_create_record.append(
                         Record(
                             rule_str=rule.name,
-                            student_approved_username=u['username'],
-                            student_approved_name=u['name'],
+                            student_approved_username=u.username,
+                            student_approved_name=u.name,
                             score=rule.score,
-                            grade_str=u['grade'],
+                            grade_str=u.grade,
                             star_time=star_time,
                             worker_username=user.username,
                             worker_name=user.name,
@@ -468,26 +469,9 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
     name = _('筛选导出记录情况')
 
     def get_context(self, request, *args, **kwargs):
-        # ret = {}
-        # # 获取用户所属分院
-        # username = request.params.username
-        # college_id = request.params.college_id
-        # start_date = get_start_date(request)
-        # end_date = get_end_date(request)
-        # # 筛选条件
-        # q1 = Q(manager_username__isnull=True)  # 是否销假
-        # q2 = Q(star_time__range=(start_date, end_date))  # 时间
-        # q3 = (
-        #     Q(student_approved_username=username) | Q(student_approved_name=username)
-        #     if username != None
-        #     else q1
-        # )  # 是否名称搜索
-        # q4 = Q(task__types__in=['2', '0', '3'])  # 任务类型限制
-        # q5 = Q(task__college=college_id)  # 分院
-        # q6 = Q(rule__isnull=False)
-            # Record.objects.filter(q2 & q1 & q3 & q4 & q5 & q6)
-
         records = self.query_data(request)
+        if not records:
+            return HttpResponse('当前没有违纪记录')
 
         records = (
             records.values(
@@ -495,7 +479,7 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
                 name=F('student_approved_name'),
             )
             .annotate(
-                rule=Concat('rule_str'),
+                rule_str=Concat('rule_str'),
                 score_onn=Concat('score'),
                 score=Sum('score'),
                 time=Concat('star_time'),
@@ -505,7 +489,7 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
                 'grade',
                 'name',
                 'rule_type',
-                'rule',
+                'rule_str',
                 'score_onn',
                 'score',
                 'time',
@@ -514,7 +498,7 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
         )
         for record in records:
             rule_type_ = record['rule_type'].split(',')
-            rule_ = record['rule'].split(',')
+            rule_ = record['rule_str'].split(',')
             score_onn_ = record['score_onn'].split(',')
             time_ = record['time'].split(',')
             rule_02_time = {}
@@ -570,11 +554,11 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
 
             del record['time']
             del record['rule_type']
-            del record['rule']
+            del record['rule_str']
             del record['score_onn']
 
         # 导出
-        wb, ws = self.open_excel("/Module/core/file/学生考勤信息记录")
+        wb, ws = self.open_excel("/Core/file/学生考勤信息记录")
         for i in records:
             k = dict(i)
             ws.append(
@@ -647,5 +631,17 @@ class UploadDormitoryPersonnelList(PermissionView,ExcelBase):
         param_fields = (
             ('username', fields.CharField(label=_('用户名'), default=None)),
         )
+# # 定时任务
+@site
+class ResetTask(CoolBFFAPIView):
+    name = _('定时任务 重置任务状态')
+   
+    def get_context(self, request, *args, **kwargs):
+        Task.objects.all().update(is_open=False) # 关闭所有任务
+        # 重置考勤缓存
+        UserCallCache().update_grades_call_cache()
+        DormCallCache().init_data()
+
+
 admin_urls = site.urls
 admin_urlpatterns = site.urlpatterns

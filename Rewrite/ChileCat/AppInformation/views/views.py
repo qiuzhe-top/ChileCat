@@ -3,16 +3,17 @@ Author: 邹洋
 Date: 2022-02-07 13:57:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 17:48:46
+LastEditTime: 2022-02-08 12:16:36
 Description: 
 '''
 from cool.views import CoolAPIException, ErrorCode, ViewSite
 from django.http import JsonResponse
 from AppInformation import models
 from AppInformation.common.launch import run_init
-from AppInformation.models import College
+from AppInformation.models import College, StuInRoom
 from AppUser.common.configuration import PASSWOED_123456
 from Core.common.excel import ExcelBase
+from Core.utils import push_wx
 from .dormitory import urlpatterns_dormitory
 from Core.views import PermissionView
 from django.contrib.auth import get_user_model
@@ -181,6 +182,92 @@ class UploadUserInformation(PermissionView, ExcelBase):
         param_fields = (
             ('username', fields.CharField(label=_('用户名'), default=None)),
         )
+
+
+# # 导出系统数据1
+@site
+class OutExcel(CoolBFFAPIView,ExcelBase):
+    name = '导出学生信息1'
+
+    def dormitory(self,request):
+        sr = StuInRoom.objects.all().select_related('user__grade')
+        data = []
+        for d in sr:
+            data.append([
+                d.user.grade_id,
+                d.user.username,
+                d.user.name,
+                d.room.id,
+                d.bed_position
+            ])
+        return self.download_excel(data,'寝室数据',['班级','学号','姓名','寝室','床位'])
+
+    def excel_template(self,request):
+        name = request.params.name
+        wb, ws = self.open_excel('/Core/file/' + name)
+        r = self.create_excel_response(name)
+        return self.write_file(r,wb)
+
+    def get_context(self, request, *args, **kwargs):
+        type_ = request.params.type
+        if type_ == 'dormitory':
+            return self.dormitory(request)
+        elif type_ == 'excel_template':
+            return self.excel_template(request)
+
+    class Meta:
+        param_fields = (
+            ('type', fields.CharField(label=_('类型'),default=None)),
+            ('name', fields.CharField(label=_('名称'),default=None)),
+        )
+@site
+class PushWx(CoolBFFAPIView):
+    name = _('微信推送')
+    method = 'get'
+    def get_context(self, request, *args, **kwargs):
+        title = request.params.title
+        content = request.params.content
+        push_wx(title,content)
+
+    class Meta:
+        param_fields = (
+            ('title', fields.CharField(label=_('标题'),default='标题')),
+            ('content', fields.CharField(label=_('内容'),default='默认内容')),
+        )
+
+
+@site
+class Apitouviews(CoolBFFAPIView):
+    name = _('api转uViewsApi模板')
+
+    def get_method(self):
+        return str.lower(getattr(self.view_class, "method", "post"))
+
+    def get_url(self):
+        url = self.info['url']
+        return url
+
+    def get_context(self, request, *args, **kwargs):
+        views = get_view_list()
+        api_str = ""
+        for v in views:
+            self.view_class = v['view_class']
+            api_info = get_api_info(self.view_class)
+            self.info = api_info['apis'][0]
+            url = self.get_url()
+            name = self.info['name']
+            method = self.get_method()
+            ul_name = self.info['ul_name'][4:]
+            t1 = "// {} \n"
+            t2 = "api['{}'] = (params = {}) => vm.$u.{}('{}', params) \n"
+            t = (t1 + t2).format(name, ul_name, '{ }', method, url)
+            api_str += t
+        return HttpResponse(api_str)
+
+
+
+
+
 @site
 class BuildingManagr(CoolBFFAPIView):
     name = _('宿舍楼数据管理')

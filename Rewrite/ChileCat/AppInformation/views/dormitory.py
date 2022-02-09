@@ -3,9 +3,10 @@ Author: 邹洋
 Date: 2022-02-06 22:15:24
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-08 11:12:04
+LastEditTime: 2022-02-09 10:36:50
 Description: 学校宿舍
 '''
+import json
 from AppInformation.models import *
 from AppAttendance.models import Task
 from Core.views import PermissionView
@@ -38,6 +39,7 @@ class StuRoomRecover(PermissionView):
         if request.params.is_all:
             # 获取任务对应的楼层进行恢复
             rooms = Task.objects.filter(id=task_id,admin=request.user).values_list('buildings',flat=True)  
+            rooms = json.loads(rooms[0])
             return StuInRoom.objects.filter(room_id__in=rooms,is_active=False).update(is_active=True)
         else:
             return StuInRoom.objects.filter(user__username__in=username_list,is_active=False).update(is_active=True)

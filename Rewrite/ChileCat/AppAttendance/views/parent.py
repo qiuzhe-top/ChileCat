@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-08 10:09:44
+LastEditTime: 2022-02-09 10:17:52
 Description: 父级视图
 '''
 import json
@@ -517,12 +517,11 @@ class ExcelInData(PermissionView, ExcelBase):
             username = row['username']
             user_usernams.append(username)
 
-        conn = InitCacheConnection()
-        query = conn.cache.hmget('User',user_usernams)
+        # conn = InitCacheConnection()
+        # query = conn.cache.hmget('User',user_usernams)
+        query = User.objects.filter(username__in=user_usernams)
         for u in query:
-            if u:
-                u = json.loads(u)
-                self.db_users[u['username'].upper()] = u
+            self.db_users[u.username.upper()] = u
 
         rows_ = []
         for row in self.rows:
@@ -535,13 +534,11 @@ class ExcelInData(PermissionView, ExcelBase):
                 self.add_message(username, self.get_name(username), '用户不在系统')
                 continue
 
-            if name != None and name != u['name']:
+            if name != None and name != u.name:
                 self.add_message(username, name, '学号与姓名不一致 系统内部为:' + u.name)
                 continue
 
-            try:
-                u['grade']
-            except:
+            if not u.grade:
                 self.add_message(username, self.get_name(username), '用户没有班级信息异常')
                 continue
 

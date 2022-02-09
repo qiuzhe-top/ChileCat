@@ -1,87 +1,19 @@
-# """管理视图"""
-# import logging
+'''
+Author: 邹洋
+Date: 2022-02-08 11:49:52
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2022-02-08 12:20:00
+Description: 
+'''
+from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
+from AppInformation.models import StuInRoom
+from rest_framework import fields
 
-# from Apps.SchoolAttendance import models as SchoolAttendanceModels
-# from Apps.SchoolInformation.models import StuInRoom, College
-# from Apps.User.models import College, Grade
-# from cool import views
-from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite, sites
-# from cool.views.view import CoolBFFAPIView
-# from Core.common.excel import ExcelBase
-# from Core.models_utils import search_room
-# from Core.common import group
-# from Core.push_plus import push_wx
-# from Core.settings import *
-# from django.contrib.auth import get_user_model
-# from django.http.response import JsonResponse
-# from django.utils.translation import gettext_lazy as _
-# from openpyxl import load_workbook
-# from openpyxl.reader.excel import ExcelReader
-# from rest_framework.views import APIView
-# from rest_framework import fields
+from Core.common.excel import ExcelBase
+from django.utils.translation import gettext_lazy as _
 
-# User = get_user_model()
-# logger = logging.getLogger(__name__)
-
-
-site = ViewSite(name='Manage', app_name='Manage')
-
-
-# def create_class(class_name, college_name):
-#     """创建班级"""
-#     if not Grade.objects.filter(name=class_name).exists():
-#         if not College.objects.filter(name=college_name).exists():
-#             college = College(name=college_name)
-#             college.save()
-#             print("分院:", college, "创建.")
-#         college = College.objects.get(name=college_name)
-#         grade = Grade(name=class_name, college=college)
-#         grade.save()
-#         print("班级", grade, "创建")
-#         return grade
-#     print("班级已存在,无需创建!")
-#     return None
-
-# # excel 转 列表 当第一个单元格为空是过滤这行数据
-
-# # 用户与组的管理
-# def group_user(request):
-#     '''用户与组的管理'''
-#     ret = {}
-#     list_ = ExcelBase().excel_to_list(request)
-#     for row in list_:
-#         group = row[0]
-#         username = row[1]
-#         flg = row[2]
-#         # 当 组为'-'学号有参 时 清空用户所在的所有组
-#         if group == '-' and username != None:
-
-#             pass
-#         # 当 学号为'-'组有参 时 清空组内的用户
-#         elif username == '-' and group != None:
-#             error = group.group_clean(group)
-#         # 根据flg的状态执行删除/添加
-#         elif group != None and username != None and flg != None:
-#             if flg == '+':
-#                 # 组里面添加学生
-#                 error = group.group_add_user(
-#                     group,
-#                     [
-#                         username,
-#                     ],
-#                 )
-#             elif flg == '-':
-#                 # pass
-#                 error = group.group_remove_user(
-#                     group,
-#                     [
-#                         username,
-#                     ],
-#                 )
-#                 # 组里面删除学生
-#     ret['error'] = error
-#     return ret
-
+site = ViewSite(name='OS', app_name='OS')
 
 # # 导入学生
 # def user_init(request):
@@ -284,6 +216,45 @@ site = ViewSite(name='Manage', app_name='Manage')
 #         "init_college": init_college(),
 #     }
 
+# # 用户与组的管理
+# def group_user(request):
+#     '''用户与组的管理'''
+#     ret = {}
+#     list_ = ExcelBase().excel_to_list(request)
+#     for row in list_:
+#         group = row[0]
+#         username = row[1]
+#         flg = row[2]
+#         # 当 组为'-'学号有参 时 清空用户所在的所有组
+#         if group == '-' and username != None:
+
+#             pass
+#         # 当 学号为'-'组有参 时 清空组内的用户
+#         elif username == '-' and group != None:
+#             error = group.group_clean(group)
+#         # 根据flg的状态执行删除/添加
+#         elif group != None and username != None and flg != None:
+#             if flg == '+':
+#                 # 组里面添加学生
+#                 error = group.group_add_user(
+#                     group,
+#                     [
+#                         username,
+#                     ],
+#                 )
+#             elif flg == '-':
+#                 # pass
+#                 error = group.group_remove_user(
+#                     group,
+#                     [
+#                         username,
+#                     ],
+#                 )
+#                 # 组里面删除学生
+#     ret['error'] = error
+#     return ret
+
+
 
 @site
 class DataInit(CoolBFFAPIView):
@@ -306,24 +277,6 @@ class DataInit(CoolBFFAPIView):
         #     data = run_init(request)
         # return data
         pass
-
-
-# from django.shortcuts import render
-
-
-# @site
-# class Index(CoolBFFAPIView):
-#     name = _('后台主页')
-
-#     def get_context(self, request, *args, **kwargs):
-#         data = []
-#         u = User.objects.all().count()
-#         t = SchoolAttendanceModels.Record.objects.all().count()
-#         context = {'user_count': u, 'task_count': t}
-#         return render(request, 'index/index.html', context)
-
-
-# from cool.views.utils import get_api_info, get_url, get_view_list
 
 
 # @site
@@ -497,89 +450,5 @@ class DataInit(CoolBFFAPIView):
 #         return JsonResponse(apis)
 
 
-# from django.http import HttpResponse
-
-
-# @site
-# class Apitouviews(CoolBFFAPIView):
-#     name = _('api转uViewsApi模板')
-
-#     def get_method(self):
-#         return str.lower(getattr(self.view_class, "method", "post"))
-
-#     def get_url(self):
-#         url = self.info['url']
-#         return url
-
-#     def get_context(self, request, *args, **kwargs):
-#         views = get_view_list()
-#         api_str = ""
-#         for v in views:
-#             self.view_class = v['view_class']
-#             api_info = get_api_info(self.view_class)
-#             self.info = api_info['apis'][0]
-#             url = self.get_url()
-#             name = self.info['name']
-#             method = self.get_method()
-#             ul_name = self.info['ul_name'][4:]
-#             t1 = "// {} \n"
-#             t2 = "api['{}'] = (params = {}) => vm.$u.{}('{}', params) \n"
-#             t = (t1 + t2).format(name, ul_name, '{ }', method, url)
-#             api_str += t
-#         return HttpResponse(api_str)
-
-
-# # 导出系统数据1
-# @site
-# class OutExcel(CoolBFFAPIView,ExcelBase):
-#     name = '导出系统数据'
-
-#     def dormitory(self,request):
-#         sr = StuInRoom.objects.all().select_related('room__floor__building','user__grade')
-#         data = []
-#         for d in sr:
-#             data.append([
-#                 d.user.grade.name,
-#                 d.user.username,
-#                 d.user.name,
-#                 d.room.get_room(),
-#                 d.bed_position
-#             ])
-#         return self.download_excel(data,'学生数据1',['班级','学号','姓名','寝室','床位'])
-
-#     def excel_template(self,request):
-#         name = request.params.name
-#         wb, ws = self.open_excel('/core/file/' + name)
-#         r = self.create_excel_response(name)
-#         return self.write_file(r,wb)
-
-#     def get_context(self, request, *args, **kwargs):
-#         type_ = request.params.type
-#         if type_ == 'dormitory':
-#             return self.dormitory(request)
-#         elif type_ == 'excel_template':
-#             return self.excel_template(request)
-
-#     class Meta:
-#         param_fields = (
-#             ('type', fields.CharField(label=_('类型'),default=None)),
-#             ('name', fields.CharField(label=_('名称'),default=None)),
-#         )
-
-
-# @site
-# class PushWx(CoolBFFAPIView):
-#     name = _('微信推送')
-#     method = 'get'
-#     def get_context(self, request, *args, **kwargs):
-#         title = request.params.title
-#         content = request.params.content
-#         push_wx(title,content)
-
-#     class Meta:
-#         param_fields = (
-#             ('title', fields.CharField(label=_('标题'),default='标题')),
-#             ('content', fields.CharField(label=_('内容'),default='默认内容')),
-#         )
-urls = site.urls
-urlpatterns = site.urlpatterns
+admin_urls = site.urls
+admin_urlpatterns = site.urlpatterns
