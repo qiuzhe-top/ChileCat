@@ -177,6 +177,6 @@ class PersonalDisciplineQuery(PermissionView):
 #         async_to_sync(channel_layer.group_send)(ROOM_GROUP_NAME, {"type": "send.message", "message": 123456})
 #         return render(request, 'a.html',{'hello':1})
 
-# run_init()
+run_init()
 urls = site.urls
 urlpatterns = site.urlpatterns + worker_urlpatterns  + admin_urlpatterns

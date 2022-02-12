@@ -93,7 +93,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         "TIMEOUT": None,
         'CONFIG': {
-            "hosts": ["redis://124.223.43.151:6379/2"],
+            "hosts": ["redis://:zhou24272592@124.223.43.151:6379/2"],
+            "symmetric_encryption_keys": [SECRET_KEY],
         },
     },
 }
@@ -107,6 +108,7 @@ CACHES = {
         "TIMEOUT": None,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "zhou24272592",
             "CONNECTION_POOL_KWARGS": {"decode_responses": True,"max_connections": 200},
         }
     }
@@ -123,10 +125,10 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test1',
+        'NAME': 'ChileCat',
         'USER': 'root',
         'PASSWORD': 'Zhou24272592.',
-        'HOST': '47.100.95.58',
+        'HOST': '124.223.43.151',
         'PORT': '3306',
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",

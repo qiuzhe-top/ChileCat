@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-09 10:17:52
+LastEditTime: 2022-02-12 14:04:41
 Description: 父级视图
 '''
 import json
@@ -411,6 +411,7 @@ class DormCallCache(InitCacheConnection):
         tasks = Task.objects.filter(types__in=['0','1'])
         for task in tasks:
             rooms = task.get_buildings()
+            print(rooms)
             for room in rooms:
                 accommodations[room] = {}
                 knowing_room[room] = '0'
@@ -429,6 +430,7 @@ class DormCallCache(InitCacheConnection):
                     accommodations[room][user.username] = user_info
                 json_str = json.dumps(accommodations[room])
                 accommodations[room] = json_str
+        print(knowing_room)
         self.cache.hmset(DormCallCache.STUDENTS, accommodations)
         self.cache.hmset(DormCallCache.K_CALL, knowing_room)
         self.cache.hmset(DormCallCache.K_USER, knowing_user)
