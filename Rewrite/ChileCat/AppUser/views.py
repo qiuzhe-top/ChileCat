@@ -3,7 +3,6 @@ from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import cache_page
-# from qrpc.utils import ExcelBase
 from rest_framework import fields
 
 from Core.views import PermissionView

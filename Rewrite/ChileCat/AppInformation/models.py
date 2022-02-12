@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 16:16:36
+LastEditTime: 2022-02-09 21:59:44
 Description: 
 '''
 from atexit import register
@@ -13,19 +13,6 @@ from django.conf import settings
 from django.db import models
 
 # Create your models here.
-
-@admin_register
-class Grade(models.Model):
-    """
-    学校班级
-    """
-    id = models.CharField(primary_key=True ,max_length=20, verbose_name="班级号")
-    college = models.ForeignKey(
-        "College",null=True, blank=True, related_name="college_grades", on_delete=models.CASCADE, verbose_name="学院")
-
-    class Meta:
-        verbose_name = "学校班级"
-        verbose_name_plural = "学校班级"
 
 @admin_register
 class College(models.Model):
@@ -41,6 +28,20 @@ class College(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@admin_register
+class Grade(models.Model):
+    """
+    学校班级
+    """
+    id = models.CharField(primary_key=True ,max_length=20, verbose_name="班级号")
+    college = models.ForeignKey(
+        College,null=True, blank=True, on_delete=models.CASCADE, verbose_name="学院")
+
+    class Meta:
+        verbose_name = "学校班级"
+        verbose_name_plural = "学校班级"
 
 @admin_register
 class DormitoryBuilding(models.Model):

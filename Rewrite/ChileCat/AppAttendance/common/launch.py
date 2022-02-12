@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-06 22:12:06
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-09 10:54:35
+LastEditTime: 2022-02-09 21:51:48
 Description: 启动运行
 '''
 
@@ -39,7 +39,8 @@ def uinitialization_rules():
     return res
 
 def run_init():
-    uinitialization_rules()
+    # uinitialization_rules()
     # UserCallCache().update_grades_call_cache()
     # DormCallCache().init_data()
     
+    pass

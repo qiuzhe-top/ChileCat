@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-25 19:21:57
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 21:14:58
+LastEditTime: 2022-02-12 09:55:14
 Description: 
 参考
 https://www.jianshu.com/p/0f75e2623418
@@ -13,9 +13,7 @@ from urllib import request
 from channels.generic.websocket import WebsocketConsumer
 import json
 from asgiref.sync import async_to_sync
-from qrpc.utils import InitCacheConnection
 
-# from Module.core.ParentViews import DormCallCache
 from AppAttendance.views.parent import DormCallCache
 conn = DormCallCache()
 ROOM_GROUP_NAME = "room"

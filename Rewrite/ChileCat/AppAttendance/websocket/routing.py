@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-25 19:13:47
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-04 20:02:59
+LastEditTime: 2022-02-11 14:20:57
 Description: 
 '''
 from django.conf.urls import url, re_path
