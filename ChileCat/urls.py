@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 11:01:56
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-08 12:12:25
+LastEditTime: 2022-02-13 20:19:12
 Description: 
 '''
 """ChileCat URL Configuration
@@ -32,7 +32,7 @@ apipatterns = [
 ]
 urlpatterns = [
     path('cool/', include('cool.urls')),
-    path('admin/', admin.site.urls),
+    path('zfcat/admin/', admin.site.urls),
     path('api/', include(apipatterns)),
-    path('doc', get_api_doc_html),
+    path('zfcat/doc', get_api_doc_html),
 ]
