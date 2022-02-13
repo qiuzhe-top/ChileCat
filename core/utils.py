@@ -3,18 +3,18 @@ Author: 邹洋
 Date: 2021-08-14 09:56:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-06 21:50:10
+LastEditTime: 2022-02-12 22:17:02
 Description: 工具类
 '''
 
 import time
 
 import requests
-from ChileCat.settings import DEBUG
+from django.conf import settings
 token = '10218bcad82e4ddfb842b47d358334fa'
 url = 'http://pushplus.hxtrip.com/send'
 def push_wx(title,content,template='html'):
-    if DEBUG == False:
+    if settings.DEBUG == False:
         data = {
             'token':token,
             'title':title,

@@ -1,3 +1,11 @@
+'''
+Author: 邹洋
+Date: 2022-02-07 11:01:56
+Email: 2810201146@qq.com
+LastEditors:  
+LastEditTime: 2022-02-12 22:16:09
+Description: 
+'''
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
@@ -6,7 +14,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChileCat.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChileCat.settings.dev')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

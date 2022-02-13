@@ -3,15 +3,13 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 10:51:37
+LastEditTime: 2022-02-07 19:26:53
 Description: 父类
 '''
 import datetime
-import json
-import re
 from typing import Any
 
-# from Apps.SchoolAttendance.models import *
+# from AppAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
@@ -20,23 +18,29 @@ from django.db.models.query_utils import Q
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
+from AppAttendance.models import *
 from Core.common.excel import *
-# from django_redis import get_redis_connection
+from django_redis import get_redis_connection
 
 User = get_user_model()
 
 
-# def create_custom_rule(codename,name,score=1):
-#         '''创建自定义规则'''
-#         rule_obj = Rule.objects.get(codename=codename)
-#         rule_obj, f = RuleDetails.objects.get_or_create(
-#             name=name, defaults={'rule': rule_obj, 'score': score}
-#         )
+def create_custom_rule(codename,name,score=1):
+        '''创建自定义规则'''
+        rule_obj = Rule.objects.get(codename=codename)
+        rule_obj, f = RuleDetails.objects.get_or_create(
+            name=name, defaults={'rule': rule_obj, 'score': score}
+        )
         
-#         return rule_obj
+        return rule_obj
 
-def get_end_date(request):
-    end_date = request.params.end_date
+def get_end_date(request=None):
+    # TODO 标注类型
+    try:
+        end_date = request.params.end_date
+    except:
+        end_date = None
+        
     if end_date:
         end_date = datetime.datetime(end_date.year, end_date.month, end_date.day, 23, 59, 59)
     else:
@@ -45,8 +49,11 @@ def get_end_date(request):
         end_date = datetime.datetime(t.year, t.month, t.day, 23, 59, 59) #默认今天24点
     return end_date
 
-def get_start_date(request):
-    start_date = request.params.start_date
+def get_start_date(request=None):
+    try:
+        start_date = request.params.start_date
+    except:
+        start_date = None
     if not start_date:
         now = datetime.datetime.now()
         t = datetime.datetime(now.year, now.month, now.day)
@@ -217,7 +224,7 @@ class InitCacheConnection:
         '''
         if not cache:
             if not hasattr(self,'cache'):
-                self.cache = 1#get_redis_connection()
+                self.cache = get_redis_connection()
         else:
             self.cache = cache
         return self

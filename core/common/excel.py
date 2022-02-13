@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-07-04 13:57:48
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 10:52:46
+LastEditTime: 2022-02-13 16:45:54
 Description: Excel 操作
 '''
 
@@ -17,12 +17,11 @@ from django.http import HttpResponse
 from django.utils.encoding import escape_uri_path
 from openpyxl import load_workbook
 
-# from core.settings import *
-
-
 class ExcelBase:
     
-    def excel_to_list(self,request):
+
+    
+    def excel_to_list(self,request,file=None):
         """Excel转列表
 
         Args:
@@ -31,7 +30,8 @@ class ExcelBase:
         Returns:
             list: 
         """        
-        file = request.data['file']
+        if not file:
+            file = request.data['file']
         data = []
         wb = load_workbook(file,read_only=True)
         header = None
@@ -56,9 +56,9 @@ class ExcelBase:
         创建excel进行下载
 
         Args:
+            data (list): 数据
             name (str): 文件名
             header (list): 列表第一行
-            data (list): 数据
             type (str): 主体数据格式 1.list[list[]] 2.serializers.data[{}]
         '''
         response = self.create_excel_response(name)

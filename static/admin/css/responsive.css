@@ -7,6 +7,7 @@ input[type="submit"], button {
 
 @media (max-width: 1024px) {
     /* Basic */
+
     html {
         -webkit-text-size-adjust: 100%;
     }
@@ -21,6 +22,7 @@ input[type="submit"], button {
     }
 
     /* Layout */
+
     #container {
         min-width: 0;
     }
@@ -34,12 +36,11 @@ input[type="submit"], button {
     }
 
     /* Header */
+
     #header {
-        display: flex;
         flex-direction: column;
         padding: 15px 30px;
-        height: auto;
-        line-height: 1;
+        justify-content: flex-start;
     }
 
     #branding h1 {
@@ -61,6 +62,7 @@ input[type="submit"], button {
     }
 
     /* Dashboard */
+
     .dashboard #content {
         width: auto;
     }
@@ -90,16 +92,15 @@ input[type="submit"], button {
     }
 
     /* Changelist */
-    #changelist #toolbar {
+
+    #toolbar {
         border: none;
         padding: 15px;
     }
 
     #changelist-search > div {
-        display: -webkit-flex;
         display: flex;
-        -webkit-flex-wrap: wrap;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         max-width: 480px;
     }
 
@@ -107,16 +108,20 @@ input[type="submit"], button {
         line-height: 22px;
     }
 
-    #changelist #toolbar form #searchbar {
-        -webkit-flex: 1 0 auto;
+    #toolbar form #searchbar {
         flex: 1 0 auto;
         width: 0;
         height: 22px;
         margin: 0 10px 0 6px;
     }
 
+    #toolbar form input[type=submit] {
+        flex: 0 1 auto;
+    }
+
     #changelist-search .quiet {
-        width: 100%;
+        width: 0;
+        flex: 1 0 auto;
         margin: 5px 0 0 25px;
     }
 
@@ -135,7 +140,7 @@ input[type="submit"], button {
     }
 
     #changelist .actions select {
-        background: #fff;
+        background: var(--body-bg);
     }
 
     #changelist .actions .button {
@@ -152,19 +157,16 @@ input[type="submit"], button {
     }
 
     #changelist-filter {
-        width: 200px;
+        flex-basis: 200px;
     }
 
     .change-list .filtered .results,
     .change-list .filtered .paginator,
     .filtered #toolbar,
     .filtered .actions,
-    .filtered div.xfull {
-        margin-right: 230px;
-    }
 
     #changelist .paginator {
-        border-top-color: #eee;
+        border-top-color: var(--hairline-color); /* XXX Is this used at all? */
     }
 
     #changelist .results + .paginator {
@@ -172,6 +174,7 @@ input[type="submit"], button {
     }
 
     /* Forms */
+
     label {
         font-size: 14px;
     }
@@ -201,20 +204,20 @@ input[type="submit"], button {
         min-height: 0;
     }
 
-    fieldset .field-box {
+    fieldset .fieldBox {
         float: none;
         margin: 0 -10px;
         padding: 0 10px;
     }
 
-    fieldset .field-box + .field-box {
+    fieldset .fieldBox + .fieldBox {
         margin-top: 10px;
         padding-top: 10px;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--hairline-color);
     }
 
     textarea {
-        max-width: 518px;
+        max-width: 100%;
         max-height: 120px;
     }
 
@@ -222,7 +225,6 @@ input[type="submit"], button {
         padding-top: 6px;
     }
 
-    .aligned .add-another,
     .aligned .related-lookup,
     .aligned .datetimeshortcuts,
     .aligned .related-lookup + strong {
@@ -235,6 +237,7 @@ input[type="submit"], button {
     }
 
     /* Related widget */
+
     .related-widget-wrapper {
         float: none;
     }
@@ -250,6 +253,7 @@ input[type="submit"], button {
     }
 
     /* Selector */
+
     .selector {
         display: flex;
         width: 100%;
@@ -348,6 +352,14 @@ input[type="submit"], button {
     }
 
     .stacked .active.selector-add {
+        background-position: 0 -40px;
+    }
+
+    .active.selector-add:focus, .active.selector-add:hover {
+        background-position: 0 -140px;
+    }
+
+    .stacked .active.selector-add:focus, .stacked .active.selector-add:hover {
         background-position: 0 -60px;
     }
 
@@ -356,6 +368,14 @@ input[type="submit"], button {
     }
 
     .stacked .active.selector-remove {
+        background-position: 0 0;
+    }
+
+    .active.selector-remove:focus, .active.selector-remove:hover {
+        background-position: 0 -100px;
+    }
+
+    .stacked .active.selector-remove:focus, .stacked .active.selector-remove:hover {
         background-position: 0 -20px;
     }
 
@@ -379,11 +399,15 @@ input[type="submit"], button {
     .datetime .timezonewarning {
         display: block;
         font-size: 11px;
-        color: #999;
+        color: var(--body-quiet-color);
     }
 
     .datetimeshortcuts {
-        color: #ccc;
+        color: var(--border-color); /* XXX Redundant, .datetime span also sets #ccc */
+    }
+
+    .form-row .datetime input.vDateField, .form-row .datetime input.vTimeField {
+        width: 75%;
     }
 
     .inline-group {
@@ -391,6 +415,7 @@ input[type="submit"], button {
     }
 
     /* Messages */
+
     ul.messagelist li {
         padding-left: 55px;
         background-position: 30px 12px;
@@ -405,6 +430,7 @@ input[type="submit"], button {
     }
 
     /* Login */
+
     .login #header {
         padding: 15px 20px;
     }
@@ -414,6 +440,7 @@ input[type="submit"], button {
     }
 
     /* GIS */
+
     div.olMap {
         max-width: calc(100vw - 30px);
         max-height: 300px;
@@ -425,6 +452,7 @@ input[type="submit"], button {
     }
 
     /* Docs */
+
     .module table.xfull {
         width: 100%;
     }
@@ -438,6 +466,7 @@ input[type="submit"], button {
 
 @media (max-width: 767px) {
     /* Layout */
+
     #header, #content, #footer {
         padding: 15px;
     }
@@ -451,6 +480,7 @@ input[type="submit"], button {
     }
 
     /* Dashboard */
+
     .colMS, .colSM {
         margin: 0;
     }
@@ -470,26 +500,18 @@ input[type="submit"], button {
     }
 
     /* Changelist */
+
     #changelist {
-        display: flex;
+        align-items: stretch;
         flex-direction: column;
     }
 
-    #changelist #toolbar {
-        order: 1;
+    #toolbar {
         padding: 10px;
     }
 
-    #changelist .xfull {
-        order: 2;
-    }
-
-    #changelist-form {
-        order: 3;
-    }
-
     #changelist-filter {
-        order: 4;
+        margin-left: 0;
     }
 
     #changelist .actions label {
@@ -503,11 +525,6 @@ input[type="submit"], button {
 
     #changelist .actions span {
         flex: 1 0 100%;
-    }
-
-    .change-list .filtered .results, .change-list .filtered .paginator,
-    .filtered #toolbar, .filtered .actions, .filtered div.xfull {
-        margin-right: 0;
     }
 
     #changelist-filter {
@@ -533,6 +550,7 @@ input[type="submit"], button {
     }
 
     /* Forms */
+
     .form-row {
         padding: 15px 0;
     }
@@ -556,7 +574,7 @@ input[type="submit"], button {
         width: auto;
     }
 
-    fieldset .field-box + .field-box {
+    fieldset .fieldBox + .fieldBox {
         margin-top: 15px;
         padding-top: 15px;
     }
@@ -637,11 +655,12 @@ input[type="submit"], button {
         margin-bottom: -3px;
     }
 
-    form .aligned ul.radiolist li + li {
+    form .aligned ul.radiolist:not(.inline) li + li {
         margin-top: 5px;
     }
 
     /* Related widget */
+
     .related-widget-wrapper {
         width: 100%;
         display: flex;
@@ -670,6 +689,7 @@ input[type="submit"], button {
     }
 
     /* Selector */
+
     .selector {
         flex-direction: column;
     }
@@ -705,13 +725,22 @@ input[type="submit"], button {
         background-position: 0 0;
     }
 
-    .selector-add {
+    .active.selector-remove:focus, .active.selector-remove:hover {
+        background-position: 0 -20px;
+    }
+
+    .selector-add  {
         background-position: 0 -40px;
     }
 
+    .active.selector-add:focus, .active.selector-add:hover {
+        background-position: 0 -60px;
+    }
+
     /* Inlines */
+
     .inline-group[data-inline-type="stacked"] .inline-related {
-        border: 2px solid #eee;
+        border: 1px solid var(--hairline-color);
         border-radius: 4px;
         margin-top: 15px;
         overflow: auto;
@@ -721,16 +750,17 @@ input[type="submit"], button {
         box-sizing: border-box;
     }
 
-    .inline-group[data-inline-type="stacked"] .inline-related + .inline-related {
-        margin-top: 30px;
-    }
-
     .inline-group[data-inline-type="stacked"] .inline-related .module {
         padding: 0 10px;
     }
 
-    .inline-group[data-inline-type="stacked"] .inline-related .module .form-row:last-child {
+    .inline-group[data-inline-type="stacked"] .inline-related .module .form-row {
+        border-top: 1px solid var(--hairline-color);
         border-bottom: none;
+    }
+
+    .inline-group[data-inline-type="stacked"] .inline-related .module .form-row:first-child {
+        border-top: none;
     }
 
     .inline-group[data-inline-type="stacked"] .inline-related h3 {
@@ -762,7 +792,7 @@ input[type="submit"], button {
 
     .inline-group[data-inline-type="stacked"] div.add-row {
         margin-top: 15px;
-        border: 1px solid #eee;
+        border: 1px solid var(--hairline-color);
         border-radius: 4px;
     }
 
@@ -779,6 +809,7 @@ input[type="submit"], button {
     }
 
     /* Submit row */
+
     .submit-row {
         padding: 10px 10px 0;
         margin: 0 0 15px;
@@ -790,10 +821,14 @@ input[type="submit"], button {
         width: 100%;
     }
 
-    .submit-row input, .submit-row input.default, .submit-row a {
+    .submit-row input, .submit-row input.default, .submit-row a, .submit-row a.closelink {
         float: none;
         margin: 0 0 10px;
         text-align: center;
+    }
+
+    .submit-row a.closelink {
+        padding: 10px 0;
     }
 
     .submit-row p.deletelink-box {
@@ -801,6 +836,7 @@ input[type="submit"], button {
     }
 
     /* Messages */
+
     ul.messagelist li {
         padding-left: 40px;
         background-position: 15px 12px;
@@ -815,11 +851,13 @@ input[type="submit"], button {
     }
 
     /* Paginator */
+
     .paginator .this-page, .paginator a:link, .paginator a:visited {
         padding: 4px 10px;
     }
 
     /* Login */
+
     body.login {
         padding: 0 15px;
     }
@@ -848,9 +886,7 @@ input[type="submit"], button {
     }
 
     .login .form-row label {
-        display: block;
         margin: 0 0 5px;
-        padding: 0;
         line-height: 1.2;
     }
 
@@ -858,7 +894,7 @@ input[type="submit"], button {
         padding: 15px 0 0;
     }
 
-    .login br, .login .submit-row label {
+    .login br {
         display: none;
     }
 
@@ -874,6 +910,7 @@ input[type="submit"], button {
     }
 
     /* Calendar and clock */
+
     .calendarbox, .clockbox {
         position: fixed !important;
         top: 50% !important;
@@ -925,7 +962,7 @@ input[type="submit"], button {
     }
 
     .timelist a {
-        background: #fff;
+        background: var(--body-bg);
         padding: 4px;
     }
 
@@ -947,6 +984,7 @@ input[type="submit"], button {
     }
 
     /* History */
+
     table#change-history tbody th, table#change-history tbody td {
         font-size: 13px;
         word-break: break-word;
@@ -957,6 +995,7 @@ input[type="submit"], button {
     }
 
     /* Docs */
+
     table.model tbody th, table.model tbody td {
         font-size: 13px;
         word-break: break-word;
