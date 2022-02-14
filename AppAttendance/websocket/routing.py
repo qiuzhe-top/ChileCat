@@ -3,8 +3,8 @@ Author: 邹洋
 Date: 2022-01-25 19:13:47
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-11 14:20:57
-Description: 
+LastEditTime: 2022-02-14 10:52:41
+Description: WebSocket 路由
 '''
 from django.conf.urls import url, re_path
 from . import consumers
