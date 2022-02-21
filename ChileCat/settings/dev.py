@@ -1,15 +1,17 @@
 '''
 Author: 邹洋
-Date: 2022-02-12 22:12:13
+Date: 2022-02-12 22:12:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 19:51:43
-Description: 开发环境
+LastEditTime: 2022-02-20 22:19:39
+Description: 线上环境
 '''
 from .base import *
-DEBUG = True
-password = 'Zhou24272592.'
+DEBUG = False
+password = 'Zhou24272592.' 
+# host = '127.0.0.1'
 host = '124.223.43.151'
+
 # WebSocket
 CHANNEL_LAYERS = {
     'default': {
@@ -47,3 +49,5 @@ DATABASES = {
         },
     }
 }
+# pip install uvicorn
+# uvicorn ChileCat.asgi:application --host '0.0.0.0' --port 8000 --reload

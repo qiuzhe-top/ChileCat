@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 19:55:58
+LastEditTime: 2022-02-22 06:25:16
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
@@ -165,16 +165,24 @@ class ModifyTaskFloorSettings(TaskBase):
         param_fields = (
             ('buildings', fields.ListField(label=_('房间'), default=None)),
         )
+@site
+class TaskRestKnowing(TaskBase):
+    name = _('重置晚查寝任务状态')
+
+    def get_context(self, request, *args, **kwargs):
+        DormCallCache().init_data(data_type=[DormCallCache.K_CALL])
+        return '重置晚查寝任务状态'
 # ================================================= #
 # ************** 晚自修           ************** #
 # ================================================= #
-# @site
-# class TaskRestLate(TaskBase):
-#     name = _('重置晚自修任务状态')
+@site
+class TaskRestLate(TaskBase):
+    name = _('重置晚自修任务状态')
 
-#     def get_context(self, request, *args, **kwargs):
-#         task = self.get_task_by_user()
-#         UserCallCache().init_all_grades_call([task])
+    def get_context(self, request, *args, **kwargs):
+        UserCallCache().update_grades_call_cache()
+        return '重置晚自修任务状态'
+
 
 
 @site
@@ -217,7 +225,13 @@ class UpdateRoolCall(CoolBFFAPIView, UserCallCache):
 # ================================================= #
 # ************** 卫生           ************** #
 # ================================================= #
+@site
+class TaskRestHealth(TaskBase):
+    name = _('重置卫生任务状态')
 
+    def get_context(self, request, *args, **kwargs):
+        DormCallCache().init_data(data_type=[DormCallCache.H_CALL])
+        return '重置卫生任务状态'
 
 # ================================================= #
 # ************** 权益部 管理员        ************** #

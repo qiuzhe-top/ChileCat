@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-12 22:25:02
+LastEditTime: 2022-02-22 06:22:28
 Description: 父级视图
 '''
 import json
@@ -399,8 +399,19 @@ class DormCallCache(InitCacheConnection):
         '''
         key = DormCallCache.get_type_by_dorm_key(types)
         return self.cache.hget(key + DormCallCache.ROOM,room)
-    
-    def init_data(self):
+        
+    def init_data(self,data_type=[]):
+        '''
+        初始化寝室考勤状态
+
+        Args:
+            data_type (list, optional): 初始化的任务类型. Defaults to ['HealthRoom','KnowingRoom'].
+
+        Returns:
+            _type_: _description_
+        '''
+        if not data_type:
+            data_type = [DormCallCache.H_CALL,DormCallCache.K_CALL]
         # 考勤状态
         knowing_room = {}
         knowing_user = {}
@@ -430,10 +441,12 @@ class DormCallCache(InitCacheConnection):
                 json_str = json.dumps(accommodations[room])
                 accommodations[room] = json_str
         self.cache.hmset(DormCallCache.STUDENTS, accommodations)
-        self.cache.hmset(DormCallCache.K_CALL, knowing_room)
-        self.cache.hmset(DormCallCache.K_USER, knowing_user)
-        self.cache.hmset(DormCallCache.H_CALL, health_room)
-        self.cache.hmset(DormCallCache.H_USER, health_user)
+        if DormCallCache.K_CALL in data_type:
+            self.cache.hmset(DormCallCache.K_CALL, knowing_room)
+            self.cache.hmset(DormCallCache.K_USER, knowing_user)
+        if DormCallCache.H_CALL in data_type:
+            self.cache.hmset(DormCallCache.H_CALL, health_room)
+            self.cache.hmset(DormCallCache.H_USER, health_user)
         return self
 
 
