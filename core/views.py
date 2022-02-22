@@ -3,13 +3,12 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 19:26:53
+LastEditTime: 2022-02-22 09:29:49
 Description: 父类
 '''
 import datetime
 from typing import Any
 
-# from AppAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
