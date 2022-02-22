@@ -3,23 +3,21 @@ Author: 邹洋
 Date: 2021-07-06 20:59:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-22 09:29:49
+LastEditTime: 2022-02-22 10:48:35
 Description: 父类
 '''
 import datetime
-from typing import Any
-
+from AppAttendance.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
 from cool.views.view import CoolBFFAPIView
 from django.contrib.auth import get_user_model
-from django.db.models.query_utils import Q
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
-from rest_framework import fields, utils
-from AppAttendance.models import *
-from Core.common.excel import *
 from django_redis import get_redis_connection
+from rest_framework import utils
+
+from Core.common.excel import *
 
 User = get_user_model()
 
