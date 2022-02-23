@@ -3,24 +3,15 @@ Author: 邹洋
 Date: 2022-02-07 11:06:28
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 10:30:32
+LastEditTime: 2022-02-23 09:33:18
 Description: 
 '''
-from django.conf import settings
-from django.db import models
-
-# Create your models here.
-
-
-
-from django.contrib.auth.models import BaseUserManager,AbstractUser
-from shortuuidfield import ShortUUIDField # 使用shortuuid作为User表的主键，使数据更加的安全
-from django.db import models
-from django.contrib.auth.models import BaseUserManager,AbstractUser
-from shortuuidfield import ShortUUIDField # 使用shortuuid作为User表的主键，使数据更加的安全
-from cool.admin import admin_register
-
 from AppInformation.models import Grade
+from cool.admin import admin_register
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
+from shortuuidfield import ShortUUIDField  # 使用shortuuid作为User表的主键，使数据更加的安全
 @admin_register()
 class Token(models.Model):
     """
