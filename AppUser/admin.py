@@ -30,7 +30,7 @@ from .models import User
 csrf_protect_m = method_decorator(csrf_protect)
 sensitive_post_parameters_m = method_decorator(sensitive_post_parameters())
 
-admin.site.site_title = "智慧彩云后台管理"
+admin.site.site_title = "智慧彩云系统 后台管理"
 admin.site.site_header = "智慧彩云"
 
 
@@ -80,7 +80,11 @@ class UserAdmin(AjaxAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     change_password_form = AdminPasswordChangeForm
-    list_display = ('username', 'name','grade_id')
+    list_display = (
+        'username', 
+        'name',
+        'grade_id'
+        )
     list_display_links = ['username']
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('username', 'name', 'email')
