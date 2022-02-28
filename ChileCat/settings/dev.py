@@ -3,11 +3,14 @@ Author: 邹洋
 Date: 2022-02-12 22:12:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-23 10:43:13
+LastEditTime: 2022-02-28 15:23:19
 Description: 线上环境
 '''
 from .base import *
 DEBUG = True
+ASGI_APPLICATION = 'ChileCat.asgidev.application'
+
+
 password = 'Zhou24272592.' 
 host = '127.0.0.1'
  
