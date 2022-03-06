@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-22 06:25:16
+LastEditTime: 2022-03-03 20:03:21
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
@@ -325,12 +325,13 @@ class BatchUndo(ExcelInData, RecordBase):
         param_fields = (
             ('file', fields.FileField(label=_('Excel文件'), default=None)),
             ('is_down_excel', fields.CharField(label=_('是否导出Excel'), default=False)),
+            ('is_excel', fields.CharField(label=_('是否导出Excel'), default=False)),
         )
 
 
 @site
 class BatchAttendance(ExcelInData):
-    name = _('批量考勤')
+    name = _('批量考勤 签到批量导入')
     need_permissions = ('AppAttendance.check_in_data_import',)
 
     def get_context(self, request, *args, **kwargs):
@@ -373,21 +374,24 @@ class BatchAttendance(ExcelInData):
                             username, self.get_name(username), time, '日期格式错误'
                         )
                         continue
-
-                    wait_create_record.append(
-                        Record(
-                            rule_str=rule.name,
-                            student_approved_username=u.username,
-                            student_approved_name=u.name,
-                            score=rule.score,
-                            grade_str=u.grade,
-                            star_time=star_time,
-                            worker_username=user.username,
-                            worker_name=user.name,
-                            task=task,
-                            rule=rule,
+                    try:
+                        wait_create_record.append(
+                            Record(
+                                rule_str=rule.name,
+                                student_approved_username=u.username,
+                                student_approved_name=u.name,
+                                score=rule.score,
+                                grade_str=u.grade.id,
+                                star_time=star_time,
+                                worker_username=user.username,
+                                worker_name=user.name,
+                                task=task,
+                                rule=rule,
+                            )
                         )
-                    )
+                    except:
+                        self.add_message(username, '添加失败')
+
                 else:
                     self.add_message(username, self.get_name(username), time, '已经存在')
             except:

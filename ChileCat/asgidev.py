@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 11:01:56
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-28 15:17:44
+LastEditTime: 2022-02-28 15:18:51
 Description: 
 '''
 """
@@ -21,7 +21,7 @@ from django.core.asgi import get_asgi_application
 from django.conf import settings
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChileCat.settings.pro')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ChileCat.settings.dev')
 
 django.setup()
 

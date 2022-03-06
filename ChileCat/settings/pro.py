@@ -3,14 +3,22 @@ Author: 邹洋
 Date: 2022-02-12 22:12:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 19:51:25
+LastEditTime: 2022-02-28 15:20:23
 Description: 线上环境
 '''
 from .base import *
 DEBUG = False
+ASGI_APPLICATION = 'ChileCat.asgi.application'
+
+
 password = 'Zhou24272592.' 
 host = '127.0.0.1'
-# host = '124.223.43.151'
+
+redis_password = ''
+redis_host = "redis://:"+redis_password+"@"+host+":6379"
+
+sql_host = host
+sql_password = password
 
 # WebSocket
 CHANNEL_LAYERS = {
@@ -18,7 +26,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         "TIMEOUT": None,
         'CONFIG': {
-            "hosts": ["redis://:"+password+"@"+host+":6379/2"],
+            "hosts": [redis_host + "/2"],
             "symmetric_encryption_keys": [SECRET_KEY],
         },
     },
@@ -26,11 +34,11 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://"+host+":6379/1",
+        "LOCATION": redis_host + "/1",
         "TIMEOUT": None,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": password,
+            "PASSWORD": redis_password,
             "CONNECTION_POOL_KWARGS": {"decode_responses": True,"max_connections": 200},
         }
     }
@@ -40,8 +48,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ChileCat',
         'USER': 'root',
-        'PASSWORD': password,
-        'HOST': host,
+        'PASSWORD': sql_password,
+        'HOST': sql_host,
         'PORT': '3306',
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",

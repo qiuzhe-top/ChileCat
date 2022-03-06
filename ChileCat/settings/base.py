@@ -94,7 +94,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ChileCat.wsgi.application'
-ASGI_APPLICATION = 'ChileCat.asgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
