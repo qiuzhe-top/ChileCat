@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 17:01:49
+LastEditTime: 2022-03-17 19:15:32
 Description: 
 '''
 from django.contrib import admin
@@ -54,23 +54,20 @@ class RecordAdmin(admin.ModelAdmin):
     actions = ['batch_pin','batch_pin_cancel','upload_file']
 
     def batch_pin(self, request, queryset):
-        flag = True
         for i in queryset:
             if i.manager_username:
-                self.message_user(request, '已经有人被销假了，无法批量销假！！')
-                flag = False
+                self.message_user(request, '部分学生被其它管理员销过了！！')
                 break
             else:
                 continue
-        if flag:
-            for q in queryset:
-                q.manager_username  = request.user.username
-                try:
-                    q.manager_name  = request.user.last_name + request.user.first_name
-                except:
-                    self.message_user(request, '销假失败：管理员名称为空')
-                    return
-                q.save()
+        for q in queryset:
+            q.manager_username  = request.user.username
+            try:
+                q.manager_name  = request.user.name
+            except:
+                self.message_user(request, '销假失败：管理员名称为空')
+                return
+            q.save()
             self.message_user(request, '批量销假成功！！')
 
     batch_pin.short_description = '批量销假'
