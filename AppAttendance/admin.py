@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:15:32
+LastEditTime: 2022-03-17 19:17:11
 Description: 
 '''
 from django.contrib import admin
@@ -68,7 +68,7 @@ class RecordAdmin(admin.ModelAdmin):
                 self.message_user(request, '销假失败：管理员名称为空')
                 return
             q.save()
-            self.message_user(request, '批量销假成功！！')
+        self.message_user(request, '批量销假成功！！')
 
     batch_pin.short_description = '批量销假'
 
