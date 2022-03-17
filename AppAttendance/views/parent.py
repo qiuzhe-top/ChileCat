@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-22 06:22:28
+LastEditTime: 2022-03-17 19:03:36
 Description: 父级视图
 '''
 import json
@@ -20,6 +20,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
+from django.db.models.query_utils import Q
 
 channel_layer = get_channel_layer()
 User = get_user_model()
@@ -191,7 +192,7 @@ class SubmitBase(TaskBase, RecordBase):
         '''
         pass
 
-    def submit_undo_record(self, record_model, manager_user):
+    def submit_undo_record(self, record_model, username, name):
         '''
         单个 核销考勤记录
 
@@ -202,7 +203,7 @@ class SubmitBase(TaskBase, RecordBase):
         manager_user : models.User
             用户模型实例
         '''
-        self.undo_record(record_model, manager_user)
+        self.undo_record(record_model, username, name)
 
     def get_context(self, request, *args, **kwargs):
         # TODO 优化提交数度
@@ -235,7 +236,7 @@ class SubmitBase(TaskBase, RecordBase):
             # 撤销记录
             if status == '1':
                 record_model['manager'] = self.request.user
-                self.submit_undo_record(record_model, user)
+                self.submit_undo_record(record_model, user.username, user.name)
 
             # 提交记录
             elif status == '0':

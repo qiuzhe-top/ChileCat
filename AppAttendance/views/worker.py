@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:52:02
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-07 22:19:42
+LastEditTime: 2022-03-17 18:46:36
 Description:  考勤的工作人员，业务部分
 ''' 
 import json
@@ -51,7 +51,7 @@ class SubmitKnowing(SubmitBase):
         elif is_flg == True:
             dorm.set_stu_status(room,self.task.types,username,1)
 
-    def submit_undo_record(self,record_model, user):
+    def submit_undo_record(self,record_model, username,name):
         self.updata_user_in_room(record_model, True)
         record_model['rule_str'] = '查寝：误操作撤销'
 
