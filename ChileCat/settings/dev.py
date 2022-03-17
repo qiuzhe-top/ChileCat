@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:50:14
+LastEditTime: 2022-03-17 20:24:34
 Description: 线上环境
 '''
 from .base import *
@@ -121,5 +121,6 @@ LOGGING = {
     }
 }
 # from Core.utils import logger
+# logger.exception_handler(111)
 # pip install uvicorn
 # uvicorn ChileCat.asgi:application --host '0.0.0.0' --port 8000 --reload

@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-08-14 09:56:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:51:11
+LastEditTime: 2022-03-17 20:17:48
 Description: 工具类
 '''
 
@@ -59,4 +59,5 @@ def error(msg):
     logger.error(msg)
 
 def console(msg):
+    logger.log
     logger.console(msg)

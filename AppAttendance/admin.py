@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:32:30
+LastEditTime: 2022-03-17 20:41:50
 Description: 
 '''
 from django.contrib import admin
@@ -13,7 +13,7 @@ from django.http import JsonResponse
 from AppAttendance.views.admin import ImportRecord
 from .models import *
 from django.utils.html import format_html
-
+from Core.utils import info,error
 # Register your models here.
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
@@ -52,25 +52,36 @@ class RecordAdmin(admin.ModelAdmin):
     search_fields = ("student_approved_username","student_approved_name","manager_username","manager_name")
     actions = ['batch_pin','batch_pin_cancel','upload_file']
     def batch_pin(self, request, queryset):
-        for i in queryset:
-            if i.manager_username:
-                self.message_user(request, '部分学生被其它管理员销过了！！')
-                break
-            else:
-                continue
+            
         for q in queryset:
+
+            if q.manager_username:
+                msg = "{}执行销假时 学生{}:{}已被{} 提前销假".format(request.user.name,q.student_approved_username,
+                                                            q.student_approved_name,q.manager_name)
+                info(msg)
+                continue
+
             q.manager_username  = request.user.username
             try:
                 q.manager_name  = request.user.name
             except:
-                self.message_user(request, '销假失败：管理员名称为空')
+                msg = '销假失败：管理员 ' + request.user.id +' 名称为空'
+                self.message_user(request, msg)
+                error(msg)
                 return
+
             q.save()
+            msg = 'Django后台核销操作 管理员{}:{} 被销假人{}:{}'.format(request.user.username, request.user.name,
+                                                            q.student_approved_username,q.student_approved_name)
+            info(msg)
         self.message_user(request, '批量销假成功！！')
 
     batch_pin.short_description = '批量销假'
 
     def batch_pin_cancel(self, request, queryset):
+        quer = queryset.values_list('student_approved_username', 'student_approved_name')
+        msg = "Django后台取消核销操作 管理员{}:{} 操作学生{}".format(request.user.username, request.user.name,list(quer))
+        info(msg)
         if request.user:
             queryset.update(manager_username=None,manager_name=None)
             self.message_user(request, '批量取消成功！！')
