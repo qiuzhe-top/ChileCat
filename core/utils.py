@@ -3,14 +3,18 @@ Author: 邹洋
 Date: 2021-08-14 09:56:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-12 22:17:02
+LastEditTime: 2022-03-17 19:51:11
 Description: 工具类
 '''
 
+import logging
 import time
 
 import requests
 from django.conf import settings
+
+logger = logging.getLogger('log')
+
 token = '10218bcad82e4ddfb842b47d358334fa'
 url = 'http://pushplus.hxtrip.com/send'
 def push_wx(title,content,template='html'):
@@ -47,3 +51,12 @@ def is_number(s):
         pass
 
     return False
+
+def info(msg):
+    logger.info(msg)
+
+def error(msg):
+    logger.error(msg)
+
+def console(msg):
+    logger.console(msg)

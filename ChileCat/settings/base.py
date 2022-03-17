@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 08:39:11
+LastEditTime: 2022-03-17 19:43:17
 Description: 
 '''
 """
@@ -19,6 +19,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 from pathlib import Path
+import time
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -185,6 +186,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'Core.system.exception_handler.custom_exception_handler',
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DJANGO_COOL = {
     'API_ERROR_CODES': (
@@ -222,4 +224,7 @@ SIMPLEUI_ANALYSIS = False
 # SIMPLEUI_HOME_TITLE = '百度欢迎你!' # 首页标题
 
 # 设置右上角Home图标跳转链接，会以另外一个窗口打开
-SIMPLEUI_INDEX = 'http://124.223.43.151:8200'
+SIMPLEUI_INDEX = 'zhcy.top'
+
+
+

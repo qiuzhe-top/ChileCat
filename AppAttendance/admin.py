@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:17:11
+LastEditTime: 2022-03-17 19:32:30
 Description: 
 '''
 from django.contrib import admin
@@ -37,7 +37,6 @@ class CountryFilter(SimpleListFilter):
         elif value == '2':
             return queryset.filter(manager_username__isnull=False)
 
-
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):
     """考勤记录"""
@@ -52,7 +51,6 @@ class RecordAdmin(admin.ModelAdmin):
 
     search_fields = ("student_approved_username","student_approved_name","manager_username","manager_name")
     actions = ['batch_pin','batch_pin_cancel','upload_file']
-
     def batch_pin(self, request, queryset):
         for i in queryset:
             if i.manager_username:
