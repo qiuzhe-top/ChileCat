@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 19:03:36
+LastEditTime: 2022-03-17 20:47:43
 Description: 父级视图
 '''
 import json
@@ -14,6 +14,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
+from Core.utils import info
 from Core.views import *
 from Core.views import PermissionView
 from django.contrib.auth import get_user_model
@@ -155,6 +156,9 @@ class RecordBase:
         record.manager_username = username
         record.manager_name = name
         record.save()
+        msg = "普通销假 销假原因: {} 销假人: {}:{} 被销假人:{}:{}".format(record.rule_str,username,name,
+                                                                        record.student_approved_username,record.student_approved_name)
+        info(msg)
 
     def submit_record(self, record_model):
         '''
