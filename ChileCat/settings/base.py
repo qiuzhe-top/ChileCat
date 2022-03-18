@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-18 08:42:45
+LastEditTime: 2022-03-18 08:56:14
 Description: 
 '''
 """
@@ -93,6 +93,45 @@ TEMPLATES = [
         },
     },
 ]
+
+
+# WebSocket
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        "TIMEOUT": None,
+        'CONFIG': {
+            "hosts": [''],
+            "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
+}
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": '',
+        "TIMEOUT": None,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": '',
+            "CONNECTION_POOL_KWARGS": {"decode_responses": True,"max_connections": 200},
+        }
+    }
+}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ChileCatTest',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '3306',
+        'OPTIONS': {
+            "init_command": "SET foreign_key_checks = 0;",
+            'isolation_level': None
+        },
+    }
+}
 
 WSGI_APPLICATION = 'ChileCat.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
