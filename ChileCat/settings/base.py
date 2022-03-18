@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-18 08:56:14
+LastEditTime: 2022-03-18 09:31:28
 Description: 
 '''
 """
@@ -121,7 +121,7 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ChileCatTest',
+        'NAME': 'ChileCat',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': '',
