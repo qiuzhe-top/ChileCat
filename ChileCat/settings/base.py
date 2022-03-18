@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-18 08:29:06
+LastEditTime: 2022-03-18 08:42:45
 Description: 
 '''
 """
@@ -226,10 +226,9 @@ SIMPLEUI_ANALYSIS = False
 # 设置右上角Home图标跳转链接，会以另外一个窗口打开
 SIMPLEUI_INDEX = 'zhcy.top'
 
-log_path = os.getenv("CHILE_CAT_LOG")
-if not log_path:
-    log_path = 'D:\\code\\Cat\\ChileCatLog\\'
-    
+
+log_path = os.path.abspath(os.path.join(os.getcwd(), "..","ChileCatLog"))
+
 if not os.path.exists(log_path): os.mkdir(log_path) # 若目录不存在则创建
 
 def get_log_dir(filename):
