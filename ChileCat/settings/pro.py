@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:23
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 22:23:11
+LastEditTime: 2022-03-18 08:27:43
 Description: 线上环境
 '''
 from .base import *
@@ -58,9 +58,6 @@ DATABASES = {
     }
 }
 
-
-# 日志配置
-if not os.path.exists(log_path): os.mkdir(log_path) # 若目录不存在则创建
 
 # pip install uvicorn
 # uvicorn ChileCat.asgi:application --host '0.0.0.0' --port 8000 --reload

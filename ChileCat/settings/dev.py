@@ -59,11 +59,7 @@ DATABASES = {
 }
 
 # 日志配置
-log_path = 'D:\\code\\Cat\\ChileCatLog\\'
-if not os.path.exists(log_path): os.mkdir(log_path) # 若目录不存在则创建
-LOGGING['handlers']['default']['filename'] = os.path.join(log_path, 'all-{}.log'.format(time.strftime('%Y-%m')))
-LOGGING['handlers']['error']['filename'] = os.path.join(log_path, 'error-{}.log'.format(time.strftime('%Y-%m')))
-LOGGING['handlers']['info']['filename'] = os.path.join(log_path, 'info-{}.log'.format(time.strftime('%Y-%m')))
+log_path = ''
 LOGGING['loggers']['log']['handlers'] = ['default']
 
 # pip install uvicorn

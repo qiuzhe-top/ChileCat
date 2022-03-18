@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-12 22:12:05
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 22:22:07
+LastEditTime: 2022-03-18 08:29:06
 Description: 
 '''
 """
@@ -226,7 +226,15 @@ SIMPLEUI_ANALYSIS = False
 # 设置右上角Home图标跳转链接，会以另外一个窗口打开
 SIMPLEUI_INDEX = 'zhcy.top'
 
-log_path = '/project/ChileCat/Log'
+log_path = os.getenv("CHILE_CAT_LOG")
+if not log_path:
+    log_path = 'D:\\code\\Cat\\ChileCatLog\\'
+    
+if not os.path.exists(log_path): os.mkdir(log_path) # 若目录不存在则创建
+
+def get_log_dir(filename):
+    return os.path.join(log_path, '{}-{}.log'.format(filename,time.strftime('%Y-%m')))
+
 LOGGING = {
     'version':1,# 版本
     'disable_existing_loggers':False, # 是否禁用已存在的日志器
@@ -255,31 +263,31 @@ LOGGING = {
         'default': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(log_path, 'all-{}.log'.format(time.strftime('%Y-%m'))),
-            'maxBytes': 1024 * 1024 * 30,  # 文件大小
-            'backupCount': 5,  # 备份数
-            'formatter': 'standard',  # 输出格式
-            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+            'filename': get_log_dir('all'),
+            'maxBytes': 1024 * 1024 * 30,  
+            'backupCount': 5,  
+            'formatter': 'standard',  
+            'encoding': 'utf-8',
         },
         # 输出错误日志
         'error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(log_path, 'error-{}.log'.format(time.strftime('%Y-%m-%d'))),
-            'maxBytes': 1024 * 1024 * 5,  # 文件大小
-            'backupCount': 5,  # 备份数
-            'formatter': 'standard',  # 输出格式
-            'encoding': 'utf-8',  # 设置默认编码
+            'filename': get_log_dir('error'),
+            'maxBytes': 1024 * 1024 * 10,  
+            'backupCount': 5,  
+            'formatter': 'standard',
+            'encoding': 'utf-8',
         },
         # 输出info日志
         'info': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '',
-            'maxBytes': 1024 * 1024 * 5,
+            'filename': get_log_dir('info'),
+            'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
             'formatter': 'standard',
-            'encoding': 'utf-8',  # 设置默认编码
+            'encoding': 'utf-8',
         },
         # 控制台输出
         'console': {
@@ -290,14 +298,12 @@ LOGGING = {
         }
  
     },
-        # 配置日志处理器
     'loggers': {
         'django': {
             'handlers': ['default', 'console'],
-            'level': 'INFO',  # 日志器接收的最低日志级别
+            'level': 'INFO',
             'propagate': True,
         },
-        # log 调用时需要当作参数传入
         'log': {
             'handlers': ['error', 'info', 'console', 'default'],
             'level': 'INFO',
