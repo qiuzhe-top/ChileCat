@@ -10,7 +10,7 @@ from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from AppInformation.models import StuInRoom
 from rest_framework import fields
 
-from Core.common.excel import ExcelBase
+from core.common.excel import ExcelBase
 from django.utils.translation import gettext_lazy as _
 
 site = ViewSite(name='OS', app_name='OS')

@@ -14,9 +14,9 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, utils
 from cool.views.exceptions import CoolAPIException
-from Core.utils import info
-from Core.views import *
-from Core.views import PermissionView
+from core.utils import info
+from core.views import *
+from core.views import PermissionView
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _

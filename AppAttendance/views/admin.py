@@ -17,8 +17,8 @@ from AppAttendance.models import *
 from AppAttendance.views.parent import *
 # from AppInformation.models import *
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
-from Core.common.query_methods import *
-# from Core.views import 
+from core.common.query_methods import *
+# from core.views import 
 from django.db.models import F
 from django.db.models.aggregates import Sum
 from django.db.models.query_utils import Q

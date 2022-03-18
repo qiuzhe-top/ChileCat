@@ -10,10 +10,10 @@ from cool.views import CoolAPIException, ErrorCode, ViewSite
 from AppInformation import models
 from AppInformation.models import College, StuInRoom
 from AppUser.common.configuration import PASSWOED_123456
-from Core.common.excel import ExcelBase
-from Core.utils import push_wx
+from core.common.excel import ExcelBase
+from core.utils import push_wx
 from .dormitory import urlpatterns_dormitory
-from Core.views import PermissionView
+from core.views import PermissionView
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields

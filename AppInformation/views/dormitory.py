@@ -9,7 +9,7 @@ Description: 学校宿舍
 import json
 from AppInformation.models import *
 from AppAttendance.models import Task
-from Core.views import PermissionView
+from core.views import PermissionView
 from rest_framework import fields
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from AppAttendance import serializers as attendance_serializers

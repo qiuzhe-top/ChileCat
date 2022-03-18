@@ -23,7 +23,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from simpleui.admin import AjaxAdmin
 from AppInformation.views.views import UploadUserInformation
 
-from Core.common.excel import ExcelBase
+from core.common.excel import ExcelBase
 import json
 from .models import User
 

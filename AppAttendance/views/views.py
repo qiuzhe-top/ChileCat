@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from AppAttendance.common.configuration import *
 from AppAttendance.common.launch import run_init
-from Core.views import *
+from core.views import *
 from AppAttendance.models import *
 from AppAttendance import models as AppAttendancemodels
 from AppInformation.models import *

@@ -10,7 +10,7 @@ Description: 启动运行
 from AppAttendance.common.configuration import *
 from AppAttendance.models import Rule, RuleDetails
 from django.contrib.contenttypes.models import ContentType
-from Core.common  import group
+from core.common  import group
 def init_permissions():
     print('考勤权限分组初始化完成')
     content_type = ContentType.objects.get(app_label='AppAttendance', model='task')

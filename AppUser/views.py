@@ -4,9 +4,9 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import cache_page
 from rest_framework import fields
-from Core.common.excel import ExcelBase
+from core.common.excel import ExcelBase
 
-from Core.views import PermissionView
+from core.views import PermissionView
 
 from .common.auth import update_token
 from . import serializers

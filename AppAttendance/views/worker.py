@@ -15,7 +15,7 @@ from AppInformation.common.configuration import *
 from AppInformation.models import *
 from AppAttendance import serializers
 from cool.views import CoolAPIException, ErrorCode, ViewSite
-from Core.views import *
+from core.views import *
 from django.utils.translation import gettext_lazy as _
 from django_redis import get_redis_connection
 from rest_framework import fields

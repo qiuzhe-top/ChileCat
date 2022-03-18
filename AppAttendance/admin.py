@@ -13,7 +13,7 @@ from django.http import JsonResponse
 from AppAttendance.views.admin import ImportRecord
 from .models import *
 from django.utils.html import format_html
-from Core.utils import info,error
+from core.utils import info,error
 # Register your models here.
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):

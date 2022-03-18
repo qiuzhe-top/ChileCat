@@ -73,7 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Core.system.exception.ExceptionMiddleware'
+    'core.system.exception.ExceptionMiddleware'
 ]
 
 ROOT_URLCONF = 'ChileCat.urls'
@@ -181,9 +181,9 @@ SECRET_KEY = 'AHABsyAS.ASD.?SA&&w1dsa.1.sdssagrh.;ASLKI'
 # 全局权限控制
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        "Core.system.authentication.AuthPermission",
+        "core.system.authentication.AuthPermission",
     ],
-    'EXCEPTION_HANDLER': 'Core.system.exception_handler.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.system.exception_handler.custom_exception_handler',
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

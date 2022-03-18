@@ -17,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from django_redis import get_redis_connection
 from rest_framework import utils
 
-from Core.common.excel import *
+from core.common.excel import *
 
 User = get_user_model()
 

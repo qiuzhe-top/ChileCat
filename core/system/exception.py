@@ -8,7 +8,7 @@ Description:
 '''
 from django.middleware.common import MiddlewareMixin
 
-from Core.utils import push_wx
+from core.utils import push_wx
 
 class ExceptionMiddleware(MiddlewareMixin):
     """统一异常处理中间件"""

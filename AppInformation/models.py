@@ -3,11 +3,11 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-02-13 10:31:12
+LastEditTime: 2022-03-18 08:46:40
 Description: 
 '''
 from atexit import register
-from Core.common.models import ActiveBase
+from core.common.models import ActiveBase
 from cool.admin import admin_register
 from django.conf import settings
 from django.db import models
