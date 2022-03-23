@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-03 20:03:21
+LastEditTime: 2022-03-23 18:34:58
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
@@ -526,7 +526,7 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
             del record['score_onn']
 
         # 导出
-        wb, ws = self.open_excel("/Core/file/学生考勤信息记录")
+        wb, ws = self.open_excel("/core/file/学生考勤信息记录")
         for i in records:
             k = dict(i)
             ws.append(
