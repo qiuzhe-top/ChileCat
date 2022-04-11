@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 20:41:50
+LastEditTime: 2022-04-11 17:33:54
 Description: 
 '''
 from django.contrib import admin
@@ -56,7 +56,7 @@ class RecordAdmin(admin.ModelAdmin):
         for q in queryset:
 
             if q.manager_username:
-                msg = "{}执行销假时 学生{}:{}已被{} 提前销假".format(request.user.name,q.student_approved_username,
+                msg = "操作ID：{}   {}执行销假时 学生{}:{}已被{} 提前销假 ".format(q.id,request.user.name,q.student_approved_username,
                                                             q.student_approved_name,q.manager_name)
                 info(msg)
                 continue
@@ -65,13 +65,13 @@ class RecordAdmin(admin.ModelAdmin):
             try:
                 q.manager_name  = request.user.name
             except:
-                msg = '销假失败：管理员 ' + request.user.id +' 名称为空'
+                msg = '销假失败：管理员({})名称为空 操作ID：{}'.format(request.user.id,q.id)
                 self.message_user(request, msg)
                 error(msg)
                 return
 
             q.save()
-            msg = 'Django后台核销操作 管理员{}:{} 被销假人{}:{}'.format(request.user.username, request.user.name,
+            msg = 'Django后台核销操作 操作ID：{}   管理员{}:{} 被销假人{}:{}'.format(q.id, request.user.username, request.user.name,
                                                             q.student_approved_username,q.student_approved_name)
             info(msg)
         self.message_user(request, '批量销假成功！！')
