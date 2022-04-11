@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2021-05-20 08:37:12
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-04-11 17:33:54
+LastEditTime: 2022-04-11 17:37:47
 Description: 
 '''
 from django.contrib import admin
@@ -79,8 +79,8 @@ class RecordAdmin(admin.ModelAdmin):
     batch_pin.short_description = '批量销假'
 
     def batch_pin_cancel(self, request, queryset):
-        quer = queryset.values_list('student_approved_username', 'student_approved_name')
-        msg = "Django后台取消核销操作 管理员{}:{} 操作学生{}".format(request.user.username, request.user.name,list(quer))
+        quer = queryset.values_list('student_approved_username', 'student_approved_name','id')
+        msg = "Django后台取消核销操作 管理员{}:{} 操作学生{} ".format(request.user.username, request.user.name,list(quer))
         info(msg)
         if request.user:
             queryset.update(manager_username=None,manager_name=None)
