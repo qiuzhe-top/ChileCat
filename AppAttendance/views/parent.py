@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-17 20:47:43
+LastEditTime: 2022-04-11 19:27:26
 Description: 父级视图
 '''
 import json
@@ -22,6 +22,7 @@ from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, utils
 from django.db.models.query_utils import Q
+from core.utils import info,error
 
 channel_layer = get_channel_layer()
 User = get_user_model()
@@ -569,6 +570,7 @@ class ExcelInData(PermissionView, ExcelBase):
         添加需要返回前端的信息
         '''
         self.message_list.append(d)
+        error(d)
 
     def get_name(self, name):
         # 获取用户实例

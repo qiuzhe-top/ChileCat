@@ -3,10 +3,11 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-03-23 18:34:58
+LastEditTime: 2022-04-11 19:35:14
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
+import time
 import json
 from urllib.request import Request
 
@@ -389,11 +390,15 @@ class BatchAttendance(ExcelInData):
                                 rule=rule,
                             )
                         )
+                        t = "执行时间：" + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                        msg = "批量考勤添加成功 {} ,数据：{}".format(t,row)
+                        info(msg)
                     except:
                         self.add_message(username, '添加失败')
 
                 else:
                     self.add_message(username, self.get_name(username), time, '已经存在')
+             
             except:
                 self.add_message(username, '数据异常')
 
