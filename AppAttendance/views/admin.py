@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-04-11 19:43:37
+LastEditTime: 2022-04-11 19:46:53
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
@@ -357,6 +357,7 @@ class BatchAttendance(ExcelInData):
 
         wait_create_record = []  # 等待批量获取的记录实例
         for row in self.rows:
+            str_row = ''.join(row)
             username = row['username']
             try:
                 time = row['time']
@@ -391,19 +392,17 @@ class BatchAttendance(ExcelInData):
                             )
                         )
                         t = "执行时间：" + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                        msg = "批量考勤添加成功 {} ,数据：{}".format(t,row)
+                        msg = "批量考勤添加成功 {} ,数据：{}".format(t,str_row)
                         info(msg)
                     except:
                         self.add_message(username, '添加失败')
-                        error(username + '添加失败' + json.dumps(row))
-
-
+                        error(username + '添加失败' + str_row)
                 else:
                     self.add_message(username, self.get_name(username), time, '已经存在')
              
             except:
                 self.add_message(username, '数据异常')
-                error(username + '数据异常' + json.dumps(row))
+                error(username + '数据异常' + str_row)
 
         Record.objects.bulk_create(wait_create_record)
 
