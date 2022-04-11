@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-01-26 13:32:21
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-04-11 19:41:16
+LastEditTime: 2022-04-11 19:43:37
 Description: 考勤任务管理员所需要的接口
 '''
 import datetime
@@ -395,7 +395,7 @@ class BatchAttendance(ExcelInData):
                         info(msg)
                     except:
                         self.add_message(username, '添加失败')
-                        error(username + '添加失败' + row)
+                        error(username + '添加失败' + json.dumps(row))
 
 
                 else:
@@ -403,7 +403,7 @@ class BatchAttendance(ExcelInData):
              
             except:
                 self.add_message(username, '数据异常')
-                error(username + '数据异常' + row)
+                error(username + '数据异常' + json.dumps(row))
 
         Record.objects.bulk_create(wait_create_record)
 
