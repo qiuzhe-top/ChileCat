@@ -3,7 +3,7 @@ Author: 邹洋
 Date: 2022-02-07 10:09:45
 Email: 2810201146@qq.com
 LastEditors:  
-LastEditTime: 2022-04-11 19:27:26
+LastEditTime: 2022-04-12 08:53:11
 Description: 父级视图
 '''
 import json
@@ -157,8 +157,8 @@ class RecordBase:
         record.manager_username = username
         record.manager_name = name
         record.save()
-        msg = "普通销假 销假原因: {} 销假人: {}:{} 被销假人:{}:{}".format(record.rule_str,username,name,
-                                                                        record.student_approved_username,record.student_approved_name)
+        msg = "普通销假 销假原因: {} 销假人: {}:{} 被销假人:{}:{} 记录ID：{}".format(record.rule_str,username,name,
+                                                                        record.student_approved_username,record.student_approved_name,record.id)
         info(msg)
 
     def submit_record(self, record_model):
