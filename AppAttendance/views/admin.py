@@ -439,50 +439,59 @@ class RecordQuery(CoolBFFAPIView,MultipleRecordQueryCriteria):
             ('end_date', fields.DateField(label=_('结束时间'))),
         )
 
+
 @site
 class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
     name = _('筛选导出记录情况')
 
     def get_context(self, request, *args, **kwargs):
-        records = self.query_data(request)
+        extra = {
+            'usernames': 'manager_username',
+            'grade': 'grade_str',
+            'name': 'student_approved_name',
+        }
+        records = self.query_data(request,extra).select_related('rule__rule')
         if not records:
             return HttpResponse('当前没有违纪记录')
+        records_summary = {}
 
-        records = (
-            records.values(
-                grade=F('grade_str'),
-                name=F('student_approved_name'),
-            )
-            .annotate(
-                rule_str=Concat('rule_str'),
-                score_onn=Concat('score'),
-                score=Sum('score'),
-                time=Concat('star_time'),
-                rule_type=Concat('rule__rule__codename'),
-            )
-            .values(
-                'grade',
-                'name',
-                'rule_type',
-                'rule_str',
-                'score_onn',
-                'score',
-                'time',
-                usernames=F('student_approved_username'),
-            )
-        )
         for record in records:
-            rule_type_ = record['rule_type'].split(',')
-            rule_ = record['rule_str'].split(',')
-            score_onn_ = record['score_onn'].split(',')
-            time_ = record['time'].split(',')
+            username = record.student_approved_username
+
+            # 是否第一次
+            if username not in records_summary.keys():
+                records_summary[username] = {
+                    'grade':record.grade_str,
+                    'name':record.student_approved_name,
+                    'usernames':record.student_approved_username,
+                    'rule_str':'',
+                    'score_onn':'',
+                    'time':'',
+                    'rule_type':'',
+                }
+         
+            record_user = records_summary[username]
+            record_user['rule_str']+=record.rule_str+","
+            record_user['score_onn']+=str(record.score)+","
+            record_user['time']+=str(record.star_time)+","
+            record_user['rule_type']+=str(record.rule.rule.codename)+","
+
+        for record in records_summary.values():
+            if not record['rule_type']:
+                continue
+            rule_type_ = record['rule_type'][:-1].split(',')
+            rule_ = record['rule_str'][:-1].split(',')
+            score_onn_ = record['score_onn'][:-1].split(',')
+            time_ = record['time'][:-1].split(',')
             rule_02_time = {}
+            record['score'] = 0
 
             if len(time_) != len(rule_):
                 record['name'] += ' 异常'
 
             for index in range(0, len(rule_type_)):
                 type_ = rule_type_[index]
+
                 if index > len(time_) - 1:
                     break
                 if not type_ + 'score' in record:
@@ -506,9 +515,11 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
 
                 # 分数累加
                 record[type_ + 'score'] += float(score_onn_[index])
+                record['score'] += float(score_onn_[index])
 
                 t = time_[index][5:10]
-                # 统计晚自修点名扣分
+
+                # 是否是晚自修
                 if type_ == RULE_CODE_02:
                     if t not in rule_02_time.keys():
                         rule_02_time[t] = []
@@ -531,11 +542,10 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
             del record['rule_type']
             del record['rule_str']
             del record['score_onn']
-
         # 导出
         wb, ws = self.open_excel("/core/file/学生考勤信息记录")
-        for i in records:
-            k = dict(i)
+        for i in records_summary.values():
+            k = i
             ws.append(
                 [
                     k.get('grade', ''),
@@ -577,7 +587,6 @@ class OutData(CoolBFFAPIView, ExcelBase, MultipleRecordQueryCriteria):
             ('start_date', fields.DateField(label=_('开始日期'), default=None)),
             ('end_date', fields.DateField(label=_('结束日期'), default=None)),
         )
-
 
 # ================================================= #
 # ************** 系统管理员        ************** #

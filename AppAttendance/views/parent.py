@@ -615,7 +615,7 @@ class ExcelInData(PermissionView, ExcelBase):
 
 class MultipleRecordQueryCriteria:
 
-    def query_data(self,request):
+    def query_data(self,request,extra=None):
         username = request.params.username
         college_id = request.params.college_id
         start_date = get_start_date(request)
@@ -627,8 +627,10 @@ class MultipleRecordQueryCriteria:
             q_user = Q(student_approved_username=username) | Q(student_approved_name=username)
         else:
             q_user = Q()
-
-        records = Record.objects.filter(
+        record_db =  Record.objects
+        if extra:
+            record_db = Record.objects.extra(select=extra)
+        records = record_db.filter(
             q4,q5,q6,q_user,
             star_time__range=(start_date, end_date),
             manager_username__isnull=True,
