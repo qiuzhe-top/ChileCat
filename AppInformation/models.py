@@ -24,7 +24,7 @@ class College(models.Model):
     code_name = models.CharField(max_length=50, verbose_name="分院代码")
 
     class Meta:
-        db_table = 'college'
+        # db_table = 'college'
         verbose_name = "学校分院"
         verbose_name_plural = "学校分院"
 
@@ -41,7 +41,7 @@ class Grade(models.Model):
         College, null=True, blank=True, on_delete=models.CASCADE, verbose_name="分院代码")
 
     class Meta:
-        db_table = 'grade'
+        # db_table = 'grade'
         verbose_name = "学校班级"
         verbose_name_plural = "学校班级"
 
@@ -59,7 +59,7 @@ class DormitoryBuilding(models.Model):
     class Meta:
         verbose_name = '宿舍信息'
         verbose_name_plural = verbose_name
-        db_table = 'dormitory_building'
+        # db_table = 'dormitory_building'
 
 
 class StuInRoom(ActiveBase):
@@ -80,6 +80,6 @@ class StuInRoom(ActiveBase):
         return self.get_room()
 
     class Meta:
-        db_table = 'stu_room'
+        # db_table = 'stu_room'
         verbose_name = '宿舍入住信息'
         verbose_name_plural = '宿舍入住信息'

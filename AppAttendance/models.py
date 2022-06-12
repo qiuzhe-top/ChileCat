@@ -20,7 +20,7 @@ class Rule(models.Model):
     class Meta:
         verbose_name = '一级规则'
         verbose_name_plural = '一级规则'
-        db_table = 'rule'
+        # db_table = 'rule'
 
     def __str__(self):
         return self.name
@@ -37,7 +37,7 @@ class RuleDetails(models.Model):
         'self', on_delete=models.CASCADE, null=True, blank=True, verbose_name=u'父类')
 
     class Meta:
-        db_table = 'rule_details'
+        # db_table = 'rule_details'
         verbose_name = '二级规则'
         verbose_name_plural = '二级规则'
 
@@ -91,7 +91,7 @@ class Task(BaseModel):
         return self.get_name()
 
     class Meta:
-        db_table = 'task'
+        # db_table = 'task'
         verbose_name = '任务'
         verbose_name_plural = '任务'
 
@@ -152,7 +152,7 @@ class Record(models.Model):
     #         update_fields=update_fields
     #     )
     class Meta:
-        db_table = 'record'
+        # db_table = 'record'
         verbose_name = '任务-考勤记录'
         verbose_name_plural = '任务-考勤记录'
 

@@ -27,7 +27,7 @@ class Token(models.Model):
         return self.user.username + "的token:" + self.token
 
     class Meta:
-        db_table = 'token'
+        # db_table = 'token'
         managed = True
         verbose_name = '用户token'
         verbose_name_plural = '用户token'
@@ -95,6 +95,6 @@ class User(AbstractUser):  # 自定义User
         return self.username
 
     class Meta:
-        db_table = 'user'
+        # db_table = 'user'
         verbose_name = "用户"
         verbose_name_plural = verbose_name
