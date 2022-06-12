@@ -9,11 +9,12 @@ Description: 学校宿舍
 import json
 from AppInformation.models import *
 from AppAttendance.models import Task
-from core.views import PermissionView
+from core.views import InitCacheConnection, PermissionView
 from rest_framework import fields
 from cool.views import CoolAPIException, CoolBFFAPIView, ErrorCode, ViewSite
 from AppAttendance import serializers as attendance_serializers
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 site = ViewSite(name='AppInformation', app_name='AppInformation')
 
 @site
@@ -64,7 +65,44 @@ class Mybedroom(PermissionView):
         rooms = StuInRoom.objects.filter(room=room)
         return attendance_serializers.DormStudentRoomInfoTrue(rooms, many=True, request=request).data
 
+@site
+class MybedroomNumber(PermissionView):
+    name = _('我的寝室门牌号')
+   
+    def get_context(self, request, *args, **kwargs):
+        try:
+            room = StuInRoom.objects.get(user=request.user).room
+            return room.id
+        except:
+            raise CoolAPIException(ErrorCode.DORMITORY_NOT_ARRANGED)
 
+@site
+class SetMybedroomNumber(PermissionView):
+    name = _('设置我的寝室门牌号')
+   
+    def get_context(self, request, *args, **kwargs):
+        room_id = request.params.id
+        conn = InitCacheConnection()
+        flg = conn.cache.get('is_set_my_bedroom_number')
+        if not flg:
+            raise CoolAPIException(ErrorCode.NOT_SETTING_TIME)
+
+        try:
+            db = DormitoryBuilding.objects.get(id=room_id)
+        except:
+            raise CoolAPIException(ErrorCode.DORMITORY_DOES_NOT_EXIST)
+            
+        try:
+            sroom = StuInRoom.objects.get(user=request.user)
+            sroom.room = db
+            sroom.save()
+        except:
+            raise CoolAPIException(ErrorCode.MODIFY_THE_FAILURE)
+
+    class Meta:
+        param_fields = (
+            ('id',fields.CharField(label=_('寝室门牌号'))),
+        )
 @site
 class UpdateBeds(PermissionView):
     name = _('修改床位')

@@ -118,6 +118,7 @@ CACHES = {
         }
     }
 }
+BUSINESS_SETTING_CACHE = 'BUSINESS_SETTING_CACHE'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -249,6 +250,9 @@ DJANGO_COOL = {
         ('THE_REASON_IS_EMPTY', (5028, '原因为空')),
         ('NO_COLLEGE_CODE', (5029, '缺少分院代码/分院不存在')),
         ('ABNORMAL_ATTENDANCE', (5030, '查询异常')),
+        ('DORMITORY_DOES_NOT_EXIST', (5031, '寝室不存在')),
+        ('MODIFY_THE_FAILURE', (5032, '修改失败')),
+        ('NOT_SETTING_TIME', (5033, '不在设置时间')),
     )
 }
 # SimpleUi 配置
